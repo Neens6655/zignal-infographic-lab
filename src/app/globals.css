@@ -1,0 +1,443 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* === NEO BAUHAUS DESIGN SYSTEM === */
+
+  /* Typography: IBM Plex family */
+  --font-sans: var(--font-ibm-plex-sans);
+  --font-mono: var(--font-ibm-plex-mono);
+
+  /* Tailwind color mappings */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Bauhaus: 0px radius everywhere */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+}
+
+/* === NEO BAUHAUS DARK THEME === */
+:root {
+  --radius: 0px;
+
+  /* Core: Deep charcoal */
+  --background: #0A0A0B;
+  --foreground: #E8E5E0;
+  --card: #141416;
+  --card-foreground: #E8E5E0;
+  --popover: #141416;
+  --popover-foreground: #E8E5E0;
+
+  /* Primary = Gold (accent only) */
+  --primary: #D4A84B;
+  --primary-foreground: #0A0A0B;
+
+  /* Secondary */
+  --secondary: #1C1C1F;
+  --secondary-foreground: #E8E5E0;
+
+  /* Muted */
+  --muted: #1C1C1F;
+  --muted-foreground: #6B6B73;
+
+  /* Accent */
+  --accent: #D4A84B;
+  --accent-foreground: #0A0A0B;
+
+  /* Destructive */
+  --destructive: #C04B3C;
+
+  /* Borders */
+  --border: #2A2A2E;
+  --input: #2A2A2E;
+  --ring: #D4A84B;
+
+  /* Charts */
+  --chart-1: #5B8DEF;
+  --chart-2: #8BC34A;
+  --chart-3: #D4A84B;
+  --chart-4: #C04B3C;
+  --chart-5: #A78BFA;
+
+  /* Sidebar */
+  --sidebar: #0A0A0B;
+  --sidebar-foreground: #E8E5E0;
+  --sidebar-primary: #D4A84B;
+  --sidebar-primary-foreground: #0A0A0B;
+  --sidebar-accent: #D4A84B;
+  --sidebar-accent-foreground: #0A0A0B;
+  --sidebar-border: #2A2A2E;
+  --sidebar-ring: #D4A84B;
+
+  /* Z-Signal Extended Tokens — Neo Bauhaus */
+  --z-bg: #0A0A0B;
+  --z-bg-alt: #0F0F11;
+  --z-bg-warm: #111110;
+  --z-surface: #141416;
+  --z-surface-2: #1C1C1F;
+  --z-gold: #D4A84B;
+  --z-gold-dim: #B8922F;
+  --z-brick: #C04B3C;
+  --z-blue: #5B8DEF;
+  --z-olive: #8BC34A;
+  --z-cream: #E8E5E0;
+  --z-muted: #6B6B73;
+
+  /* Light section tokens */
+  --z-light: #F5F2ED;
+  --z-light-text: #1A1A1C;
+  --z-light-muted: #8A8780;
+  --z-light-border: #D8D4CC;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* === SELECTION === */
+::selection {
+  background: rgba(212, 168, 75, 0.3);
+  color: #E8E5E0;
+}
+
+/* === TERMINAL SHADOW (Neo Bauhaus signature) === */
+.terminal-shadow {
+  box-shadow: 6px 6px 0 rgba(212, 168, 75, 0.12);
+}
+.terminal-shadow-light {
+  box-shadow: 6px 6px 0 rgba(26, 26, 28, 0.08);
+}
+
+/* === GLOW EFFECTS === */
+.glow-gold {
+  box-shadow: 0 0 20px rgba(212, 168, 75, 0.15), 0 0 60px rgba(212, 168, 75, 0.05);
+}
+.glow-gold-sm {
+  box-shadow: 0 0 10px rgba(212, 168, 75, 0.1);
+}
+
+/* === GRADIENT TEXT === */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #D4A84B 0%, #E8C96A 50%, #D4A84B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === NOISE TEXTURE OVERLAY === */
+.noise::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.025;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* === EDITORIAL HEADING === */
+.heading-editorial {
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+}
+
+/* === MONO LABEL === */
+.label-mono {
+  font-family: var(--font-ibm-plex-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* === HERO IMAGE ZOOM (Ken Burns) === */
+@keyframes hero-zoom {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); }
+}
+.animate-hero-zoom {
+  animation: hero-zoom 8s ease-out forwards;
+}
+
+/* === GALLERY MARQUEE (Napkin-style infinite scroll) === */
+.gallery-marquee-track {
+  display: flex;
+  gap: 1.25rem;
+  width: max-content;
+  animation: gallery-scroll-left 80s linear infinite;
+}
+.gallery-marquee-track:hover {
+  animation-play-state: paused;
+}
+.gallery-marquee-track-reverse {
+  display: flex;
+  gap: 1.25rem;
+  width: max-content;
+  animation: gallery-scroll-right 90s linear infinite;
+}
+.gallery-marquee-track-reverse:hover {
+  animation-play-state: paused;
+}
+@keyframes gallery-scroll-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes gallery-scroll-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+
+/* === PIPELINE CONNECTOR === */
+.pipeline-line {
+  background: linear-gradient(90deg, transparent 0%, var(--z-gold) 15%, var(--z-gold) 85%, transparent 100%);
+}
+
+/* === METALLIC FRAME (hero generator card) === */
+.metallic-frame {
+  background: linear-gradient(180deg, #18181B 0%, #0E0E10 5%, #0A0A0D 50%, #0E0E10 95%, #18181B 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.03),
+    0 8px 40px rgba(0, 0, 0, 0.5),
+    0 2px 12px rgba(212, 168, 75, 0.06);
+}
+
+/* === ENGINE SCREEN (retro CRT frame) === */
+.engine-screen {
+  box-shadow:
+    0 0 40px rgba(212, 168, 75, 0.06),
+    0 0 80px rgba(212, 168, 75, 0.03),
+    inset 0 0 60px rgba(0, 0, 0, 0.3),
+    0 2px 0 rgba(255, 255, 255, 0.02);
+}
+.engine-inner {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(212, 168, 75, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 80%, rgba(91, 141, 239, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.008) 0%, transparent 80%),
+    linear-gradient(180deg, #0D0D10 0%, #0A0A0D 40%, #0C0C0F 100%);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+}
+.engine-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.engine-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.12) 2px,
+    rgba(0, 0, 0, 0.12) 4px
+  );
+  opacity: 0.4;
+}
+
+/* === IMPROVE BUTTON SHIMMER === */
+@keyframes improve-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@keyframes improve-glow {
+  0%, 100% { box-shadow: 0 0 6px rgba(212, 168, 75, 0.15); }
+  50% { box-shadow: 0 0 14px rgba(212, 168, 75, 0.35), 0 0 4px rgba(212, 168, 75, 0.2); }
+}
+.improve-btn {
+  animation: improve-glow 2.5s ease-in-out infinite;
+  background: rgba(212, 168, 75, 0.06);
+}
+.improve-btn:hover {
+  background: rgba(212, 168, 75, 0.12);
+}
+.improve-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(212, 168, 75, 0.15) 50%, transparent 100%);
+  animation: improve-shimmer 2.5s ease-in-out infinite;
+}
+
+/* === GENERATION PROGRESS === */
+@keyframes pulse-gold {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+.animate-pulse-gold {
+  animation: pulse-gold 2s ease-in-out infinite;
+}
+
+/* === MARQUEE === */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 60s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* === SCROLL INDICATOR === */
+@keyframes scroll-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+.animate-scroll-bounce {
+  animation: scroll-bounce 2s ease-in-out infinite;
+}
+
+/* === HERO GRADIENT ORBS === */
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25%      { transform: translate(60px, -30px) scale(1.05); }
+  50%      { transform: translate(-20px, 40px) scale(0.97); }
+  75%      { transform: translate(40px, 20px) scale(1.02); }
+}
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25%      { transform: translate(-50px, 30px) scale(0.96); }
+  50%      { transform: translate(30px, -50px) scale(1.04); }
+  75%      { transform: translate(-40px, -20px) scale(0.98); }
+}
+@keyframes orb-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(40px, 50px) scale(1.06); }
+  66%      { transform: translate(-60px, -30px) scale(0.94); }
+}
+
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  will-change: transform;
+  pointer-events: none;
+}
+.hero-orb-gold {
+  width: 900px;
+  height: 700px;
+  background: radial-gradient(ellipse at center, rgba(212, 168, 75, 0.22), transparent 65%);
+  top: 5%;
+  left: 25%;
+  animation: orb-drift-1 28s ease-in-out infinite;
+}
+.hero-orb-blue {
+  width: 800px;
+  height: 600px;
+  background: radial-gradient(ellipse at center, rgba(91, 141, 239, 0.14), transparent 65%);
+  top: 30%;
+  right: 10%;
+  animation: orb-drift-2 34s ease-in-out infinite;
+}
+.hero-orb-warm {
+  width: 650px;
+  height: 450px;
+  background: radial-gradient(ellipse at center, rgba(192, 75, 60, 0.09), transparent 65%);
+  bottom: 0%;
+  left: 5%;
+  animation: orb-drift-3 22s ease-in-out infinite;
+}
+
+/* === FLOATING INFOGRAPHIC MOTIFS === */
+@keyframes motif-drift-1 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25%      { transform: translate(20px, -15px) rotate(3deg); }
+  50%      { transform: translate(-10px, 25px) rotate(-2deg); }
+  75%      { transform: translate(15px, 10px) rotate(1deg); }
+}
+@keyframes motif-drift-2 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33%      { transform: translate(-25px, 20px) rotate(-4deg); }
+  66%      { transform: translate(20px, -20px) rotate(3deg); }
+}
+@keyframes motif-drift-3 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50%      { transform: translate(30px, 15px) rotate(5deg); }
+}
+@keyframes motif-drift-4 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  40%      { transform: translate(-15px, -25px) rotate(-3deg); }
+  80%      { transform: translate(10px, 20px) rotate(2deg); }
+}
+
+.hero-motif {
+  position: absolute;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* === BAUHAUS LOADING SHAPES === */
+@keyframes bauhaus-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes bauhaus-scale {
+  0%, 100% { transform: scale(0.8); opacity: 0.6; }
+  50%      { transform: scale(1.1); opacity: 1; }
+}
+@keyframes bauhaus-drift-up {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-20px) rotate(15deg); }
+}
+@keyframes bauhaus-drift-down {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(20px) rotate(-10deg); }
+}
+@keyframes bauhaus-orbit {
+  from { transform: rotate(0deg) translateX(80px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(80px) rotate(-360deg); }
+}
+@keyframes bauhaus-assemble {
+  0%   { opacity: 0; transform: translate(var(--bh-x), var(--bh-y)) scale(0); }
+  30%  { opacity: 1; transform: translate(0, 0) scale(1.1); }
+  100% { opacity: 1; transform: translate(0, 0) scale(1); }
+}
