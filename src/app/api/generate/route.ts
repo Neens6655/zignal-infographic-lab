@@ -42,6 +42,7 @@ export async function POST(request: Request) {
           image_url: dataUrl,
           download_url: dataUrl,
           metadata: result.metadata,
+          provenance: result.provenance,
         });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Generation failed';

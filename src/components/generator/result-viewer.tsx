@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Download, RotateCcw, ChevronDown, ChevronUp, Sparkles,
   Copy, Check, Share2, FileImage, FileText, Presentation, Loader2,
-  ZoomIn, X,
+  ZoomIn, X, Shield,
 } from 'lucide-react';
+import { ProvenanceCertificate } from './provenance-certificate';
 
 /* ── Social SVG icons (lightweight, no deps) ───────────────── */
 
@@ -67,10 +68,21 @@ type GenerationContext = {
   simplify: boolean;
 };
 
+type ProvenanceData = {
+  seed: string;
+  generatedAt: string;
+  contentHash: string;
+  models: { analysis: string; image: string };
+  pipeline: { stage: string; agent: string; result: string }[];
+  references: string[];
+  topics: string[];
+};
+
 type Props = {
   imageUrl: string;
   downloadUrl: string;
   metadata: Record<string, any>;
+  provenance?: ProvenanceData;
   onRegenerate: () => void;
   onRegenerateWithStyle?: (style: string) => void;
   generationContext?: GenerationContext;
@@ -209,7 +221,7 @@ function CelebrationParticles() {
    ═══════════════════════════════════════════════════════════════ */
 
 export function ResultViewer({
-  imageUrl, metadata, onRegenerate, onRegenerateWithStyle, generationContext,
+  imageUrl, metadata, provenance, onRegenerate, onRegenerateWithStyle, generationContext,
 }: Props) {
   const [showContext, setShowContext] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -217,6 +229,7 @@ export function ResultViewer({
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState<string | null>(null);
   const [zoomed, setZoomed] = useState(false);
+  const [showCertificate, setShowCertificate] = useState(false);
 
   const displayUrl = imageUrl.startsWith('http') || imageUrl.startsWith('data:')
     ? imageUrl
@@ -370,6 +383,52 @@ export function ResultViewer({
             </motion.span>
           ))}
         </div>
+      )}
+
+      {/* ── Topic tags ── */}
+      {provenance?.topics && provenance.topics.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.85 }}
+          className="flex flex-wrap gap-1.5 justify-center"
+        >
+          {provenance.topics.map((topic) => (
+            <span
+              key={topic}
+              className="inline-flex items-center px-2.5 py-0.5 text-[9px] font-mono text-white/50 bg-white/[0.04] border border-white/[0.06]"
+            >
+              {topic}
+            </span>
+          ))}
+        </motion.div>
+      )}
+
+      {/* ── Certificate button ── */}
+      {provenance && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9 }}
+          className="flex items-center justify-center gap-3"
+        >
+          <button
+            onClick={() => setShowCertificate(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-mono font-semibold text-[#D4A84B]/80 bg-[#D4A84B]/[0.06] border border-[#D4A84B]/20 hover:bg-[#D4A84B]/10 hover:text-[#D4A84B] transition-all"
+          >
+            <Shield className="h-3.5 w-3.5" />
+            Certificate {provenance.seed}
+          </button>
+        </motion.div>
+      )}
+
+      {/* ── Provenance Certificate Modal ── */}
+      {provenance && (
+        <ProvenanceCertificate
+          provenance={provenance}
+          open={showCertificate}
+          onClose={() => setShowCertificate(false)}
+        />
       )}
 
       {/* ── Download + Export ── */}

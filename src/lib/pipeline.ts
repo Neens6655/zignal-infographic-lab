@@ -25,6 +25,23 @@ type PipelineInput = {
   simplify?: boolean;
 };
 
+type ProvenanceData = {
+  seed: string;
+  generatedAt: string;
+  contentHash: string;
+  models: {
+    analysis: string;
+    image: string;
+  };
+  pipeline: {
+    stage: string;
+    agent: string;
+    result: string;
+  }[];
+  references: string[];
+  topics: string[];
+};
+
 type PipelineResult = {
   imageBase64: string;
   metadata: {
@@ -33,6 +50,7 @@ type PipelineResult = {
     preset: string;
     aspect_ratio: string;
   };
+  provenance: ProvenanceData;
 };
 
 type ContentAnalysis = {
@@ -41,6 +59,7 @@ type ContentAnalysis = {
   style: string;
   tone: string;
   sectionCount: number;
+  topics: string[];
 };
 
 type StructuredContent = {
@@ -159,6 +178,23 @@ async function geminiGenerateImage(prompt: string, aspectRatio: string): Promise
   throw new Error('No image data in Gemini response');
 }
 
+// ── Provenance helpers ─────────────────────────────────────────
+
+function generateSeed(): string {
+  const hex = Array.from(crypto.getRandomValues(new Uint8Array(3)))
+    .map(b => b.toString(16).padStart(2, '0').toUpperCase())
+    .join('');
+  return `ZG-${hex}`;
+}
+
+async function hashContent(content: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(content);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 12);
+}
+
 // ── Reference file loader ──────────────────────────────────────
 
 const REFS_DIR = path.join(process.cwd(), 'src', 'lib', 'references');
@@ -181,12 +217,20 @@ async function analyzeContent(
 ): Promise<ContentAnalysis> {
   if (preset && preset !== 'auto' && PRESETS[preset]) {
     const p = PRESETS[preset];
+    // Still extract topics even with preset
+    let topics: string[] = [];
+    try {
+      const topicResponse = await geminiGenerate(TEXT_MODEL, `Extract 3-6 topic keywords from this content. Respond as a JSON array of lowercase strings only (no markdown fences):\n\n${content.slice(0, 2000)}`);
+      const topicMatch = topicResponse.match(/\[[\s\S]*\]/);
+      topics = JSON.parse(topicMatch?.[0] || '[]');
+    } catch { /* fallback to empty */ }
     return {
       contentType: preset,
       layout: userLayout || p.layout,
       style: userStyle || p.style,
       tone: p.tone,
       sectionCount: 5,
+      topics,
     };
   }
 
@@ -204,7 +248,8 @@ Respond in JSON only (no markdown fences):
   "layout": "best-layout-id",
   "style": "best-style-id",
   "tone": "professional|academic|playful|technical|editorial",
-  "section_count": 5
+  "section_count": 5,
+  "topics": ["keyword1", "keyword2", "keyword3"]
 }
 
 CONTENT:
@@ -219,6 +264,7 @@ ${content.slice(0, 3000)}`);
       style: userStyle || parsed.style || 'corporate-memphis',
       tone: parsed.tone || 'professional',
       sectionCount: parsed.section_count || 5,
+      topics: parsed.topics || [],
     };
   } catch {
     return {
@@ -227,6 +273,7 @@ ${content.slice(0, 3000)}`);
       style: userStyle || 'corporate-memphis',
       tone: 'professional',
       sectionCount: 5,
+      topics: [],
     };
   }
 }
@@ -381,24 +428,41 @@ export async function runPipeline(
 ): Promise<PipelineResult> {
   const aspectRatio = input.aspect_ratio || '16:9';
   const language = input.language || 'en';
+  const seed = generateSeed();
+  const generatedAt = new Date().toISOString();
+  const pipelineTrace: ProvenanceData['pipeline'] = [];
+
+  // Content hash
+  const contentHash = await hashContent(input.content);
 
   // Stage 1: Analyze content
   onProgress({ status: 'analyzing', progress: 10, message: 'Analyzing content structure...' });
   const analysis = await analyzeContent(input.content, input.preset, input.layout, input.style);
+  pipelineTrace.push({ stage: '01', agent: 'Sentinel', result: `Extracted ${input.content.length} chars, type: ${analysis.contentType}` });
   onProgress({ status: 'analyzing', progress: 25, message: `Selected: ${analysis.layout} + ${analysis.style}` });
 
   // Stage 2: Structure content
   onProgress({ status: 'structuring', progress: 35, message: 'Building infographic sections...' });
   const structured = await structureContent(input.content, analysis);
+  pipelineTrace.push({ stage: '02', agent: 'Oracle', result: `${structured.sections.length} sections, tone: ${analysis.tone}` });
   onProgress({ status: 'structuring', progress: 50, message: `Created ${structured.sections.length} sections` });
 
   // Stage 3: Assemble prompt
   onProgress({ status: 'assembling', progress: 55, message: 'Assembling generation prompt...' });
   const prompt = await assemblePrompt(structured, analysis, aspectRatio, language);
+  pipelineTrace.push({ stage: '03', agent: 'Architect', result: `${analysis.layout} layout, ${analysis.style} style` });
+
+  // Collect reference files used
+  const references = [
+    'base-prompt.md',
+    `layouts/${analysis.layout}.md`,
+    `styles/${analysis.style}.md`,
+  ];
 
   // Stage 4: Generate image
   onProgress({ status: 'generating', progress: 60, message: 'Rendering your infographic...' });
   const imageBase64 = await geminiGenerateImage(prompt, aspectRatio);
+  pipelineTrace.push({ stage: '04', agent: 'Renderer', result: `${IMAGE_MODEL}, aspect: ${aspectRatio}` });
   onProgress({ status: 'generating', progress: 95, message: 'Finalizing...' });
 
   return {
@@ -408,6 +472,18 @@ export async function runPipeline(
       style: analysis.style,
       preset: input.preset || 'auto',
       aspect_ratio: aspectRatio,
+    },
+    provenance: {
+      seed,
+      generatedAt,
+      contentHash,
+      models: {
+        analysis: TEXT_MODEL,
+        image: IMAGE_MODEL,
+      },
+      pipeline: pipelineTrace,
+      references,
+      topics: analysis.topics,
     },
   };
 }

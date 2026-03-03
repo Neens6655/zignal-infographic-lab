@@ -17,7 +17,7 @@ import {
   Sparkles, ArrowRight, ArrowUpRight,
   FileText, Globe, Upload, CheckCircle2,
   LayoutGrid, MonitorSmartphone,
-  Search, Palette, Zap, Server,
+  Search, Palette, Zap,
   ChevronDown, SlidersHorizontal, X,
   Brain, Wand2, Layers3, FileCode, Cpu, Loader2, Video,
   Link2, AlertCircle, UploadCloud,
@@ -114,13 +114,6 @@ const PRODUCTS = [
     description: 'Output meets the visual standard of top-tier consulting firms. High-resolution renders suitable for boardroom presentations and editorial publications.',
     links: [{ label: 'Gallery', href: '#' }],
     icon: Zap,
-  },
-  {
-    name: 'Enterprise Pipeline',
-    labels: ['REST API', 'MCP SERVER', 'BATCH PROCESSING'],
-    description: 'Integrate the full seven-stage pipeline into your workflow. REST API for programmatic access. MCP Server for AI agent integration.',
-    links: [{ label: 'API docs', href: '#' }, { label: 'Get API key', href: '#' }],
-    icon: Server,
   },
 ];
 
@@ -673,6 +666,7 @@ export default function Home() {
               imageUrl={state.imageUrl}
               downloadUrl={state.downloadUrl}
               metadata={state.metadata}
+              provenance={state.provenance}
               onRegenerate={reset}
               onRegenerateWithStyle={(style: string) => {
                 const input: GenerateInput = {
@@ -1245,17 +1239,79 @@ export default function Home() {
       <section className="py-24 sm:py-32 bg-(--z-bg)">
         <div className="mx-auto max-w-7xl px-6">
           <div className="lg:grid lg:grid-cols-5 lg:gap-20">
-            {/* Left: sticky heading */}
+            {/* Left: sticky gold schematic illustration */}
             <div className="lg:col-span-2 lg:sticky lg:top-32 lg:self-start mb-16 lg:mb-0">
               <ScrollReveal>
-                <p className="label-mono text-(--z-gold) mb-4">Capabilities</p>
-                <h2 className="text-5xl sm:text-6xl lg:text-7xl font-mono font-medium heading-editorial mb-8">
-                  Built to<br />
-                  generate.<br />
-                  <span className="text-(--z-muted)">Ready to ship.</span>
+                <p className="label-mono text-(--z-gold) mb-6">Capabilities</p>
+                {/* Gold schematic SVG — abstract pipeline engine */}
+                <div className="relative mb-10">
+                  <svg viewBox="0 0 280 360" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-[280px]">
+                    {/* Grid dots */}
+                    {Array.from({ length: 7 }, (_, row) =>
+                      Array.from({ length: 5 }, (_, col) => (
+                        <circle key={`${row}-${col}`} cx={30 + col * 55} cy={20 + row * 55} r="1" fill="#D4A84B" opacity="0.15" />
+                      ))
+                    ).flat()}
+
+                    {/* Node 1 — Research hexagon */}
+                    <g>
+                      <polygon points="70,50 100,35 130,50 130,80 100,95 70,80" stroke="#D4A84B" strokeWidth="1.5" fill="none" opacity="0.8" />
+                      <circle cx="100" cy="65" r="8" stroke="#D4A84B" strokeWidth="1" fill="#D4A84B" fillOpacity="0.1" />
+                      <circle cx="100" cy="65" r="3" fill="#D4A84B" fillOpacity="0.6" />
+                      <text x="100" y="108" textAnchor="middle" fill="#D4A84B" fontSize="8" fontFamily="monospace" opacity="0.5">RESEARCH</text>
+                    </g>
+
+                    {/* Flow line 1→2 */}
+                    <path d="M100 95 L100 120 Q100 130 110 135 L140 148" stroke="#D4A84B" strokeWidth="1" opacity="0.3" strokeDasharray="4 3" />
+                    <circle cx="120" cy="132" r="2" fill="#D4A84B" opacity="0.5">
+                      <animate attributeName="opacity" values="0.2;0.8;0.2" dur="2s" repeatCount="indefinite" />
+                    </circle>
+
+                    {/* Node 2 — Design diamond */}
+                    <g>
+                      <rect x="135" y="130" width="60" height="60" rx="0" stroke="#D4A84B" strokeWidth="1.5" fill="none" opacity="0.8" transform="rotate(45 165 160)" />
+                      <rect x="153" y="148" width="24" height="24" stroke="#D4A84B" strokeWidth="0.8" fill="#D4A84B" fillOpacity="0.08" transform="rotate(45 165 160)" />
+                      <circle cx="165" cy="160" r="4" fill="#D4A84B" fillOpacity="0.5" />
+                      <text x="165" y="205" textAnchor="middle" fill="#D4A84B" fontSize="8" fontFamily="monospace" opacity="0.5">DESIGN</text>
+                    </g>
+
+                    {/* Flow line 2→3 */}
+                    <path d="M165 195 L165 215 Q165 225 155 230 L120 245" stroke="#D4A84B" strokeWidth="1" opacity="0.3" strokeDasharray="4 3" />
+                    <circle cx="145" cy="232" r="2" fill="#D4A84B" opacity="0.5">
+                      <animate attributeName="opacity" values="0.2;0.8;0.2" dur="2s" begin="0.7s" repeatCount="indefinite" />
+                    </circle>
+
+                    {/* Node 3 — Render octagon */}
+                    <g>
+                      <polygon points="80,240 110,230 140,240 150,265 140,290 110,300 80,290 70,265" stroke="#D4A84B" strokeWidth="1.5" fill="none" opacity="0.8" />
+                      <polygon points="95,255 115,248 135,255 140,270 135,285 115,290 95,285 90,270" stroke="#D4A84B" strokeWidth="0.6" fill="#D4A84B" fillOpacity="0.06" />
+                      <circle cx="110" cy="268" r="5" fill="#D4A84B" fillOpacity="0.4" />
+                      <text x="110" y="318" textAnchor="middle" fill="#D4A84B" fontSize="8" fontFamily="monospace" opacity="0.5">RENDER</text>
+                    </g>
+
+                    {/* Floating data particles */}
+                    <circle cx="45" cy="140" r="1.5" fill="#D4A84B" opacity="0.3">
+                      <animate attributeName="cy" values="140;130;140" dur="3s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="230" cy="100" r="1.5" fill="#D4A84B" opacity="0.3">
+                      <animate attributeName="cy" values="100;90;100" dur="2.5s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="220" cy="260" r="1.5" fill="#D4A84B" opacity="0.3">
+                      <animate attributeName="cy" values="260;250;260" dur="3.5s" repeatCount="indefinite" />
+                    </circle>
+
+                    {/* Connecting lines to edges */}
+                    <line x1="70" y1="65" x2="30" y2="65" stroke="#D4A84B" strokeWidth="0.5" opacity="0.15" />
+                    <line x1="207" y1="160" x2="260" y2="160" stroke="#D4A84B" strokeWidth="0.5" opacity="0.15" />
+                    <line x1="150" y1="268" x2="250" y2="268" stroke="#D4A84B" strokeWidth="0.5" opacity="0.15" />
+                  </svg>
+                </div>
+
+                <h2 className="text-3xl sm:text-4xl font-mono font-medium heading-editorial mb-4">
+                  Built to generate.
                 </h2>
-                <p className="text-sm text-(--z-muted) leading-relaxed max-w-sm mb-10">
-                  Whether you&apos;re building presentations, reports, or social content — our seven-stage pipeline handles the research, design, and rendering.
+                <p className="text-sm text-(--z-muted) leading-relaxed max-w-sm mb-8">
+                  Research. Design. Render. Our pipeline handles everything from source verification to publication-quality output.
                 </p>
                 <button
                   onClick={scrollToGenerator}
@@ -1517,32 +1573,47 @@ export default function Home() {
               <div>
                 <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/40 mb-5">Product</p>
                 <div className="space-y-3">
-                  {['Infographic Lab', 'API', 'MCP Server', 'Pricing'].map((link) => (
-                    <a key={link} href="#" className="block text-xs text-white/50 hover:text-white transition-colors font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)">{link}</a>
+                  {[
+                    { label: 'Infographic Lab', href: '/#main-content' },
+                    { label: 'API', href: '/docs#api' },
+                    { label: 'Pricing', href: '/pricing' },
+                  ].map((link) => (
+                    <a key={link.label} href={link.href} className="block text-xs text-white/50 hover:text-white transition-colors font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)">{link.label}</a>
                   ))}
                 </div>
               </div>
               <div>
                 <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/40 mb-5">Resources</p>
                 <div className="space-y-3">
-                  {['Documentation', 'Changelog', 'Style Guide', 'Layout Reference'].map((link) => (
-                    <a key={link} href="#" className="block text-xs text-white/50 hover:text-white transition-colors font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)">{link}</a>
+                  {[
+                    { label: 'Documentation', href: '/docs' },
+                    { label: 'Changelog', href: '/changelog' },
+                    { label: 'Style Guide', href: '/styles' },
+                  ].map((link) => (
+                    <a key={link.label} href={link.href} className="block text-xs text-white/50 hover:text-white transition-colors font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)">{link.label}</a>
                   ))}
                 </div>
               </div>
               <div>
                 <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/40 mb-5">Company</p>
                 <div className="space-y-3">
-                  {['About ZGNAL.AI', 'Trend Engine', 'GitHub', 'Contact'].map((link) => (
-                    <a key={link} href="#" className="block text-xs text-white/50 hover:text-white transition-colors font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)">{link}</a>
+                  {[
+                    { label: 'About', href: '/about' },
+                    { label: 'Contact', href: '/contact' },
+                    { label: 'GitHub', href: 'https://github.com/ziadmustafa1' },
+                  ].map((link) => (
+                    <a key={link.label} href={link.href} className="block text-xs text-white/50 hover:text-white transition-colors font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)">{link.label}</a>
                   ))}
                 </div>
               </div>
               <div>
                 <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/40 mb-5">Legal</p>
                 <div className="space-y-3">
-                  {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map((link) => (
-                    <a key={link} href="#" className="block text-xs text-white/50 hover:text-white transition-colors font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)">{link}</a>
+                  {[
+                    { label: 'Privacy Policy', href: '/privacy' },
+                    { label: 'Terms of Service', href: '/terms' },
+                  ].map((link) => (
+                    <a key={link.label} href={link.href} className="block text-xs text-white/50 hover:text-white transition-colors font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)">{link.label}</a>
                   ))}
                 </div>
               </div>
@@ -1561,10 +1632,9 @@ export default function Home() {
                 &copy; {new Date().getFullYear()} ZGNAL.AI — All rights reserved.
               </span>
               <div className="flex items-center gap-5 text-[11px] text-white/40 font-mono">
-                <a href="#" className="hover:text-white/50 transition-colors">Privacy</a>
-                <a href="#" className="hover:text-white/50 transition-colors">Terms</a>
-                <a href="#" className="hover:text-white/50 transition-colors">X</a>
-                <a href="#" className="hover:text-white/50 transition-colors">GitHub</a>
+                <a href="/privacy" className="hover:text-white/50 transition-colors">Privacy</a>
+                <a href="/terms" className="hover:text-white/50 transition-colors">Terms</a>
+                <a href="https://github.com/ziadmustafa1" target="_blank" rel="noopener noreferrer" className="hover:text-white/50 transition-colors">GitHub</a>
               </div>
             </div>
           </div>
@@ -1582,7 +1652,7 @@ function Nav() {
   return (
     <nav className="fixed top-0 z-50 w-full bg-[#0A0A0B]/60 backdrop-blur-2xl border-b border-white/[0.04]">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <div className="flex items-center gap-2.5">
+        <a href="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
           <div className="h-8 w-8 bg-gradient-to-br from-[#E8C96A] to-[#D4A84B] flex items-center justify-center shadow-[0_0_12px_rgba(212,168,75,0.25)]" style={{ borderRadius: '3px' }}>
             <ZignalLogo size={17} className="text-[#0A0A0B]" />
           </div>
@@ -1593,7 +1663,7 @@ function Nav() {
           <span className="hidden sm:inline text-[9px] text-white/30 font-mono tracking-[0.15em] uppercase border-l border-white/[0.08] pl-3 ml-1">
             Infographic Lab
           </span>
-        </div>
+        </a>
 
         <div className="flex items-center gap-6">
           {[

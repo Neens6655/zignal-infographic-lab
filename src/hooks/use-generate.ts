@@ -3,11 +3,21 @@
 import { useState, useCallback, useRef } from 'react';
 import type { GenerateInput } from '@/lib/types';
 
+type ProvenanceData = {
+  seed: string;
+  generatedAt: string;
+  contentHash: string;
+  models: { analysis: string; image: string };
+  pipeline: { stage: string; agent: string; result: string }[];
+  references: string[];
+  topics: string[];
+};
+
 type GeneratePhase =
   | { phase: 'idle' }
   | { phase: 'submitting' }
   | { phase: 'streaming'; jobId: string; status: string; progress: number; message: string }
-  | { phase: 'complete'; jobId: string; imageUrl: string; downloadUrl: string; metadata: Record<string, any> }
+  | { phase: 'complete'; jobId: string; imageUrl: string; downloadUrl: string; metadata: Record<string, any>; provenance?: ProvenanceData }
   | { phase: 'error'; message: string };
 
 export function useGenerate() {
@@ -68,6 +78,7 @@ export function useGenerate() {
                   imageUrl: data.image_url,
                   downloadUrl: data.download_url,
                   metadata: data.metadata || {},
+                  provenance: data.provenance,
                 });
                 return;
               } else if (eventType === 'error') {
