@@ -160,7 +160,9 @@ async function geminiGenerate(model: string, prompt: string, responseModalities?
   }
 
   const data = await res.json();
-  const textPart = data.candidates?.[0]?.content?.parts?.find((p: any) => p.text);
+  // Skip thinking/thought parts — gemini-2.5-flash returns thought parts before the actual output
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  const textPart = parts.find((p: any) => p.text && !p.thought) || parts.find((p: any) => p.text);
   return textPart?.text || '';
 }
 
