@@ -1,6 +1,6 @@
 import { runPipeline } from '@/lib/pipeline';
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function POST(request: Request) {
   const body = await request.json();
