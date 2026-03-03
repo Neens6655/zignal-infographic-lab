@@ -492,8 +492,17 @@ If everything is fine: {"corrections": [], "risk_words": [], "fact_flags": [], "
 
   try {
     const response = await geminiGenerate(TEXT_MODEL, compliancePrompt);
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    const parsed = JSON.parse(jsonMatch?.[0] || '{}');
+    // Strip markdown fences if present
+    const stripped = response.replace(/```(?:json)?\s*/g, '').replace(/```\s*$/g, '');
+    const jsonMatch = stripped.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error('[Compliance] No JSON found in response:', response.slice(0, 200));
+      return {
+        cleaned: structured,
+        report: { corrections: [], riskWords: [], factFlags: [], score: 0 },
+      };
+    }
+    const parsed = JSON.parse(jsonMatch[0]);
 
     const corrections: ComplianceReport['corrections'] = (parsed.corrections || []).map((c: any) => ({
       field: c.path || '',
@@ -516,7 +525,8 @@ If everything is fine: {"corrections": [], "risk_words": [], "fact_flags": [], "
     }
 
     return { cleaned, report };
-  } catch {
+  } catch (err) {
+    console.error('[Compliance] Validation failed:', err instanceof Error ? err.message : err);
     return {
       cleaned: structured,
       report: { corrections: [], riskWords: [], factFlags: [], score: 0 },
