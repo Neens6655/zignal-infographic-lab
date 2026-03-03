@@ -813,9 +813,9 @@ export default function Home() {
             transition={{ delay: 0.7, duration: 0.8 }}
             className="w-full max-w-3xl"
           >
-            <div className="metallic-frame relative overflow-hidden" style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06), 0 0 0 2px rgba(212,168,75,0.08), 0 8px 40px rgba(0,0,0,0.5), 0 2px 12px rgba(212,168,75,0.06)' }}>
+            <div className="metallic-frame relative overflow-hidden flex flex-col max-h-[80vh]" style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06), 0 0 0 2px rgba(212,168,75,0.08), 0 8px 40px rgba(0,0,0,0.5), 0 2px 12px rgba(212,168,75,0.06)' }}>
               {/* Metallic bezel top bar */}
-              <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/[0.08]" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)' }}>
+              <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/[0.08] shrink-0" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)' }}>
                 <div className="flex items-center gap-3">
                   <div className="flex gap-1.5">
                     <div className="h-2.5 w-2.5 rounded-full" style={{ background: 'radial-gradient(circle at 35% 35%, #E86B5F, #C04B3C)' }} />
@@ -831,10 +831,10 @@ export default function Home() {
               </div>
 
               {/* Inner content area */}
-              <div className="bg-[#0A0A0D]">
+              <div className="bg-[#0A0A0D] flex-1 min-h-0 flex flex-col overflow-hidden">
 
               {/* Input mode tabs — compact horizontal strip */}
-              <div className="flex border-b border-white/[0.06]">
+              <div className="flex border-b border-white/[0.06] shrink-0">
                 {INPUT_MODES.map((mode) => {
                   const Icon = mode.icon;
                   const isActive = inputMode === mode.id;
@@ -855,7 +855,8 @@ export default function Home() {
                 })}
               </div>
 
-              {/* Input area — conditional on inputMode */}
+              {/* Input area — scrollable content zone */}
+              <div className="flex-1 min-h-0 overflow-y-auto z-scroll">
               {inputMode === 'text' ? (
                 <div className="p-6 relative">
                   {extractSource && (
@@ -870,7 +871,7 @@ export default function Home() {
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     placeholder="Paste articles, research, data, or notes (50+ characters to generate)..."
-                    className="w-full min-h-[130px] max-h-[300px] resize-none bg-transparent text-[15px] text-white placeholder:text-white/35 focus:outline-none leading-relaxed font-sans pr-24"
+                    className="w-full min-h-[130px] max-h-[300px] resize-none bg-transparent text-[15px] text-white placeholder:text-white/35 focus:outline-none leading-relaxed font-sans pr-24 z-scroll"
                     disabled={isGenerating || isImproving}
                   />
                   {content.trim().length >= 10 && !isGenerating && (
@@ -973,9 +974,10 @@ export default function Home() {
                   )}
                 </div>
               )}
+              </div>{/* end scrollable input zone */}
 
               {/* Style preset bar */}
-              <div className="flex items-center gap-2 border-t border-white/[0.06] px-5 py-2.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+              <div className="flex items-center gap-2 border-t border-white/[0.06] px-5 py-2.5 overflow-x-auto shrink-0 z-scroll-x">
                 {POPULAR_PRESETS.map((p) => (
                   <button
                     key={p.id}
@@ -1008,7 +1010,7 @@ export default function Home() {
 
               {/* Advanced style panel — expandable */}
               {showAdvanced && (
-                <div className="border-t border-white/[0.06] px-5 py-4 bg-white/[0.02]">
+                <div className="border-t border-white/[0.06] px-5 py-4 bg-white/[0.02] shrink-0">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-[10px] font-mono tracking-[0.15em] text-white/40 uppercase">Visual Style Override</span>
                     <button onClick={() => setShowAdvanced(false)} className="text-white/50 hover:text-white/70 transition-colors">
@@ -1044,7 +1046,7 @@ export default function Home() {
               )}
 
               {/* Options bar */}
-              <div className="flex items-center justify-between border-t border-white/[0.06] px-5 py-3">
+              <div className="flex items-center justify-between border-t border-white/[0.06] px-5 py-3 shrink-0">
                 <div className="flex items-center gap-3">
                   {/* Aspect ratio */}
                   <div className="flex bg-white/[0.04] p-0.5">
@@ -1096,7 +1098,7 @@ export default function Home() {
               </div>{/* end inner content area */}
 
               {/* Metallic bezel bottom bar */}
-              <div className="flex items-center justify-center px-5 py-2 border-t border-white/[0.08]" style={{ background: 'linear-gradient(0deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)' }}>
+              <div className="flex items-center justify-center px-5 py-2 border-t border-white/[0.08] shrink-0" style={{ background: 'linear-gradient(0deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)' }}>
                 <span className="text-[8px] font-mono tracking-[0.3em] text-white/20 uppercase">Agentic Infographic Pipeline — 7 modules — 400+ style combinations</span>
               </div>
             </div>

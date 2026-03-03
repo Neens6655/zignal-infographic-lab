@@ -441,3 +441,65 @@
   30%  { opacity: 1; transform: translate(0, 0) scale(1.1); }
   100% { opacity: 1; transform: translate(0, 0) scale(1); }
 }
+
+/* === ZGNAL SCROLL — Global Page Scrollbar === */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 168, 75, 0.25) #0A0A0B;
+}
+html::-webkit-scrollbar {
+  width: 6px;
+}
+html::-webkit-scrollbar-track {
+  background: #0A0A0B;
+  border-left: 1px solid rgba(255, 255, 255, 0.04);
+}
+html::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(212, 168, 75, 0.35), rgba(184, 146, 47, 0.2));
+}
+html::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(212, 168, 75, 0.6), rgba(184, 146, 47, 0.4));
+}
+
+/* === ZGNAL SCROLL — Content Areas (Gold Thread) === */
+.z-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 168, 75, 0.4) transparent;
+}
+.z-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+.z-scroll::-webkit-scrollbar-track {
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0px,
+    transparent 8px,
+    rgba(212, 168, 75, 0.06) 8px,
+    rgba(212, 168, 75, 0.06) 10px
+  );
+  margin: 4px 0;
+}
+.z-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #D4A84B 0%, #B8922F 50%, #D4A84B 100%);
+}
+.z-scroll::-webkit-scrollbar-thumb:hover {
+  background: #E8C96A;
+}
+
+/* Horizontal variant for preset bars */
+.z-scroll-x {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 168, 75, 0.2) transparent;
+}
+.z-scroll-x::-webkit-scrollbar {
+  height: 2px;
+}
+.z-scroll-x::-webkit-scrollbar-track {
+  background: transparent;
+}
+.z-scroll-x::-webkit-scrollbar-thumb {
+  background: rgba(212, 168, 75, 0.3);
+}
+.z-scroll-x::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 168, 75, 0.5);
+}
