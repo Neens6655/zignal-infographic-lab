@@ -453,23 +453,30 @@ Extract 3-5 verified factual statements (statistics, dates, named entities, spec
 
 async function fetchReferenceImages(
   topics: string[],
-  title: string,
 ): Promise<ReferenceImage[]> {
   const apifyToken = process.env.APIFY_TOKEN;
   if (!apifyToken || topics.length === 0) return [];
 
   try {
-    const searchQuery = `${title} ${topics.slice(0, 3).join(' ')} infographic reference`;
+    // Build clean, focused search queries from topics only
+    const primaryQuery = topics.slice(0, 3).join(' ');
+    const queries = [primaryQuery];
+    if (topics.length > 2) {
+      // Add a second, more specific query for better coverage
+      queries.push(`${topics[0]} ${topics[1]} photo`);
+    }
+
     const actorUrl = 'https://api.apify.com/v2/acts/hooli~google-images-scraper/run-sync-get-dataset-items';
 
     const res = await fetch(`${actorUrl}?token=${apifyToken}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        queries: [searchQuery],
+        queries,
         maxItems: 5,
+        countryCode: 'us',
       }),
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(30000),
     });
 
     if (!res.ok) {
@@ -851,7 +858,7 @@ export async function runPipeline(
   onProgress({ status: 'researching', progress: 15, message: 'Researching topics and finding references...' });
   const [research, referenceImages] = await Promise.all([
     researchContent(analysis.topics, input.content.slice(0, 500)),
-    fetchReferenceImages(analysis.topics, input.content.slice(0, 100)),
+    fetchReferenceImages(analysis.topics),
   ]);
   const researchSummary = research.findings.length > 0
     ? `${research.findings.length} findings, ${research.sourceUrls.length} sources`
