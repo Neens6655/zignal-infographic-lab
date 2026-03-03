@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { submitGeneration, streamJobProgress, getJobStatus } from '@/lib/engine';
 import type { GenerateInput } from '@/lib/types';
 
 type GeneratePhase =
@@ -13,118 +12,91 @@ type GeneratePhase =
 
 export function useGenerate() {
   const [state, setState] = useState<GeneratePhase>({ phase: 'idle' });
-  const cleanupRef = useRef<(() => void) | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const generate = useCallback(async (input: GenerateInput) => {
-    // Cleanup previous stream
-    cleanupRef.current?.();
-    cleanupRef.current = null;
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     setState({ phase: 'submitting' });
 
     try {
-      const response = await submitGeneration(input);
-      const jobId = response.job_id;
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input),
+        signal: controller.signal,
+      });
+
+      if (!res.ok || !res.body) {
+        const errBody = await res.json().catch(() => ({ error: 'Generation failed' }));
+        throw new Error(errBody.error || `HTTP ${res.status}`);
+      }
 
       setState({
         phase: 'streaming',
-        jobId,
-        status: 'queued',
+        jobId: 'inline',
+        status: 'processing',
         progress: 0,
         message: 'Starting generation...',
       });
 
-      // Try SSE streaming first
-      const cleanup = streamJobProgress(
-        jobId,
-        (data) => {
-          setState({
-            phase: 'streaming',
-            jobId,
-            status: data.status || 'processing',
-            progress: data.progress || 0,
-            message: data.message || getStatusMessage(data.status),
-          });
-        },
-        (data) => {
-          setState({
-            phase: 'complete',
-            jobId,
-            imageUrl: data.image_url,
-            downloadUrl: data.download_url,
-            metadata: data.metadata || {},
-          });
-        },
-        (error) => {
-          // SSE failed — fall back to polling
-          pollForCompletion(jobId, setState);
-        },
-      );
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let eventType = '';
 
-      cleanupRef.current = cleanup;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            eventType = line.slice(7).trim();
+          } else if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (eventType === 'complete') {
+                setState({
+                  phase: 'complete',
+                  jobId: 'inline',
+                  imageUrl: data.image_url,
+                  downloadUrl: data.download_url,
+                  metadata: data.metadata || {},
+                });
+                return;
+              } else if (eventType === 'error') {
+                setState({ phase: 'error', message: data.error || 'Generation failed' });
+                return;
+              } else {
+                setState({
+                  phase: 'streaming',
+                  jobId: 'inline',
+                  status: data.status || 'processing',
+                  progress: data.progress || 0,
+                  message: data.message || 'Processing...',
+                });
+              }
+            } catch { /* skip malformed JSON */ }
+          }
+        }
+      }
     } catch (err: any) {
+      if (err.name === 'AbortError') return;
       setState({ phase: 'error', message: err.message || 'Failed to start generation' });
     }
   }, []);
 
   const reset = useCallback(() => {
-    cleanupRef.current?.();
-    cleanupRef.current = null;
+    abortRef.current?.abort();
+    abortRef.current = null;
     setState({ phase: 'idle' });
   }, []);
 
   return { state, generate, reset };
-}
-
-function getStatusMessage(status?: string): string {
-  switch (status) {
-    case 'queued': return 'In queue...';
-    case 'processing': return 'Extracting content...';
-    case 'researching': return 'Researching references & verifying facts...';
-    case 'analyzing': return 'Analyzing structure & selecting layout...';
-    case 'generating': return 'Rendering your infographic...';
-    case 'complete': return 'Done!';
-    case 'failed': return 'Generation failed';
-    default: return 'Processing...';
-  }
-}
-
-async function pollForCompletion(
-  jobId: string,
-  setState: (s: GeneratePhase) => void,
-) {
-  const maxAttempts = 120; // 2 minutes at 1s intervals
-  for (let i = 0; i < maxAttempts; i++) {
-    try {
-      const job = await getJobStatus(jobId);
-
-      if (job.status === 'complete' && job.result) {
-        setState({
-          phase: 'complete',
-          jobId,
-          imageUrl: job.result.image_url,
-          downloadUrl: job.result.download_url,
-          metadata: job.result.metadata || {},
-        });
-        return;
-      }
-
-      if (job.status === 'failed') {
-        setState({ phase: 'error', message: job.error || 'Generation failed' });
-        return;
-      }
-
-      setState({
-        phase: 'streaming',
-        jobId,
-        status: job.status,
-        progress: job.progress,
-        message: getStatusMessage(job.status),
-      });
-    } catch {}
-
-    await new Promise((r) => setTimeout(r, 1000));
-  }
-
-  setState({ phase: 'error', message: 'Generation timed out' });
 }
