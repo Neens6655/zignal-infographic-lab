@@ -218,13 +218,14 @@ export function ResultViewer({
   const [exporting, setExporting] = useState<string | null>(null);
   const [zoomed, setZoomed] = useState(false);
 
-  const displayUrl = imageUrl.startsWith('http')
+  const displayUrl = imageUrl.startsWith('http') || imageUrl.startsWith('data:')
     ? imageUrl
     : `${process.env.NEXT_PUBLIC_ENGINE_URL || 'http://localhost:3000'}/tmp/${imageUrl.split(/[/\\]/).pop()}`;
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(displayUrl);
+      const linkToCopy = displayUrl.startsWith('data:') ? 'https://zgnal.ai' : displayUrl;
+      await navigator.clipboard.writeText(linkToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch { /* clipboard may not be available */ }
@@ -245,7 +246,8 @@ export function ResultViewer({
 
   /* Share URLs */
   const shareText = 'Check out this AI-generated infographic from ZGNAL.AI';
-  const encodedUrl = encodeURIComponent(displayUrl);
+  const shareUrl = displayUrl.startsWith('data:') ? 'https://zgnal.ai' : displayUrl;
+  const encodedUrl = encodeURIComponent(shareUrl);
   const encodedText = encodeURIComponent(shareText);
 
   const shareLinks = {
