@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, FileText, BarChart3, Layers, Sparkles,
-  CheckCircle2, ShieldCheck,
+  CheckCircle2, ShieldCheck, Combine,
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════
@@ -32,7 +32,8 @@ const STAGES: Stage[] = [
   { id: 'analyze',   num: '03',   agent: 'Strategist',  name: 'Analyze',   verb: 'Analyzing',     icon: BarChart3,   progressRange: [25, 45] },
   { id: 'structure', num: '04',   agent: 'Architect',   name: 'Structure', verb: 'Structuring',   icon: Layers,      progressRange: [45, 52] },
   { id: 'validate',  num: '04.5', agent: 'Compliance',  name: 'Validate',  verb: 'Validating',    icon: ShieldCheck, progressRange: [52, 57] },
-  { id: 'generate',  num: '05',   agent: 'Renderer',    name: 'Generate',  verb: 'Rendering',     icon: Sparkles,    progressRange: [57, 100] },
+  { id: 'generate',  num: '05',   agent: 'Renderer',    name: 'Generate',  verb: 'Rendering',     icon: Sparkles,    progressRange: [57, 85] },
+  { id: 'composite', num: '06',   agent: 'Composer',    name: 'Composite', verb: 'Compositing',   icon: Combine,     progressRange: [85, 100] },
 ];
 
 /* ═══════════════════════════════════════════════════════════════
@@ -383,6 +384,66 @@ function ComplianceScene({ mini }: { mini?: boolean }) {
   );
 }
 
+function CompositeScene({ mini }: { mini?: boolean }) {
+  return (
+    <g>
+      {/* Background layer (image) */}
+      <motion.rect
+        x="-60" y="-45" width="120" height="90"
+        fill="none" stroke="#5B8DEF" strokeWidth="1.5"
+        initial={mini ? { opacity: 0.5, y: -10 } : { opacity: 0, y: -40 }}
+        animate={{ opacity: 0.5, y: -10 }}
+        transition={mini ? { duration: 0 } : { duration: 0.8, ease: 'easeOut' }}
+      />
+      {/* Image icon inside bg layer */}
+      <motion.g
+        initial={mini ? { opacity: 0.4 } : { opacity: 0 }}
+        animate={{ opacity: 0.4 }}
+        transition={mini ? { duration: 0 } : { delay: 0.3, duration: 0.5 }}
+      >
+        <circle cx="-30" cy="-20" r="8" fill="none" stroke="#5B8DEF" strokeWidth="0.8" />
+        <path d="M -55,-5 L -40,10 L -20,-15 L 0,10 L 20,-5 L 40,10 L 55,5" fill="none" stroke="#5B8DEF" strokeWidth="0.8" />
+      </motion.g>
+
+      {/* Text layer */}
+      <motion.rect
+        x="-55" y="-40" width="110" height="80"
+        fill="none" stroke="#D4A84B" strokeWidth="1.5"
+        initial={mini ? { opacity: 0.6, y: 10 } : { opacity: 0, y: 40 }}
+        animate={{ opacity: 0.6, y: 10 }}
+        transition={mini ? { duration: 0 } : { delay: 0.4, duration: 0.8, ease: 'easeOut' }}
+      />
+      {/* Text lines inside text layer */}
+      {[0, 1, 2, 3].map((l) => (
+        <motion.rect
+          key={l}
+          x="-40"
+          y={-15 + l * 16}
+          width={l === 0 ? 60 : l === 3 ? 30 : 50}
+          height="3"
+          fill="#D4A84B"
+          initial={mini ? { opacity: 0.5, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
+          animate={{ opacity: 0.5, scaleX: 1 }}
+          transition={mini ? { duration: 0 } : { delay: 0.6 + l * 0.15, duration: 0.5 }}
+        />
+      ))}
+
+      {/* Merge arrow */}
+      {!mini && (
+        <motion.g
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.8, 0.8, 0] }}
+          transition={{ delay: 1.5, duration: 2, repeat: Infinity, repeatDelay: 1 }}
+        >
+          <line x1="0" y1="-55" x2="0" y2="55" stroke="#8BC34A" strokeWidth="1" strokeDasharray="4 4" />
+          <path d="M -6,50 L 0,58 L 6,50" fill="none" stroke="#8BC34A" strokeWidth="1.5" />
+          <path d="M -6,-50 L 0,-58 L 6,-50" fill="none" stroke="#8BC34A" strokeWidth="1.5" />
+        </motion.g>
+      )}
+    </g>
+  );
+}
+
 /* ── Scene dispatcher ──────────────────────────────────────── */
 
 function SceneContent({ stageId, progress, mini }: { stageId: string; progress: number; mini?: boolean }) {
@@ -393,6 +454,7 @@ function SceneContent({ stageId, progress, mini }: { stageId: string; progress: 
     case 'structure': return <ArchitectScene mini={mini} />;
     case 'validate':  return <ComplianceScene mini={mini} />;
     case 'generate':  return <RendererScene progress={progress} mini={mini} />;
+    case 'composite': return <CompositeScene mini={mini} />;
     default:          return null;
   }
 }
@@ -567,7 +629,8 @@ export function GeneratingExperience({ progress, message }: Props) {
     if (progress <= 45) return 'analyze';
     if (progress <= 52) return 'structure';
     if (progress <= 57) return 'validate';
-    return 'generate';
+    if (progress <= 85) return 'generate';
+    return 'composite';
   }, [progress]);
 
   const currentStage = STAGES.find(s => s.id === currentStageId) || STAGES[0];
