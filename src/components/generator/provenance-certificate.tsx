@@ -12,6 +12,13 @@ type ProvenanceData = {
   pipeline: { stage: string; agent: string; result: string }[];
   references: string[];
   topics: string[];
+  contentSources: string[];
+  compliance?: {
+    score: number;
+    corrections: number;
+    riskWords: string[];
+    factFlags: string[];
+  };
 };
 
 type Props = {
@@ -29,7 +36,7 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
     try {
       const canvas = document.createElement('canvas');
       const w = 800;
-      const h = 1000;
+      const h = 1200;
       canvas.width = w;
       canvas.height = h;
       const ctx = canvas.getContext('2d')!;
@@ -147,6 +154,29 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
         ctx.font = '400 10px "IBM Plex Mono", monospace';
         ctx.fillText(provenance.topics.join('  \u2022  '), 80, y);
         y += 28;
+      }
+
+      // Content Sources
+      if (provenance.contentSources && provenance.contentSources.length > 0) {
+        drawSection('CONTENT SOURCES');
+        for (const source of provenance.contentSources) {
+          ctx.fillStyle = 'rgba(91, 141, 239, 0.6)';
+          ctx.font = '400 10px "IBM Plex Mono", monospace';
+          ctx.fillText(`\u2022  ${source.length > 60 ? source.slice(0, 57) + '...' : source}`, 80, y);
+          y += 18;
+        }
+        y += 10;
+      }
+
+      // Compliance
+      if (provenance.compliance) {
+        drawSection('COMPLIANCE');
+        drawField('Score', `${provenance.compliance.score}/100`);
+        drawField('Corrections', `${provenance.compliance.corrections}`);
+        if (provenance.compliance.riskWords.length > 0) {
+          drawField('Risk Words', provenance.compliance.riskWords.slice(0, 5).join(', '));
+        }
+        y += 10;
       }
 
       // Models
@@ -281,6 +311,65 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
                       </span>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Content Sources */}
+              {provenance.contentSources && provenance.contentSources.length > 0 && (
+                <div>
+                  <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-2">Content Sources</p>
+                  <div className="space-y-1">
+                    {provenance.contentSources.map((source, i) => (
+                      <p key={i} className="text-[11px] font-mono text-[#5B8DEF]/60 pl-3 border-l border-[#5B8DEF]/20">
+                        {source}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Compliance Report */}
+              {provenance.compliance && (
+                <div>
+                  <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-2">Compliance</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2">
+                      <p className="text-[9px] font-mono text-white/30 mb-0.5">Score</p>
+                      <p className={`text-[14px] font-mono font-bold ${
+                        provenance.compliance.score >= 80 ? 'text-[#8BC34A]'
+                          : provenance.compliance.score >= 50 ? 'text-[#D4A84B]'
+                          : 'text-[#C04B3C]'
+                      }`}>
+                        {provenance.compliance.score}/100
+                      </p>
+                    </div>
+                    <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2">
+                      <p className="text-[9px] font-mono text-white/30 mb-0.5">Corrections</p>
+                      <p className="text-[14px] font-mono font-bold text-white/60">{provenance.compliance.corrections}</p>
+                    </div>
+                  </div>
+                  {provenance.compliance.riskWords.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-[9px] font-mono text-white/30 mb-1">Risk Words</p>
+                      <div className="flex flex-wrap gap-1">
+                        {provenance.compliance.riskWords.map((word, i) => (
+                          <span key={i} className="text-[9px] font-mono text-[#D4A84B]/60 bg-[#D4A84B]/[0.06] border border-[#D4A84B]/10 px-1.5 py-0.5">
+                            {word}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {provenance.compliance.factFlags.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-[9px] font-mono text-white/30 mb-1">Fact Warnings</p>
+                      {provenance.compliance.factFlags.map((flag, i) => (
+                        <p key={i} className="text-[10px] font-mono text-[#C04B3C]/70 pl-2 border-l border-[#C04B3C]/20">
+                          {flag}
+                        </p>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 

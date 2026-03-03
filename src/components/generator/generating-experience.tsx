@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, FileText, BarChart3, Layers, Sparkles,
-  CheckCircle2,
+  CheckCircle2, ShieldCheck,
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════
@@ -27,11 +27,12 @@ type Stage = {
 };
 
 const STAGES: Stage[] = [
-  { id: 'extract',   num: '01', agent: 'Sentinel',   name: 'Extract',   verb: 'Scanning',      icon: FileText,  progressRange: [0, 10] },
-  { id: 'research',  num: '02', agent: 'Oracle',      name: 'Research',   verb: 'Researching',   icon: Search,    progressRange: [10, 25] },
-  { id: 'analyze',   num: '03', agent: 'Strategist',  name: 'Analyze',    verb: 'Analyzing',     icon: BarChart3, progressRange: [25, 45] },
-  { id: 'structure', num: '04', agent: 'Architect',   name: 'Structure',  verb: 'Structuring',   icon: Layers,    progressRange: [45, 60] },
-  { id: 'generate',  num: '05', agent: 'Renderer',    name: 'Generate',   verb: 'Rendering',     icon: Sparkles,  progressRange: [60, 100] },
+  { id: 'extract',   num: '01',   agent: 'Sentinel',    name: 'Extract',   verb: 'Scanning',      icon: FileText,    progressRange: [0, 10] },
+  { id: 'research',  num: '02',   agent: 'Oracle',      name: 'Research',  verb: 'Researching',   icon: Search,      progressRange: [10, 25] },
+  { id: 'analyze',   num: '03',   agent: 'Strategist',  name: 'Analyze',   verb: 'Analyzing',     icon: BarChart3,   progressRange: [25, 45] },
+  { id: 'structure', num: '04',   agent: 'Architect',   name: 'Structure', verb: 'Structuring',   icon: Layers,      progressRange: [45, 52] },
+  { id: 'validate',  num: '04.5', agent: 'Compliance',  name: 'Validate',  verb: 'Validating',    icon: ShieldCheck, progressRange: [52, 57] },
+  { id: 'generate',  num: '05',   agent: 'Renderer',    name: 'Generate',  verb: 'Rendering',     icon: Sparkles,    progressRange: [57, 100] },
 ];
 
 /* ═══════════════════════════════════════════════════════════════
@@ -334,6 +335,54 @@ function RendererScene({ progress, mini }: { progress: number; mini?: boolean })
   );
 }
 
+function ComplianceScene({ mini }: { mini?: boolean }) {
+  const checks = [
+    { y: -54, delay: 0 },
+    { y: -18, delay: 0.2 },
+    { y: 18, delay: 0.4 },
+    { y: 54, delay: 0.6 },
+  ];
+  return (
+    <g>
+      {/* Clipboard outline */}
+      <rect x="-45" y="-80" width="90" height="170" fill="none" stroke="#E8E5E0" strokeWidth="1" opacity="0.2" rx="2" />
+      <rect x="-20" y="-85" width="40" height="10" fill="none" stroke="#D4A84B" strokeWidth="1" opacity="0.4" rx="1" />
+      {checks.map((c, i) => (
+        <g key={i}>
+          <motion.rect
+            x="-32" y={c.y} width="14" height="14"
+            fill="none" stroke="#8BC34A" strokeWidth="1.5"
+            initial={mini ? { opacity: 0.6 } : { opacity: 0 }}
+            animate={{ opacity: 0.6 }}
+            transition={mini ? { duration: 0 } : { delay: c.delay, duration: 0.4 }}
+          />
+          <motion.path
+            d={`M ${-29} ${c.y + 7} l 3 4 l 6 -8`}
+            fill="none" stroke="#8BC34A" strokeWidth="2"
+            initial={mini ? { pathLength: 1, opacity: 0.8 } : { pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.8 }}
+            transition={mini ? { duration: 0 } : { delay: c.delay + 0.4, duration: 0.3 }}
+          />
+          <motion.rect
+            x="-10" y={c.y + 3} width="40" height="2"
+            fill="#D4A84B"
+            initial={mini ? { opacity: 0.3, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 0.3, scaleX: 1 }}
+            transition={mini ? { duration: 0 } : { delay: c.delay + 0.2, duration: 0.5 }}
+          />
+          <motion.rect
+            x="-10" y={c.y + 9} width="25" height="2"
+            fill="#E8E5E0"
+            initial={mini ? { opacity: 0.15, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 0.15, scaleX: 1 }}
+            transition={mini ? { duration: 0 } : { delay: c.delay + 0.3, duration: 0.5 }}
+          />
+        </g>
+      ))}
+    </g>
+  );
+}
+
 /* ── Scene dispatcher ──────────────────────────────────────── */
 
 function SceneContent({ stageId, progress, mini }: { stageId: string; progress: number; mini?: boolean }) {
@@ -342,6 +391,7 @@ function SceneContent({ stageId, progress, mini }: { stageId: string; progress: 
     case 'research':  return <OracleScene mini={mini} />;
     case 'analyze':   return <StrategistScene mini={mini} />;
     case 'structure': return <ArchitectScene mini={mini} />;
+    case 'validate':  return <ComplianceScene mini={mini} />;
     case 'generate':  return <RendererScene progress={progress} mini={mini} />;
     default:          return null;
   }
@@ -515,7 +565,8 @@ export function GeneratingExperience({ progress, message }: Props) {
     if (progress <= 10) return 'extract';
     if (progress <= 25) return 'research';
     if (progress <= 45) return 'analyze';
-    if (progress <= 60) return 'structure';
+    if (progress <= 52) return 'structure';
+    if (progress <= 57) return 'validate';
     return 'generate';
   }, [progress]);
 

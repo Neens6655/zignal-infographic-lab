@@ -76,6 +76,13 @@ type ProvenanceData = {
   pipeline: { stage: string; agent: string; result: string }[];
   references: string[];
   topics: string[];
+  contentSources: string[];
+  compliance?: {
+    score: number;
+    corrections: number;
+    riskWords: string[];
+    factFlags: string[];
+  };
 };
 
 type Props = {
@@ -401,6 +408,49 @@ export function ResultViewer({
               {topic}
             </span>
           ))}
+        </motion.div>
+      )}
+
+      {/* ── Content Sources ── */}
+      {provenance?.contentSources && provenance.contentSources.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.86 }}
+          className="w-full max-w-md mx-auto space-y-1.5"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-[9px] font-mono tracking-widest uppercase text-white/30">Sources</span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
+          </div>
+          <div className="space-y-1">
+            {provenance.contentSources.map((source, i) => (
+              <p key={i} className="text-[10px] font-mono text-white/40 pl-3 border-l border-[#5B8DEF]/20">
+                {source}
+              </p>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── Compliance badge ── */}
+      {provenance?.compliance && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.88 }}
+          className="flex items-center justify-center"
+        >
+          <span className={`inline-flex items-center px-3 py-1 text-[10px] font-mono border ${
+            provenance.compliance.score >= 80
+              ? 'bg-[#8BC34A]/10 text-[#8BC34A] border-[#8BC34A]/20'
+              : provenance.compliance.score >= 50
+                ? 'bg-[#D4A84B]/10 text-[#D4A84B] border-[#D4A84B]/20'
+                : 'bg-red-500/10 text-red-400 border-red-500/20'
+          }`}>
+            Compliance: {provenance.compliance.score}/100
+            {provenance.compliance.corrections > 0 && ` · ${provenance.compliance.corrections} fixes`}
+          </span>
         </motion.div>
       )}
 

@@ -40,6 +40,13 @@ type ProvenanceData = {
   }[];
   references: string[];
   topics: string[];
+  contentSources: string[];
+  compliance?: {
+    score: number;
+    corrections: number;
+    riskWords: string[];
+    factFlags: string[];
+  };
 };
 
 type PipelineResult = {
@@ -60,6 +67,7 @@ type ContentAnalysis = {
   tone: string;
   sectionCount: number;
   topics: string[];
+  contentSources: string[];
 };
 
 type StructuredContent = {
@@ -74,6 +82,18 @@ type StructuredContent = {
   }[];
   statsBar: { label: string; value: string }[];
   designNotes: string;
+};
+
+type ComplianceReport = {
+  corrections: {
+    field: string;
+    original: string;
+    corrected: string;
+    reason: 'spelling' | 'simplification' | 'fact_check' | 'length_risk';
+  }[];
+  riskWords: string[];
+  factFlags: string[];
+  score: number;
 };
 
 // ── Presets (from engine) ──────────────────────────────────────
@@ -232,12 +252,22 @@ async function analyzeContent(
 ): Promise<ContentAnalysis> {
   if (preset && preset !== 'auto' && PRESETS[preset]) {
     const p = PRESETS[preset];
-    // Still extract topics even with preset
     let topics: string[] = [];
+    let contentSources: string[] = [];
     try {
-      const topicResponse = await geminiGenerate(TEXT_MODEL, `Extract 3-6 topic keywords from this content. Respond as a JSON array of lowercase strings only (no markdown fences):\n\n${content.slice(0, 2000)}`);
-      const topicMatch = topicResponse.match(/\[[\s\S]*\]/);
-      topics = JSON.parse(topicMatch?.[0] || '[]');
+      const extractResponse = await geminiGenerate(TEXT_MODEL, `Analyze this content and extract two things:
+1. "topics": 3-6 topic keywords (lowercase strings)
+2. "sources": Any URLs, authors, publications, organizations, or data sources cited in the content. If none found, return empty array.
+
+Respond as JSON only (no markdown fences):
+{"topics": ["keyword1", "keyword2"], "sources": ["source1", "source2"]}
+
+CONTENT:
+${content.slice(0, 3000)}`);
+      const jsonMatch = extractResponse.match(/\{[\s\S]*\}/);
+      const parsed = JSON.parse(jsonMatch?.[0] || '{}');
+      topics = parsed.topics || [];
+      contentSources = parsed.sources || [];
     } catch { /* fallback to empty */ }
     return {
       contentType: preset,
@@ -246,6 +276,7 @@ async function analyzeContent(
       tone: p.tone,
       sectionCount: 5,
       topics,
+      contentSources,
     };
   }
 
@@ -264,7 +295,8 @@ Respond in JSON only (no markdown fences):
   "style": "best-style-id",
   "tone": "professional|academic|playful|technical|editorial",
   "section_count": 5,
-  "topics": ["keyword1", "keyword2", "keyword3"]
+  "topics": ["keyword1", "keyword2", "keyword3"],
+  "sources": ["any cited URLs, authors, publications, or data sources"]
 }
 
 CONTENT:
@@ -280,6 +312,7 @@ ${content.slice(0, 3000)}`);
       tone: parsed.tone || 'professional',
       sectionCount: parsed.section_count || 5,
       topics: parsed.topics || [],
+      contentSources: parsed.sources || [],
     };
   } catch {
     return {
@@ -289,6 +322,7 @@ ${content.slice(0, 3000)}`);
       tone: 'professional',
       sectionCount: 5,
       topics: [],
+      contentSources: [],
     };
   }
 }
@@ -369,6 +403,123 @@ ${content.slice(0, 8000)}`);
       sections: [{ heading: 'Overview', keyConcept: '', content: [content.slice(0, 300)], visualElement: '', labels: [] }],
       statsBar: [],
       designNotes: '',
+    };
+  }
+}
+
+// ── Compliance agent (Stage 02.5) ─────────────────────────────
+
+function applyCorrection(obj: any, dotPath: string, value: string): void {
+  const parts = dotPath.replace(/\[(\d+)\]/g, '.$1').split('.');
+  let current = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const key = /^\d+$/.test(parts[i]) ? parseInt(parts[i]) : parts[i];
+    current = current[key];
+    if (!current) return;
+  }
+  const finalKey = /^\d+$/.test(parts[parts.length - 1])
+    ? parseInt(parts[parts.length - 1])
+    : parts[parts.length - 1];
+  current[finalKey] = value;
+}
+
+async function validateContent(
+  structured: StructuredContent,
+): Promise<{ cleaned: StructuredContent; report: ComplianceReport }> {
+  // Collect ALL text elements into a flat manifest
+  const textManifest: { path: string; text: string }[] = [];
+  textManifest.push({ path: 'title', text: structured.title });
+  textManifest.push({ path: 'subtitle', text: structured.subtitle });
+
+  structured.sections.forEach((s, i) => {
+    textManifest.push({ path: `sections[${i}].heading`, text: s.heading });
+    textManifest.push({ path: `sections[${i}].keyConcept`, text: s.keyConcept });
+    s.content.forEach((c, j) => {
+      textManifest.push({ path: `sections[${i}].content[${j}]`, text: c });
+    });
+    s.labels.forEach((l, j) => {
+      textManifest.push({ path: `sections[${i}].labels[${j}]`, text: l });
+    });
+  });
+
+  structured.statsBar.forEach((s, i) => {
+    textManifest.push({ path: `statsBar[${i}].label`, text: s.label });
+    textManifest.push({ path: `statsBar[${i}].value`, text: s.value });
+  });
+
+  const manifestJson = JSON.stringify(textManifest, null, 2);
+
+  const compliancePrompt = `You are a text quality compliance agent for an AI image generator.
+
+The image generator often garbles long or complex words when rendering them as image text. Your job is to check and simplify ALL text BEFORE it gets sent to the image model.
+
+Here is the text manifest that will be rendered as image text:
+
+${manifestJson}
+
+For EACH text entry, check:
+
+A. SPELLING: Fix any misspelled words.
+B. SIMPLIFICATION: Replace words longer than 12 characters with shorter synonyms that preserve meaning. Examples:
+   - "multidisciplinary" -> "cross-field"
+   - "implementation" -> "rollout"
+   - "comprehensive" -> "complete"
+   - "infrastructure" -> "systems"
+   - "transformation" -> "shift"
+   - "organizational" -> "org-level"
+   - "communication" -> "comms"
+   - "approximately" -> "about"
+   - "sustainability" -> "green goals"
+   - "accountability" -> "ownership"
+   - "technological" -> "tech"
+   - "revolutionary" -> "ground-breaking"
+   - "philosophical" -> "thought-based"
+   Keep proper nouns and well-known technical terms intact.
+C. FACT CHECK: If any statistics or numbers seem clearly implausible (e.g., "500% market share"), flag them.
+D. LENGTH RISK: Flag any remaining words >12 characters that could NOT be simplified.
+
+Respond in JSON only (no markdown fences):
+{
+  "corrections": [
+    {"path": "sections[0].heading", "original": "ORGANIZATIONAL TRANSFORMATION", "corrected": "ORG-LEVEL SHIFT", "reason": "simplification"}
+  ],
+  "risk_words": ["Mediterranean"],
+  "fact_flags": ["Market share of 500% is implausible"],
+  "score": 85
+}
+
+If everything is fine: {"corrections": [], "risk_words": [], "fact_flags": [], "score": 100}`;
+
+  try {
+    const response = await geminiGenerate(TEXT_MODEL, compliancePrompt);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(jsonMatch?.[0] || '{}');
+
+    const corrections: ComplianceReport['corrections'] = (parsed.corrections || []).map((c: any) => ({
+      field: c.path || '',
+      original: c.original || '',
+      corrected: c.corrected || '',
+      reason: c.reason || 'spelling',
+    }));
+
+    const report: ComplianceReport = {
+      corrections,
+      riskWords: parsed.risk_words || [],
+      factFlags: parsed.fact_flags || [],
+      score: typeof parsed.score === 'number' ? parsed.score : 100,
+    };
+
+    // Apply corrections to a deep copy
+    const cleaned = JSON.parse(JSON.stringify(structured)) as StructuredContent;
+    for (const correction of corrections) {
+      applyCorrection(cleaned, correction.field, correction.corrected);
+    }
+
+    return { cleaned, report };
+  } catch {
+    return {
+      cleaned: structured,
+      report: { corrections: [], riskWords: [], factFlags: [], score: 0 },
     };
   }
 }
@@ -476,9 +627,15 @@ export async function runPipeline(
   pipelineTrace.push({ stage: '02', agent: 'Oracle', result: `${structured.sections.length} sections, tone: ${analysis.tone}` });
   onProgress({ status: 'structuring', progress: 50, message: `Created ${structured.sections.length} sections` });
 
+  // Stage 2.5: Compliance validation
+  onProgress({ status: 'validating', progress: 52, message: 'Running compliance checks...' });
+  const { cleaned, report } = await validateContent(structured);
+  pipelineTrace.push({ stage: '02.5', agent: 'Compliance', result: `Score: ${report.score}/100, ${report.corrections.length} fixes` });
+  onProgress({ status: 'validating', progress: 55, message: `Compliance: ${report.corrections.length} corrections applied` });
+
   // Stage 3: Assemble prompt
-  onProgress({ status: 'assembling', progress: 55, message: 'Assembling generation prompt...' });
-  const prompt = await assemblePrompt(structured, analysis, aspectRatio, language);
+  onProgress({ status: 'assembling', progress: 57, message: 'Assembling generation prompt...' });
+  const prompt = await assemblePrompt(cleaned, analysis, aspectRatio, language);
   pipelineTrace.push({ stage: '03', agent: 'Architect', result: `${analysis.layout} layout, ${analysis.style} style` });
 
   // Collect reference files used
@@ -513,6 +670,13 @@ export async function runPipeline(
       pipeline: pipelineTrace,
       references,
       topics: analysis.topics,
+      contentSources: analysis.contentSources,
+      compliance: {
+        score: report.score,
+        corrections: report.corrections.length,
+        riskWords: report.riskWords,
+        factFlags: report.factFlags,
+      },
     },
   };
 }

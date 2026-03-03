@@ -11,6 +11,13 @@ type ProvenanceData = {
   pipeline: { stage: string; agent: string; result: string }[];
   references: string[];
   topics: string[];
+  contentSources: string[];
+  compliance?: {
+    score: number;
+    corrections: number;
+    riskWords: string[];
+    factFlags: string[];
+  };
 };
 
 type GeneratePhase =
