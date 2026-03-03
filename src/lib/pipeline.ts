@@ -146,8 +146,23 @@ async function geminiGenerate(model: string, prompt: string, responseModalities?
 
 async function geminiGenerateImage(prompt: string, aspectRatio: string): Promise<string> {
   const url = `${GEMINI_BASE}/models/${IMAGE_MODEL}:generateContent`;
+
+  // Append mandatory text-quality enforcement as the final instruction
+  const textEnforcement = `
+
+FINAL INSTRUCTION — TEXT QUALITY IS THE #1 PRIORITY:
+- Every character must be PERFECTLY LEGIBLE — no garbled, distorted, or made-up text
+- Use ONLY clean sans-serif fonts (Helvetica, Inter, Roboto, Arial)
+- Copy all text EXACTLY as provided above — do not invent or hallucinate any text
+- If text doesn't fit readably, REMOVE content rather than shrink font size
+- Minimum font size: 14pt equivalent
+- All text must have high contrast against its background
+- Every word must be a real, correctly-spelled English word`;
+
+  const fullPrompt = `${prompt}\n${textEnforcement}\n\nAspect ratio: ${aspectRatio}.`;
+
   const body = {
-    contents: [{ role: 'user', parts: [{ text: `${prompt} Aspect ratio: ${aspectRatio}.` }] }],
+    contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
     generationConfig: {
       responseModalities: ['IMAGE', 'TEXT'],
     },
@@ -321,16 +336,26 @@ ${content.slice(0, 8000)}`);
   try {
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     const parsed = JSON.parse(jsonMatch?.[0] || '{}');
+    const sections = (parsed.sections || []).map((s: any) => ({
+      heading: s.heading || '',
+      keyConcept: s.key_concept || '',
+      content: s.content || [],
+      visualElement: s.visual_element || '',
+      labels: s.labels || [],
+    }));
+
+    // Enforce text density limits to prevent garbled text from overloaded prompts
+    for (const section of sections) {
+      if (section.content.length > 3) section.content = section.content.slice(0, 3);
+      section.content = section.content.map((c: string) => c.length > 80 ? c.slice(0, 77) + '...' : c);
+      if (section.labels.length > 4) section.labels = section.labels.slice(0, 4);
+      section.labels = section.labels.map((l: string) => l.length > 30 ? l.slice(0, 27) + '...' : l);
+    }
+
     return {
       title: parsed.title || 'Infographic',
       subtitle: parsed.subtitle || '',
-      sections: (parsed.sections || []).map((s: any) => ({
-        heading: s.heading || '',
-        keyConcept: s.key_concept || '',
-        content: s.content || [],
-        visualElement: s.visual_element || '',
-        labels: s.labels || [],
-      })),
+      sections,
       statsBar: (parsed.stats_bar || []).map((s: any) => ({
         label: s.label || '',
         value: s.value || '',
@@ -399,7 +424,11 @@ async function assemblePrompt(
   const styleFamily = isAerialStyle ? 'aerial' : isDeconstructStyle ? 'deconstruct' : isCleanStyle ? 'clean' : 'illustrated';
 
   const contentSection = buildContentSection(structured, styleFamily);
-  const textLabels = structured.sections.flatMap(s => s.labels).map(l => `- ${l}`).join('\n');
+
+  // Build explicit text labels block with exact verbatim copy instructions
+  const sectionHeadings = structured.sections.map((s, i) => `${i + 1}. ${s.heading}`).join('\n');
+  const annotationLabels = structured.sections.flatMap(s => s.labels).map(l => `- ${l}`).join('\n');
+  const textLabels = `Title: ${structured.title}\nSubtitle: ${structured.subtitle}\n\nSection headings:\n${sectionHeadings}\n\nLabels and annotations:\n${annotationLabels}`;
 
   const aspectMap: Record<string, string> = {
     '9:16': 'portrait (9:16)',

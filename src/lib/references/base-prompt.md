@@ -1,3 +1,20 @@
+## MANDATORY TEXT RENDERING RULES — READ FIRST
+
+**CRITICAL: Every single character of text in this infographic MUST be perfectly legible.**
+
+1. RENDER EVERY LETTER CRISPLY — no garbled, distorted, or illegible characters under any circumstances
+2. USE ONLY READABLE FONTS: Helvetica, Inter, Roboto, Arial, or similar clean sans-serif
+3. NEVER use decorative, script, handwriting, or ornamental fonts for any text
+4. MINIMUM FONT SIZE: equivalent to 14pt — if text doesn't fit at readable size, remove content instead of shrinking text
+5. HIGH CONTRAST: text must have minimum 4.5:1 contrast ratio against its background
+6. SPELL EVERY WORD CORRECTLY — copy text labels exactly as provided in this prompt
+7. Do NOT invent or hallucinate text — use ONLY the text content provided in this prompt
+8. Each heading, label, number, and annotation must be DISTINCT and READABLE at phone screen size
+9. FEWER WORDS, BIGGER TYPE — always prefer less text at larger size over more text at smaller size
+10. Numbers and statistics must be rendered EXTRA LARGE and crisp
+
+---
+
 You are a master visual storyteller and infographic illustrator. Create a single, rich, publication-quality infographic image.
 
 ## Image Specifications
@@ -32,9 +49,12 @@ Include a horizontal footer strip at the bottom of the infographic containing 4-
 ## Text Requirements — DIGITAL READABILITY IS NON-NEGOTIABLE
 
 - **ALL text must be LARGE enough to read on a phone screen without zooming.** This is the #1 priority for text. If you have to choose between fitting more information and making text readable, ALWAYS choose readable.
+- **Do NOT generate any garbled, scrambled, or illegible characters.** Every word must be a real, correctly-spelled word.
+- **Copy all text labels EXACTLY from the provided content — do not invent new text.**
+- **Use ONLY sans-serif fonts** (Helvetica, Inter, Roboto, Arial) for body text and labels.
 - Main title: VERY LARGE, prominent, styled to match the aesthetic — should dominate the top of the image
 - Section headings: LARGE, bold, clear hierarchy — scannable at a glance
-- Body text: Medium size, concise (1-2 sentences per point), readable at the target resolution. Use clean sans-serif for body text for maximum screen readability.
+- Body text: Medium size, concise (1-2 sentences per point), readable at the target resolution.
 - Labels: placed precisely next to their visual elements, LARGE enough to read easily
 - Statistics / numbers: rendered LARGE and emphasized — numbers should be among the most prominent text
 - Use the specified language for ALL text content
@@ -52,7 +72,9 @@ Include a horizontal footer strip at the bottom of the infographic containing 4-
 
 Generate the infographic based on the content below. Follow the style guidelines precisely — they define the visual tone, density, and aesthetic. The style guide is the highest-priority instruction for visual treatment.
 
+**REMINDER: Every word of text in the image MUST be legible, correctly spelled, and copied exactly from the content below. Do NOT generate garbled or invented text.**
+
 {{CONTENT}}
 
-Text labels (in {{LANGUAGE}}):
+EXACT TEXT TO RENDER — copy these VERBATIM in {{LANGUAGE}} (do not modify, do not invent new text):
 {{TEXT_LABELS}}
