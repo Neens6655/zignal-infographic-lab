@@ -47,6 +47,13 @@ type ProvenanceData = {
     riskWords: string[];
     factFlags: string[];
   };
+  research?: {
+    queriesRun: number;
+    findingsCount: number;
+    verifiedFacts: string[];
+    sourceUrls: string[];
+    referenceImages: number;
+  };
 };
 
 type PipelineResult = {
@@ -96,6 +103,20 @@ type ComplianceReport = {
   score: number;
 };
 
+type ResearchResult = {
+  findings: string[];
+  verifiedFacts: string[];
+  sourceUrls: string[];
+  searchQueries: string[];
+};
+
+type ReferenceImage = {
+  base64: string;
+  mimeType: string;
+  sourceUrl: string;
+  description: string;
+};
+
 // ── Presets (from engine) ──────────────────────────────────────
 
 const PRESETS: Record<string, { layout: string; style: string; tone: string }> = {
@@ -134,7 +155,7 @@ function getApiKey(): string {
 }
 
 const TEXT_MODEL = 'gemini-2.5-flash';
-const IMAGE_MODEL = 'gemini-2.5-flash-image';
+const IMAGE_MODEL = 'gemini-3.1-flash-image-preview';
 
 async function geminiGenerate(model: string, prompt: string, responseModalities?: string[]): Promise<string> {
   const url = `${GEMINI_BASE}/models/${model}:generateContent`;
@@ -166,7 +187,11 @@ async function geminiGenerate(model: string, prompt: string, responseModalities?
   return textPart?.text || '';
 }
 
-async function geminiGenerateImage(prompt: string, aspectRatio: string): Promise<string> {
+async function geminiGenerateImage(
+  prompt: string,
+  aspectRatio: string,
+  referenceImages?: ReferenceImage[],
+): Promise<string> {
   const url = `${GEMINI_BASE}/models/${IMAGE_MODEL}:generateContent`;
 
   // Append mandatory text-quality enforcement as the final instruction
@@ -183,8 +208,29 @@ FINAL INSTRUCTION — TEXT QUALITY IS THE #1 PRIORITY:
 
   const fullPrompt = `${prompt}\n${textEnforcement}\n\nAspect ratio: ${aspectRatio}.`;
 
+  // Build multimodal parts array — reference images + text prompt
+  const parts: any[] = [];
+
+  if (referenceImages && referenceImages.length > 0) {
+    parts.push({ text: 'REFERENCE IMAGES — Use these for visual context about what the topic looks like. Do NOT copy these images. Use them only as visual reference for accuracy of real-world objects, landmarks, and subjects:' });
+    for (const img of referenceImages) {
+      parts.push({
+        inlineData: {
+          mimeType: img.mimeType,
+          data: img.base64,
+        },
+      });
+      if (img.description) {
+        parts.push({ text: `(Reference: ${img.description})` });
+      }
+    }
+    parts.push({ text: '---\nNow generate the infographic based on the following prompt:\n' });
+  }
+
+  parts.push({ text: fullPrompt });
+
   const body = {
-    contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+    contents: [{ role: 'user', parts }],
     generationConfig: {
       responseModalities: ['IMAGE', 'TEXT'],
     },
@@ -329,9 +375,159 @@ ${content.slice(0, 3000)}`);
   }
 }
 
+// ── Research stage (Exa web search) ───────────────────────────
+
+async function researchContent(
+  topics: string[],
+  contentSnippet: string,
+): Promise<ResearchResult> {
+  const empty: ResearchResult = { findings: [], verifiedFacts: [], sourceUrls: [], searchQueries: [] };
+  const exaApiKey = process.env.EXA_API_KEY;
+  if (!exaApiKey || topics.length === 0) return empty;
+
+  try {
+    const Exa = (await import('exa-js')).default;
+    const exa = new Exa(exaApiKey);
+
+    const primaryQuery = topics.slice(0, 3).join(' ') + ' facts statistics';
+    const queries = [primaryQuery];
+    if (topics.length > 3) {
+      queries.push(topics.slice(3, 6).join(' ') + ' research data');
+    }
+
+    const allFindings: string[] = [];
+    const allUrls: string[] = [];
+
+    const results = await Promise.all(
+      queries.map(q =>
+        exa.searchAndContents(q, {
+          numResults: 3,
+          text: { maxCharacters: 500 },
+          type: 'auto' as const,
+        }).catch(() => null)
+      )
+    );
+
+    for (const result of results) {
+      if (!result?.results) continue;
+      for (const r of result.results) {
+        if (r.text) {
+          const excerpt = r.text.slice(0, 200).trim();
+          if (excerpt.length > 30) allFindings.push(excerpt);
+        }
+        if (r.url) allUrls.push(r.url);
+      }
+    }
+
+    const uniqueUrls = [...new Set(allUrls)];
+
+    // Extract verified facts from raw findings via Gemini
+    let verifiedFacts: string[] = [];
+    if (allFindings.length > 0) {
+      try {
+        const factPrompt = `Given these research excerpts about "${topics.join(', ')}":
+
+${allFindings.map((f, i) => `[${i + 1}] ${f}`).join('\n\n')}
+
+Extract 3-5 verified factual statements (statistics, dates, named entities, specific claims). Return as JSON array of strings only (no markdown fences):
+["fact 1", "fact 2", "fact 3"]`;
+        const factResponse = await geminiGenerate(TEXT_MODEL, factPrompt);
+        const jsonMatch = factResponse.match(/\[[\s\S]*\]/);
+        if (jsonMatch) verifiedFacts = JSON.parse(jsonMatch[0]);
+      } catch { /* fact extraction failed — still return raw findings */ }
+    }
+
+    return {
+      findings: allFindings.slice(0, 6),
+      verifiedFacts: verifiedFacts.slice(0, 5),
+      sourceUrls: uniqueUrls.slice(0, 8),
+      searchQueries: queries,
+    };
+  } catch (err) {
+    console.error('[Research] Exa search failed:', err instanceof Error ? err.message : err);
+    return empty;
+  }
+}
+
+// ── Reference images (Apify Google Images) ────────────────────
+
+async function fetchReferenceImages(
+  topics: string[],
+  title: string,
+): Promise<ReferenceImage[]> {
+  const apifyToken = process.env.APIFY_TOKEN;
+  if (!apifyToken || topics.length === 0) return [];
+
+  try {
+    const searchQuery = `${title} ${topics.slice(0, 3).join(' ')} infographic reference`;
+    const actorUrl = 'https://api.apify.com/v2/acts/hooli~google-images-scraper/run-sync-get-dataset-items';
+
+    const res = await fetch(`${actorUrl}?token=${apifyToken}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        queries: searchQuery,
+        maxItems: 5,
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+
+    if (!res.ok) {
+      console.error(`[RefImages] Apify returned ${res.status}`);
+      return [];
+    }
+
+    const items: any[] = await res.json();
+    if (!Array.isArray(items) || items.length === 0) return [];
+
+    const imageItems = items
+      .filter((item: any) => item.imageUrl && item.imageUrl.startsWith('http'))
+      .slice(0, 3);
+
+    const images = await Promise.all(
+      imageItems.map(async (item: any): Promise<ReferenceImage | null> => {
+        try {
+          const imgRes = await fetch(item.imageUrl, {
+            signal: AbortSignal.timeout(8000),
+          });
+          if (!imgRes.ok) return null;
+
+          const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+          if (!contentType.includes('image/')) return null;
+
+          const buffer = await imgRes.arrayBuffer();
+          if (buffer.byteLength > 2 * 1024 * 1024) return null; // Cap at 2MB
+
+          const base64 = Buffer.from(buffer).toString('base64');
+          const mimeType = contentType.includes('png') ? 'image/png'
+            : contentType.includes('webp') ? 'image/webp'
+            : 'image/jpeg';
+
+          return {
+            base64,
+            mimeType,
+            sourceUrl: item.imageUrl,
+            description: item.title || item.description || '',
+          };
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    return images.filter((img): img is ReferenceImage => img !== null);
+  } catch (err) {
+    console.error('[RefImages] Apify fetch failed:', err instanceof Error ? err.message : err);
+    return [];
+  }
+}
+
+// ── Pipeline stages ────────────────────────────────────────────
+
 async function structureContent(
   content: string,
   analysis: ContentAnalysis,
+  research?: ResearchResult,
 ): Promise<StructuredContent> {
   const isCleanStyle = ['executive-institutional', 'ui-wireframe'].includes(analysis.style);
   const isDeconstructStyle = analysis.style === 'deconstruct';
@@ -365,7 +561,10 @@ Respond in JSON only (no markdown fences):
 CONTENT TYPE: ${analysis.contentType}
 LAYOUT: ${analysis.layout}
 STYLE: ${analysis.style}
-
+${research && research.verifiedFacts.length > 0 ? `
+RESEARCH CONTEXT — Use these verified facts for accuracy:
+${research.verifiedFacts.map(f => `- ${f}`).join('\n')}
+` : ''}
 CONTENT:
 ${content.slice(0, 8000)}`);
 
@@ -574,6 +773,7 @@ async function assemblePrompt(
   analysis: ContentAnalysis,
   aspectRatio: string,
   language: string,
+  research?: ResearchResult,
 ): Promise<string> {
   const [basePrompt, layoutDef, styleDef] = await Promise.all([
     loadRef('base-prompt.md'),
@@ -609,6 +809,20 @@ async function assemblePrompt(
     .replace('{{CONTENT}}', contentSection)
     .replace('{{TEXT_LABELS}}', textLabels);
 
+  // Inject research context if available
+  let researchContext = 'No additional research available.';
+  if (research && (research.verifiedFacts.length > 0 || research.findings.length > 0)) {
+    const parts: string[] = [];
+    if (research.verifiedFacts.length > 0) {
+      parts.push('Verified facts to incorporate:\n' + research.verifiedFacts.map(f => `- ${f}`).join('\n'));
+    }
+    if (research.sourceUrls.length > 0) {
+      parts.push(`Sources: ${research.sourceUrls.slice(0, 3).join(', ')}`);
+    }
+    researchContext = parts.join('\n\n');
+  }
+  prompt = prompt.replace('{{RESEARCH_CONTEXT}}', researchContext);
+
   return prompt;
 }
 
@@ -633,10 +847,30 @@ export async function runPipeline(
   pipelineTrace.push({ stage: '01', agent: 'Sentinel', result: `Extracted ${input.content.length} chars, type: ${analysis.contentType}` });
   onProgress({ status: 'analyzing', progress: 25, message: `Selected: ${analysis.layout} + ${analysis.style}` });
 
+  // Stage 1.5: Research + Reference Images (PARALLEL)
+  onProgress({ status: 'researching', progress: 15, message: 'Researching topics and finding references...' });
+  const [research, referenceImages] = await Promise.all([
+    researchContent(analysis.topics, input.content.slice(0, 500)),
+    fetchReferenceImages(analysis.topics, input.content.slice(0, 100)),
+  ]);
+  const researchSummary = research.findings.length > 0
+    ? `${research.findings.length} findings, ${research.sourceUrls.length} sources`
+    : 'No external research';
+  pipelineTrace.push({
+    stage: '01.5',
+    agent: 'Oracle',
+    result: `${researchSummary} | ${referenceImages.length} ref images`,
+  });
+  onProgress({
+    status: 'researching',
+    progress: 25,
+    message: `Found ${research.sourceUrls.length} sources, ${referenceImages.length} reference images`,
+  });
+
   // Stage 2: Structure content
   onProgress({ status: 'structuring', progress: 35, message: 'Building infographic sections...' });
-  const structured = await structureContent(input.content, analysis);
-  pipelineTrace.push({ stage: '02', agent: 'Oracle', result: `${structured.sections.length} sections, tone: ${analysis.tone}` });
+  const structured = await structureContent(input.content, analysis, research);
+  pipelineTrace.push({ stage: '02', agent: 'Architect', result: `${structured.sections.length} sections, tone: ${analysis.tone}` });
   onProgress({ status: 'structuring', progress: 50, message: `Created ${structured.sections.length} sections` });
 
   // Stage 2.5: Compliance validation
@@ -647,7 +881,7 @@ export async function runPipeline(
 
   // Stage 3: Assemble prompt
   onProgress({ status: 'assembling', progress: 57, message: 'Assembling generation prompt...' });
-  const prompt = await assemblePrompt(cleaned, analysis, aspectRatio, language);
+  const prompt = await assemblePrompt(cleaned, analysis, aspectRatio, language, research);
   pipelineTrace.push({ stage: '03', agent: 'Architect', result: `${analysis.layout} layout, ${analysis.style} style` });
 
   // Collect reference files used
@@ -659,7 +893,7 @@ export async function runPipeline(
 
   // Stage 4: Generate image
   onProgress({ status: 'generating', progress: 60, message: 'Rendering your infographic...' });
-  const imageBase64 = await geminiGenerateImage(prompt, aspectRatio);
+  const imageBase64 = await geminiGenerateImage(prompt, aspectRatio, referenceImages);
   pipelineTrace.push({ stage: '04', agent: 'Renderer', result: `${IMAGE_MODEL}, aspect: ${aspectRatio}` });
   onProgress({ status: 'generating', progress: 95, message: 'Finalizing...' });
 
@@ -688,6 +922,13 @@ export async function runPipeline(
         corrections: report.corrections.length,
         riskWords: report.riskWords,
         factFlags: report.factFlags,
+      },
+      research: {
+        queriesRun: research.searchQueries.length,
+        findingsCount: research.findings.length,
+        verifiedFacts: research.verifiedFacts,
+        sourceUrls: research.sourceUrls,
+        referenceImages: referenceImages.length,
       },
     },
   };

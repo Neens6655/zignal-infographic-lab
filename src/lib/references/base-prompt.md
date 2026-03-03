@@ -68,9 +68,13 @@ Include a horizontal footer strip at the bottom of the infographic containing 4-
 
 {{STYLE_GUIDELINES}}
 
+## Research Context
+
+{{RESEARCH_CONTEXT}}
+
 ---
 
-Generate the infographic based on the content below. Follow the style guidelines precisely — they define the visual tone, density, and aesthetic. The style guide is the highest-priority instruction for visual treatment.
+Generate the infographic based on the content below. Follow the style guidelines precisely — they define the visual tone, density, and aesthetic. The style guide is the highest-priority instruction for visual treatment. Incorporate any verified facts from the Research Context above to ensure accuracy.
 
 **REMINDER: Every word of text in the image MUST be legible, correctly spelled, and copied exactly from the content below. Do NOT generate garbled or invented text.**
 

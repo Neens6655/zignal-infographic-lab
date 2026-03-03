@@ -28,11 +28,11 @@ type Stage = {
 
 const STAGES: Stage[] = [
   { id: 'extract',   num: '01',   agent: 'Sentinel',    name: 'Extract',   verb: 'Scanning',      icon: FileText,    progressRange: [0, 10] },
-  { id: 'research',  num: '02',   agent: 'Oracle',      name: 'Research',  verb: 'Researching',   icon: Search,      progressRange: [10, 25] },
-  { id: 'analyze',   num: '03',   agent: 'Strategist',  name: 'Analyze',   verb: 'Analyzing',     icon: BarChart3,   progressRange: [25, 45] },
-  { id: 'structure', num: '04',   agent: 'Architect',   name: 'Structure', verb: 'Structuring',   icon: Layers,      progressRange: [45, 52] },
-  { id: 'validate',  num: '04.5', agent: 'Compliance',  name: 'Validate',  verb: 'Validating',    icon: ShieldCheck, progressRange: [52, 57] },
-  { id: 'generate',  num: '05',   agent: 'Renderer',    name: 'Generate',  verb: 'Rendering',     icon: Sparkles,    progressRange: [57, 100] },
+  { id: 'research',  num: '01.5', agent: 'Oracle',      name: 'Research',  verb: 'Researching',   icon: Search,      progressRange: [10, 25] },
+  { id: 'analyze',   num: '02',   agent: 'Strategist',  name: 'Analyze',   verb: 'Analyzing',     icon: BarChart3,   progressRange: [25, 45] },
+  { id: 'structure', num: '03',   agent: 'Architect',   name: 'Structure', verb: 'Structuring',   icon: Layers,      progressRange: [45, 52] },
+  { id: 'validate',  num: '03.5', agent: 'Compliance',  name: 'Validate',  verb: 'Validating',    icon: ShieldCheck, progressRange: [52, 57] },
+  { id: 'generate',  num: '04',   agent: 'Renderer',    name: 'Generate',  verb: 'Rendering',     icon: Sparkles,    progressRange: [57, 100] },
 ];
 
 /* ═══════════════════════════════════════════════════════════════
