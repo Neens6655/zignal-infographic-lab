@@ -466,7 +466,7 @@ async function fetchReferenceImages(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        queries: searchQuery,
+        queries: [searchQuery],
         maxItems: 5,
       }),
       signal: AbortSignal.timeout(20000),
