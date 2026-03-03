@@ -5,10 +5,6 @@
  */
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import satori from 'satori';
-import sharp from 'sharp';
-import { loadFonts } from './fonts';
-import { getTextOverlayTemplate } from './satori-templates';
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -173,17 +169,19 @@ async function geminiGenerate(model: string, prompt: string, responseModalities?
 async function geminiGenerateImage(prompt: string, aspectRatio: string): Promise<string> {
   const url = `${GEMINI_BASE}/models/${IMAGE_MODEL}:generateContent`;
 
-  // Instruct model to generate visual background only — text is composited separately via Satori
-  const bgInstruction = `
+  // Append mandatory text-quality enforcement as the final instruction
+  const textEnforcement = `
 
-CRITICAL INSTRUCTION — BACKGROUND ONLY MODE:
-- Generate ONLY the visual design: backgrounds, illustrations, icons, decorative elements, color blocks, layout structure, and visual metaphors.
-- DO NOT render ANY text, labels, headings, numbers, titles, or typography of any kind.
-- Leave clean, high-contrast space where text elements would naturally appear (title area at top, section areas, footer strip).
-- Focus entirely on creating a beautiful, well-structured visual canvas with rich illustrations.
-- The text will be composited separately with pixel-perfect rendering — your job is the visuals only.`;
+FINAL INSTRUCTION — TEXT QUALITY IS THE #1 PRIORITY:
+- Every character must be PERFECTLY LEGIBLE — no garbled, distorted, or made-up text
+- Use ONLY clean sans-serif fonts (Helvetica, Inter, Roboto, Arial)
+- Copy all text EXACTLY as provided above — do not invent or hallucinate any text
+- If text doesn't fit readably, REMOVE content rather than shrink font size
+- Minimum font size: 14pt equivalent
+- All text must have high contrast against its background
+- Every word must be a real, correctly-spelled English word`;
 
-  const fullPrompt = `${prompt}\n${bgInstruction}\n\nAspect ratio: ${aspectRatio}.`;
+  const fullPrompt = `${prompt}\n${textEnforcement}\n\nAspect ratio: ${aspectRatio}.`;
 
   const body = {
     contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
@@ -538,54 +536,6 @@ If everything is fine: {"corrections": [], "risk_words": [], "fact_flags": [], "
   }
 }
 
-// ── Hybrid rendering (Satori + Sharp) ─────────────────────────
-
-const DIMENSIONS: Record<string, { width: number; height: number }> = {
-  '16:9': { width: 1920, height: 1080 },
-  '9:16': { width: 1080, height: 1920 },
-  '1:1':  { width: 1080, height: 1080 },
-};
-
-async function renderTextOverlay(
-  structured: StructuredContent,
-  style: string,
-  layout: string,
-  aspectRatio: string,
-): Promise<Buffer> {
-  const dims = DIMENSIONS[aspectRatio] || DIMENSIONS['16:9'];
-  const fonts = await loadFonts();
-  const template = getTextOverlayTemplate(layout, structured, style, dims.width, dims.height);
-
-  const svg = await satori(template as React.ReactElement, {
-    width: dims.width,
-    height: dims.height,
-    fonts,
-  });
-
-  // Convert SVG to PNG via sharp
-  return await sharp(Buffer.from(svg))
-    .resize(dims.width, dims.height)
-    .png()
-    .toBuffer();
-}
-
-async function compositeImage(
-  backgroundBase64: string,
-  textOverlay: Buffer,
-  aspectRatio: string,
-): Promise<string> {
-  const dims = DIMENSIONS[aspectRatio] || DIMENSIONS['16:9'];
-  const background = Buffer.from(backgroundBase64, 'base64');
-
-  const final = await sharp(background)
-    .resize(dims.width, dims.height, { fit: 'cover' })
-    .composite([{ input: textOverlay, top: 0, left: 0 }])
-    .png()
-    .toBuffer();
-
-  return final.toString('base64');
-}
-
 function buildContentSection(structured: StructuredContent, styleFamily: string): string {
   let out = `# ${structured.title}\n`;
   if (structured.subtitle) out += `## ${structured.subtitle}\n\n`;
@@ -638,8 +588,10 @@ async function assemblePrompt(
 
   const contentSection = buildContentSection(structured, styleFamily);
 
-  // No text labels block — text is composited separately via Satori
-  const textLabels = `[Text will be composited separately — generate visual background only]`;
+  // Build explicit text labels block with exact verbatim copy instructions
+  const sectionHeadings = structured.sections.map((s, i) => `${i + 1}. ${s.heading}`).join('\n');
+  const annotationLabels = structured.sections.flatMap(s => s.labels).map(l => `- ${l}`).join('\n');
+  const textLabels = `Title: ${structured.title}\nSubtitle: ${structured.subtitle}\n\nSection headings:\n${sectionHeadings}\n\nLabels and annotations:\n${annotationLabels}`;
 
   const aspectMap: Record<string, string> = {
     '9:16': 'portrait (9:16)',
@@ -705,27 +657,11 @@ export async function runPipeline(
     `styles/${analysis.style}.md`,
   ];
 
-  // Stage 4: Generate background image (no text)
-  onProgress({ status: 'generating', progress: 60, message: 'Rendering visual background...' });
-  const bgBase64 = await geminiGenerateImage(prompt, aspectRatio);
-  pipelineTrace.push({ stage: '04', agent: 'Renderer', result: `${IMAGE_MODEL}, aspect: ${aspectRatio}, bg-only` });
-  onProgress({ status: 'generating', progress: 85, message: 'Background generated' });
-
-  // Stage 4b: Composite text overlay (Satori + Sharp)
-  let imageBase64: string;
-  try {
-    onProgress({ status: 'compositing', progress: 88, message: 'Compositing text overlay...' });
-    const textOverlay = await renderTextOverlay(cleaned, analysis.style, analysis.layout, aspectRatio);
-    imageBase64 = await compositeImage(bgBase64, textOverlay, aspectRatio);
-    pipelineTrace.push({ stage: '04b', agent: 'Composer', result: `Satori + Sharp, ${aspectRatio}` });
-    onProgress({ status: 'compositing', progress: 95, message: 'Text composited' });
-  } catch (err) {
-    // Fallback: use the background image as-is (same quality as before)
-    console.error('[Composer] Text overlay failed, using background as-is:', err instanceof Error ? err.message : err);
-    imageBase64 = bgBase64;
-    pipelineTrace.push({ stage: '04b', agent: 'Composer', result: `FALLBACK — ${err instanceof Error ? err.message : 'unknown error'}` });
-    onProgress({ status: 'compositing', progress: 95, message: 'Finalizing...' });
-  }
+  // Stage 4: Generate image
+  onProgress({ status: 'generating', progress: 60, message: 'Rendering your infographic...' });
+  const imageBase64 = await geminiGenerateImage(prompt, aspectRatio);
+  pipelineTrace.push({ stage: '04', agent: 'Renderer', result: `${IMAGE_MODEL}, aspect: ${aspectRatio}` });
+  onProgress({ status: 'generating', progress: 95, message: 'Finalizing...' });
 
   return {
     imageBase64,
