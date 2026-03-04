@@ -870,7 +870,7 @@ export default function Home() {
                     ref={inputRef}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    placeholder="Paste articles, research, data, or notes (50+ characters to generate)..."
+                    placeholder={"e.g. The Rise of Nuclear Energy in 2025: 30+ countries expanding capacity. France leads at 70% nuclear grid share. SMRs (Small Modular Reactors) cut build cost by 40%. Global investment hit $120B in 2024 — up 35% YoY. Key players: EDF, Rosatom, NuScale, KHNP. Challenge: uranium supply bottleneck and 10-year build cycles."}
                     className="w-full min-h-[130px] max-h-[300px] resize-none bg-transparent text-[15px] text-white placeholder:text-white/35 focus:outline-none leading-relaxed font-sans pr-24 z-scroll"
                     disabled={isGenerating || isImproving}
                   />
