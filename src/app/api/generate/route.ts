@@ -2,19 +2,9 @@ import { runPipeline } from '@/lib/pipeline';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { saveGeneration } from '@/lib/telemetry';
 import { createClient } from '@/lib/supabase/server';
-import { createHash } from 'crypto';
+import { getClientIp, hashIp } from '@/lib/request-utils';
 
 export const maxDuration = 120;
-
-function getClientIp(request: Request): string {
-  const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded) return forwarded.split(',')[0].trim();
-  return request.headers.get('x-real-ip') || 'unknown';
-}
-
-function hashIp(ip: string): string {
-  return createHash('sha256').update(ip).digest('hex').slice(0, 16);
-}
 
 export async function POST(request: Request) {
   // Rate limiting
@@ -117,8 +107,8 @@ export async function POST(request: Request) {
           userId,
         }).catch(() => {});
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Generation failed';
-        sendEvent('error', { error: message });
+        console.error('[generate]', err);
+        sendEvent('error', { error: 'Generation failed. Please try again.' });
       } finally {
         controller.close();
       }

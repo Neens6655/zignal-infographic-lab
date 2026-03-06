@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
+import { isPrivateUrl } from '@/lib/url-validator';
+import { enforceRateLimit } from '@/lib/request-utils';
 
 export async function POST(request: Request) {
+  const rateLimited = enforceRateLimit(request);
+  if (rateLimited) return rateLimited;
+
   try {
     const { url } = await request.json();
 
@@ -18,6 +23,11 @@ export async function POST(request: Request) {
       }
     } catch {
       return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
+    }
+
+    // SSRF protection — block private/internal addresses
+    if (isPrivateUrl(url)) {
+      return NextResponse.json({ error: 'URL not allowed' }, { status: 403 });
     }
 
     // Fetch the page
@@ -110,10 +120,11 @@ export async function POST(request: Request) {
     ].filter(Boolean).join('\n');
 
     return NextResponse.json({ text: result, title, source: url });
-  } catch (err: any) {
-    if (err.name === 'TimeoutError' || err.name === 'AbortError') {
+  } catch (err: unknown) {
+    if (err instanceof Error && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
       return NextResponse.json({ error: 'Request timed out. The URL took too long to respond.' }, { status: 408 });
     }
+    console.error('[extract-url]', err);
     return NextResponse.json({ error: 'Failed to extract content from URL' }, { status: 500 });
   }
 }

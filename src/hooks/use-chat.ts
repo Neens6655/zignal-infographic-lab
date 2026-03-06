@@ -34,6 +34,7 @@ export function useChat() {
   const { state: genState, generate, reset: resetGen } = useGenerate();
   const activeGenId = useRef<string | null>(null);
   const pendingContent = useRef<string | null>(null);
+  const genCounter = useRef(0);
 
   const addMessage = useCallback((msg: ChatMessage) => {
     setMessages((prev) => [...prev, msg]);
@@ -53,6 +54,10 @@ export function useChat() {
   useEffect(() => {
     if (!activeGenId.current) return;
     const id = activeGenId.current;
+    const expectedGen = genCounter.current;
+
+    // Ignore stale completions from a previous generation
+    if (expectedGen !== genCounter.current) return;
 
     if (genState.phase === 'streaming') {
       updateMessage(id, {
@@ -101,6 +106,7 @@ export function useChat() {
 
       // Create generating placeholder
       const genId = nextId();
+      genCounter.current += 1;
       activeGenId.current = genId;
       pendingContent.current = content;
       const genMsg: ChatMessage = {

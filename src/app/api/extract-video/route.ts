@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { isPrivateUrl } from '@/lib/url-validator';
+import { enforceRateLimit } from '@/lib/request-utils';
 
 /**
  * Extract video transcript from YouTube, Vimeo, or Loom.
@@ -144,11 +146,19 @@ async function fetchGenericVideoPage(url: string): Promise<{ title: string; text
 }
 
 export async function POST(request: Request) {
+  const rateLimited = enforceRateLimit(request);
+  if (rateLimited) return rateLimited;
+
   try {
     const { url } = await request.json();
 
     if (!url || typeof url !== 'string') {
       return NextResponse.json({ error: 'Video URL is required' }, { status: 400 });
+    }
+
+    // SSRF protection for generic video page fetches
+    if (isPrivateUrl(url)) {
+      return NextResponse.json({ error: 'URL not allowed' }, { status: 403 });
     }
 
     const youtubeId = extractYouTubeId(url);
@@ -173,8 +183,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ text: result.text, title: result.title, source: url });
-  } catch (err: any) {
-    const msg = err.message || 'Failed to extract video content';
-    return NextResponse.json({ error: msg }, { status: 422 });
+  } catch (err: unknown) {
+    console.error('[extract-video]', err);
+    return NextResponse.json({ error: 'Failed to extract video content. Please try again.' }, { status: 422 });
   }
 }

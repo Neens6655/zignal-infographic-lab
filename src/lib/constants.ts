@@ -1,6 +1,4 @@
-export const GUEST_CREDIT_LIMIT = 2;
-export const FREE_TIER_DAILY_LIMIT = 5;
-export const ENGINE_API_URL = process.env.ENGINE_API_URL || 'http://localhost:3000';
+export const GUEST_CREDIT_LIMIT = 5;
 
 export const PRESETS = [
   { id: 'auto', name: 'Auto', description: 'AI picks the best layout and style', icon: 'Sparkles' },

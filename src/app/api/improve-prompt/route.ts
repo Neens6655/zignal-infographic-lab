@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { enforceRateLimit } from '@/lib/request-utils';
 
 const SYSTEM_PROMPT = `You are an infographic brief writer for an AI infographic generation engine. Transform the user's rough idea into a structured, detailed content brief that will produce a high-quality infographic.
 
@@ -16,10 +17,14 @@ Rules:
 - Start directly with the topic statement`;
 
 export async function POST(request: Request) {
+  const rateLimited = enforceRateLimit(request);
+  if (rateLimited) return rateLimited;
+
   const apiKey = process.env.GOOGLE_API_KEY;
   if (!apiKey) {
+    console.error('[improve-prompt] GOOGLE_API_KEY not configured');
     return NextResponse.json(
-      { error: 'GOOGLE_API_KEY not configured' },
+      { error: 'Service temporarily unavailable' },
       { status: 500 },
     );
   }
@@ -44,10 +49,10 @@ export async function POST(request: Request) {
     const improved = result.response.text();
 
     return NextResponse.json({ improved });
-  } catch (err: any) {
-    console.error('Improve prompt error:', err.message);
+  } catch (err: unknown) {
+    console.error('[improve-prompt]', err);
     return NextResponse.json(
-      { error: 'Failed to improve prompt' },
+      { error: 'Failed to improve prompt. Please try again.' },
       { status: 500 },
     );
   }

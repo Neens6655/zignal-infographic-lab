@@ -26,9 +26,10 @@ function initCleanup() {
 export function checkRateLimit(
   ip: string,
   isAuthenticated = false,
+  customLimit?: number,
 ): { allowed: boolean; remaining: number; limit: number } {
   initCleanup();
-  const limit = isAuthenticated ? AUTH_LIMIT : DEFAULT_LIMIT;
+  const limit = customLimit ?? (isAuthenticated ? AUTH_LIMIT : DEFAULT_LIMIT);
   const now = Date.now();
   const entry = store.get(ip);
 

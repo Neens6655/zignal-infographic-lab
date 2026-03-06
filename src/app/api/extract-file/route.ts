@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
+import { enforceRateLimit } from '@/lib/request-utils';
 
 export async function POST(request: Request) {
+  const rateLimited = enforceRateLimit(request);
+  if (rateLimited) return rateLimited;
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -47,8 +51,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ text, title: file.name, source: file.name });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Failed to parse file' }, { status: 500 });
+  } catch (err: unknown) {
+    console.error('[extract-file]', err);
+    return NextResponse.json({ error: 'Failed to parse file. Please try again.' }, { status: 500 });
   }
 }
 

@@ -15,6 +15,11 @@ export function useVoiceInput() {
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     setSupported(!!SpeechRecognition);
+
+    return () => {
+      recognitionRef.current?.abort();
+      recognitionRef.current = null;
+    };
   }, []);
 
   const startListening = useCallback(() => {
