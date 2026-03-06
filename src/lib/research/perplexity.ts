@@ -87,13 +87,15 @@ Provide specific statistics, dates, and facts with their sources. Focus on verif
     const rawCitations: string[] = data.citations || [];
 
     // Convert Perplexity citations to our SourceCitation format
+    // Use the answer as snippet context — Perplexity's answer synthesizes all cited sources
+    const answerSnippet = answer.replace(/\*\*/g, '').slice(0, 300);
     const citations: SourceCitation[] = rawCitations
       .filter((url: string) => url && url.startsWith('http'))
       .slice(0, 8)
       .map((url: string) => ({
         url,
         title: extractDomain(url),
-        snippet: '',
+        snippet: answerSnippet,
         provider: 'perplexity' as const,
       }));
 

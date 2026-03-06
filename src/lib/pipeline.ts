@@ -376,8 +376,12 @@ async function researchContent(
     return true;
   });
 
+  // Include Perplexity's synthesized answer in findings for richer claim extraction
+  const allFindings = [...exaResult.findings];
+  if (perplexityResult.answer) allFindings.push(perplexityResult.answer.replace(/\*\*/g, '').slice(0, 500));
+
   return {
-    findings: exaResult.findings,
+    findings: allFindings,
     verifiedFacts: exaResult.verifiedFacts,
     sourceUrls: uniqueCitations.map(c => c.url),
     searchQueries: exaResult.searchQueries,
@@ -896,7 +900,12 @@ export async function runPipeline(
 
   // Stage 1.7: Cross-verify claims against sources
   onProgress({ status: 'verifying', progress: 25, message: 'Verifying claims against sources...' });
-  const claims = await extractClaims(input.content);
+  // Feed both user content AND research findings so there are actual facts to extract
+  const researchContext = research.findings?.length
+    ? research.findings.join('\n')
+    : research.citations.map(c => c.snippet).filter(Boolean).join('\n');
+  const verifiableContent = `${input.content}\n\n${researchContext}`.trim();
+  const claims = await extractClaims(verifiableContent);
   const verifiedClaims = await crossVerifyClaims(claims, research.citations);
   const credibility = computeCredibilityScore(verifiedClaims, research.citations);
   pipelineTrace.push({

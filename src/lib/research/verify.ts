@@ -20,7 +20,11 @@ async function geminiExtract(prompt: string): Promise<string> {
     },
     body: JSON.stringify({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 2048 },
+      generationConfig: {
+        maxOutputTokens: 2048,
+        responseMimeType: 'application/json',
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     }),
   });
 
@@ -38,23 +42,53 @@ async function geminiExtract(prompt: string): Promise<string> {
  */
 export async function extractClaims(content: string): Promise<string[]> {
   try {
-    const response = await geminiExtract(`Extract all specific, verifiable factual claims from this content.
-Focus on: statistics, dates, percentages, named entities, quantitative statements, rankings, and specific facts.
-Do NOT include opinions, subjective statements, or vague claims.
-
-Return as a JSON array of strings (no markdown fences):
-["claim 1", "claim 2", "claim 3"]
-
-Maximum 10 claims. Each claim should be a single, self-contained factual statement.
+    const response = await geminiExtract(`Extract the top 5 verifiable factual claims from this content.
+Focus on: statistics, dates, percentages, named entities, quantitative data.
+Return ONLY a JSON array of short strings, nothing else:
+["claim 1", "claim 2"]
 
 CONTENT:
-${content.slice(0, 6000)}`);
+${content.slice(0, 3000)}`);
 
-    const jsonMatch = response.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return [];
+    // Strip markdown fences if present (Gemini sometimes wraps JSON in ```json ... ```)
+    let cleaned = response.replace(/```(?:json)?\s*/g, '').replace(/```\s*/g, '').trim();
+    // Try to repair truncated JSON — if starts with [ but no closing ]
+    let jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+    if (!jsonMatch && cleaned.includes('[')) {
+      // Truncated: find last complete "string", entry and close the array
+      const truncated = cleaned.slice(cleaned.indexOf('['));
+      // Find last complete string that ends with ",\n or "\n
+      const lastCompleteEntry = truncated.lastIndexOf('",');
+      const lastEntry = truncated.lastIndexOf('"');
+      const cutPoint = lastCompleteEntry > 0 ? lastCompleteEntry + 1 : lastEntry > 0 ? lastEntry + 1 : -1;
+      if (cutPoint > 1) {
+        cleaned = truncated.slice(0, cutPoint) + ']';
+        // Remove trailing comma before ]
+        cleaned = cleaned.replace(/,\s*\]/, ']');
+        try {
+          JSON.parse(cleaned); // validate
+          jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+          console.log('[Verify] Repaired truncated JSON array');
+        } catch {
+          console.log('[Verify] JSON repair failed, trying line-by-line');
+          // Fallback: extract individual quoted strings
+          const strings = truncated.match(/"([^"]+)"/g);
+          if (strings && strings.length > 0) {
+            cleaned = '[' + strings.join(',') + ']';
+            jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+            console.log('[Verify] Extracted', strings.length, 'claims via regex');
+          }
+        }
+      }
+    }
+    if (!jsonMatch) {
+      console.log('[Verify] No JSON array found in response');
+      return [];
+    }
     const claims = JSON.parse(jsonMatch[0]);
     return Array.isArray(claims) ? claims.slice(0, 10) : [];
-  } catch {
+  } catch (err) {
+    console.error('[Verify] extractClaims error:', err instanceof Error ? err.message : err);
     return [];
   }
 }
@@ -102,7 +136,8 @@ Return as JSON (no markdown fences):
   {"claim_index": 1, "supporting_sources": [], "contradicted": false}
 ]`);
 
-    const jsonMatch = response.match(/\[[\s\S]*\]/);
+    const cleanedResponse = response.replace(/```(?:json)?\s*/g, '').replace(/```\s*/g, '');
+    const jsonMatch = cleanedResponse.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
       return claims.map(claim => ({
         claim,
@@ -170,9 +205,10 @@ export function computeCredibilityScore(
     };
   }
 
-  // Cross-verified ratio (claims with 2+ sources)
+  // Verified ratio (claims with 1+ sources) — cross-verified = 2+ sources
+  const verified = verifiedClaims.filter(c => c.sources.length >= 1).length;
   const crossVerified = verifiedClaims.filter(c => c.sources.length >= 2).length;
-  const crossVerifiedRatio = crossVerified / verifiedClaims.length;
+  const verifiedRatio = verified / verifiedClaims.length;
 
   // Average source count per claim (normalized to 0-1, cap at 3 sources)
   const totalSources = verifiedClaims.reduce((sum, c) => sum + c.sources.length, 0);
@@ -191,8 +227,10 @@ export function computeCredibilityScore(
     recencyScore = recentCount / datedSources.length;
   }
 
+  // Score: verified ratio (40%) + multi-source bonus (25%) + source depth (20%) + recency (15%)
+  const crossVerifiedRatio = crossVerified / verifiedClaims.length;
   const overall = Math.round(
-    (crossVerifiedRatio * 0.5 + avgSourceCount * 0.3 + recencyScore * 0.2) * 100
+    (verifiedRatio * 0.4 + crossVerifiedRatio * 0.25 + avgSourceCount * 0.2 + recencyScore * 0.15) * 100
   );
 
   return {
