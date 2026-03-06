@@ -503,3 +503,78 @@ html::-webkit-scrollbar-thumb:hover {
 .z-scroll-x::-webkit-scrollbar-thumb:hover {
   background: rgba(212, 168, 75, 0.5);
 }
+
+/* === CAPABILITIES SECTION — Carousel & Animations === */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.scroll-snap-x {
+  scroll-snap-type: x mandatory;
+}
+.scroll-snap-x > * {
+  scroll-snap-align: start;
+}
+
+@keyframes source-cycle {
+  0%, 16%   { transform: translateY(0); }
+  20%, 36%  { transform: translateY(-28px); }
+  40%, 56%  { transform: translateY(-56px); }
+  60%, 76%  { transform: translateY(-84px); }
+  80%, 96%  { transform: translateY(-112px); }
+  100%      { transform: translateY(-140px); }
+}
+.source-cycle-track {
+  animation: source-cycle 8s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+}
+
+/* === ZGNAL CHAT === */
+.chat-bg {
+  background: linear-gradient(
+    180deg,
+    #151518 0%,
+    #1a1a1e 40%,
+    #141416 100%
+  );
+}
+@keyframes chatMsgIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.chat-msg-enter {
+  animation: chatMsgIn 200ms ease forwards;
+}
+
+@keyframes chatCursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.chat-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  background: var(--z-gold);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: chatCursorBlink 800ms step-end infinite;
+}
+
+@keyframes voicePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192,75,60,0.5); }
+  50%      { box-shadow: 0 0 0 12px rgba(192,75,60,0); }
+}
+.voice-recording {
+  animation: voicePulse 1.5s ease-in-out infinite;
+}
+
+/* Chat send button pulse while recording */
+@keyframes chatSendPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+.chat-send-pulse {
+  animation: chatSendPulse 1s ease-in-out infinite;
+}

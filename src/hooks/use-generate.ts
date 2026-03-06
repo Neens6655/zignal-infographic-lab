@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
+import { track } from '@vercel/analytics';
 import type { GenerateInput } from '@/lib/types';
 
 type ProvenanceData = {
@@ -37,6 +38,7 @@ export function useGenerate() {
     abortRef.current = controller;
 
     setState({ phase: 'submitting' });
+    const startTime = Date.now();
 
     try {
       const res = await fetch('/api/generate', {
@@ -79,6 +81,7 @@ export function useGenerate() {
             try {
               const data = JSON.parse(line.slice(6));
               if (eventType === 'complete') {
+                const durationMs = Date.now() - startTime;
                 setState({
                   phase: 'complete',
                   jobId: 'inline',
@@ -87,8 +90,15 @@ export function useGenerate() {
                   metadata: data.metadata || {},
                   provenance: data.provenance,
                 });
+                track('generation_complete', {
+                  preset: input.preset || 'auto',
+                  style: input.style || 'auto',
+                  aspect_ratio: input.aspect_ratio || '16:9',
+                  duration_ms: durationMs,
+                });
                 return;
               } else if (eventType === 'error') {
+                track('generation_error', { message: data.error || 'Generation failed' });
                 setState({ phase: 'error', message: data.error || 'Generation failed' });
                 return;
               } else {

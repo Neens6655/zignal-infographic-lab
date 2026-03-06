@@ -1,8 +1,59 @@
 import { runPipeline } from '@/lib/pipeline';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { saveGeneration } from '@/lib/telemetry';
+import { createClient } from '@/lib/supabase/server';
+import { createHash } from 'crypto';
 
 export const maxDuration = 120;
 
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  return request.headers.get('x-real-ip') || 'unknown';
+}
+
+function hashIp(ip: string): string {
+  return createHash('sha256').update(ip).digest('hex').slice(0, 16);
+}
+
 export async function POST(request: Request) {
+  // Rate limiting
+  const ip = getClientIp(request);
+
+  let userId: string | undefined;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    userId = user?.id;
+  } catch {
+    // No auth session — treat as anonymous
+  }
+
+  const rateCheck = checkRateLimit(ip, !!userId);
+  if (!rateCheck.allowed) {
+    return new Response(
+      JSON.stringify({ error: 'Rate limit exceeded. Try again later.' }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': '3600',
+          'X-RateLimit-Limit': String(rateCheck.limit),
+          'X-RateLimit-Remaining': '0',
+        },
+      },
+    );
+  }
+
+  // Reject oversized payloads (1MB limit)
+  const contentLength = request.headers.get('content-length');
+  if (contentLength && parseInt(contentLength) > 1024 * 1024) {
+    return new Response(
+      JSON.stringify({ error: 'Request body too large' }),
+      { status: 413, headers: { 'Content-Type': 'application/json' } },
+    );
+  }
+
   const body = await request.json();
 
   if (!body.content || typeof body.content !== 'string' || body.content.trim().length === 0) {
@@ -13,6 +64,7 @@ export async function POST(request: Request) {
   }
 
   const encoder = new TextEncoder();
+  const startTime = Date.now();
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -44,6 +96,26 @@ export async function POST(request: Request) {
           metadata: result.metadata,
           provenance: result.provenance,
         });
+
+        // Fire-and-forget telemetry — never blocks the response
+        const durationMs = Date.now() - startTime;
+        saveGeneration({
+          seed: result.provenance?.seed || 'unknown',
+          contentHash: result.provenance?.contentHash || 'unknown',
+          preset: result.metadata?.preset,
+          style: result.metadata?.style,
+          layout: result.metadata?.layout,
+          aspectRatio: result.metadata?.aspect_ratio || body.aspect_ratio || '16:9',
+          complianceScore: result.provenance?.compliance?.score,
+          researchQueries: result.provenance?.research?.queriesRun,
+          researchFindings: result.provenance?.research?.findingsCount,
+          sourceUrls: result.provenance?.research?.sourceUrls,
+          topics: result.provenance?.topics,
+          pipelineTrace: result.provenance?.pipeline,
+          durationMs,
+          ipHash: hashIp(ip),
+          userId,
+        }).catch(() => {});
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Generation failed';
         sendEvent('error', { error: message });
@@ -58,6 +130,8 @@ export async function POST(request: Request) {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',
+      'X-RateLimit-Limit': String(rateCheck.limit),
+      'X-RateLimit-Remaining': String(rateCheck.remaining),
     },
   });
 }

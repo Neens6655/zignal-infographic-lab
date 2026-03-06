@@ -11,16 +11,18 @@ import {
   AnimatePresence,
 } from 'motion/react';
 import { useGenerate } from '@/hooks/use-generate';
+import { useVoiceInput } from '@/hooks/use-voice-input';
 import { GeneratingExperience } from '@/components/generator/generating-experience';
 import { ResultViewer } from '@/components/generator/result-viewer';
+import { ChatFAB } from '@/components/chat/chat-fab';
 import {
   Sparkles, ArrowRight, ArrowUpRight,
   FileText, Globe, Upload, CheckCircle2,
   LayoutGrid, MonitorSmartphone,
-  Search, Palette, Zap,
+  Search,
   ChevronDown, SlidersHorizontal, X,
   Brain, Wand2, Layers3, FileCode, Cpu, Loader2, Video,
-  Link2, AlertCircle, UploadCloud,
+  Link2, AlertCircle, UploadCloud, Mic, MicOff,
 } from 'lucide-react';
 import type { GenerateInput } from '@/lib/types';
 
@@ -93,29 +95,7 @@ const PIPELINE = [
   { num: '07', agent: 'Renderer', name: 'Generate', desc: 'Render with Gemini 3 Pro + reference images', detail: 'Final render pass generates a high-resolution infographic in ~60 seconds. Output at print resolution (2K+) with consulting-grade visual quality.', icon: Cpu },
 ];
 
-const PRODUCTS = [
-  {
-    name: 'Intelligent Research',
-    labels: ['22 TRUSTED SOURCES', 'FACT VERIFICATION', 'AUTO CITATION'],
-    description: 'AI classifier routes content to 22 trusted sources — Wikipedia, BBC, National Geographic, WHO, and more. Every visual claim is verified against real data.',
-    links: [{ label: 'Sources', href: '#' }, { label: 'Documentation', href: '#' }],
-    icon: Search,
-  },
-  {
-    name: '400 Combinations',
-    labels: ['20 LAYOUTS', '20 STYLES', '3 RATIOS'],
-    description: 'From bento grids to iceberg diagrams. From craft-handmade to cyberpunk-neon. The engine selects the optimal pairing or you choose your own.',
-    links: [{ label: 'Style guide', href: '#' }, { label: 'Layout reference', href: '#' }],
-    icon: Palette,
-  },
-  {
-    name: 'Publication Ready',
-    labels: ['60 SECONDS', 'CONSULTING GRADE', 'PRINT RESOLUTION'],
-    description: 'Output meets the visual standard of top-tier consulting firms. High-resolution renders suitable for boardroom presentations and editorial publications.',
-    links: [{ label: 'Gallery', href: '#' }],
-    icon: Zap,
-  },
-];
+
 
 const INPUT_MODES = [
   { id: 'text', label: 'Paste text', title: 'Paste text', desc: 'Notes, articles, or content', icon: FileText, bg: 'bg-purple-500/10', iconColor: 'text-purple-400' },
@@ -203,53 +183,365 @@ function ScrollReveal({
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   FLIP CARD — 3D flip on scroll into view
+   WIREFRAME SVGs — Gold geometric infographic layout skeletons
    ═══════════════════════════════════════════════════════════════ */
 
-function FlipCard({
-  front,
-  back,
-  delay = 0,
-}: {
-  front: React.ReactNode;
-  back: React.ReactNode;
-  delay?: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-100px' });
-  const [flipped, setFlipped] = useState(false);
+function WireframeBento() {
+  return (
+    <svg viewBox="0 0 200 140" fill="none" className="w-full h-full">
+      <rect x="8" y="8" width="88" height="60" stroke="#D4A84B" strokeWidth="1.2" opacity="0.7" />
+      <rect x="8" y="74" width="42" height="58" stroke="#D4A84B" strokeWidth="1.2" opacity="0.5" />
+      <rect x="56" y="74" width="40" height="28" stroke="#D4A84B" strokeWidth="1.2" opacity="0.6" />
+      <rect x="56" y="108" width="40" height="24" stroke="#D4A84B" strokeWidth="1.2" fill="#D4A84B" fillOpacity="0.05" opacity="0.5" />
+      <rect x="102" y="8" width="90" height="40" stroke="#D4A84B" strokeWidth="1.2" fill="#D4A84B" fillOpacity="0.04" opacity="0.6" />
+      <rect x="102" y="54" width="90" height="78" stroke="#D4A84B" strokeWidth="1.2" opacity="0.7" />
+      {/* Inner detail lines */}
+      <line x1="16" y1="20" x2="60" y2="20" stroke="#D4A84B" strokeWidth="0.6" opacity="0.3" />
+      <line x1="16" y1="28" x2="48" y2="28" stroke="#D4A84B" strokeWidth="0.6" opacity="0.2" />
+      <line x1="110" y1="70" x2="170" y2="70" stroke="#D4A84B" strokeWidth="0.6" opacity="0.2" />
+      <line x1="110" y1="78" x2="155" y2="78" stroke="#D4A84B" strokeWidth="0.6" opacity="0.15" />
+      <circle cx="118" cy="28" r="10" stroke="#D4A84B" strokeWidth="0.8" opacity="0.4" />
+    </svg>
+  );
+}
 
-  useEffect(() => {
-    if (isInView) {
-      const timer = setTimeout(() => setFlipped(true), delay * 1000 + 400);
-      return () => clearTimeout(timer);
-    }
-  }, [isInView, delay]);
+function WireframeIceberg() {
+  return (
+    <svg viewBox="0 0 200 140" fill="none" className="w-full h-full">
+      {/* Water line */}
+      <path d="M0 55 Q50 50 100 55 Q150 60 200 55" stroke="#D4A84B" strokeWidth="0.8" opacity="0.4" strokeDasharray="4 3" />
+      {/* Tip above water */}
+      <polygon points="100,12 120,55 80,55" stroke="#D4A84B" strokeWidth="1.2" fill="#D4A84B" fillOpacity="0.06" opacity="0.8" />
+      {/* Mass below water */}
+      <polygon points="65,58 135,58 155,95 145,125 55,125 45,95" stroke="#D4A84B" strokeWidth="1.2" fill="#D4A84B" fillOpacity="0.04" opacity="0.6" />
+      {/* Detail lines inside mass */}
+      <line x1="72" y1="72" x2="128" y2="72" stroke="#D4A84B" strokeWidth="0.6" opacity="0.2" />
+      <line x1="68" y1="86" x2="132" y2="86" stroke="#D4A84B" strokeWidth="0.6" opacity="0.15" />
+      <line x1="62" y1="100" x2="138" y2="100" stroke="#D4A84B" strokeWidth="0.6" opacity="0.15" />
+      <line x1="58" y1="114" x2="142" y2="114" stroke="#D4A84B" strokeWidth="0.6" opacity="0.12" />
+      {/* Label lines on tip */}
+      <line x1="122" y1="35" x2="155" y2="25" stroke="#D4A84B" strokeWidth="0.5" opacity="0.3" />
+      <line x1="155" y1="25" x2="178" y2="25" stroke="#D4A84B" strokeWidth="0.5" opacity="0.3" />
+    </svg>
+  );
+}
+
+function WireframeHubSpoke() {
+  return (
+    <svg viewBox="0 0 200 140" fill="none" className="w-full h-full">
+      {/* Central octagon */}
+      <polygon points="100,45 118,52 125,70 118,88 100,95 82,88 75,70 82,52" stroke="#D4A84B" strokeWidth="1.4" fill="#D4A84B" fillOpacity="0.06" opacity="0.8" />
+      <circle cx="100" cy="70" r="6" fill="#D4A84B" fillOpacity="0.3" />
+      {/* Spokes + outer nodes */}
+      {[[40, 25], [160, 25], [170, 105], [30, 105], [100, 130]].map(([cx, cy], i) => (
+        <g key={i}>
+          <line x1={100} y1={70} x2={cx} y2={cy} stroke="#D4A84B" strokeWidth="0.8" opacity="0.25" strokeDasharray="3 2" />
+          <circle cx={cx} cy={cy} r="10" stroke="#D4A84B" strokeWidth="1" opacity="0.5" />
+          <circle cx={cx} cy={cy} r="3" fill="#D4A84B" fillOpacity="0.25" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function WireframeTimeline() {
+  return (
+    <svg viewBox="0 0 200 140" fill="none" className="w-full h-full">
+      {/* Wavy path */}
+      <path d="M10 70 Q40 40 70 70 Q100 100 130 70 Q160 40 190 70" stroke="#D4A84B" strokeWidth="1.2" opacity="0.5" fill="none" />
+      {/* Milestone diamonds */}
+      {[30, 70, 110, 150, 190].map((x, i) => {
+        const y = i % 2 === 0 ? 70 : 70;
+        return (
+          <g key={i}>
+            <rect x={x - 6} y={64} width="12" height="12" stroke="#D4A84B" strokeWidth="1" fill="#D4A84B" fillOpacity={i === 2 ? 0.15 : 0.05} opacity="0.7" transform={`rotate(45 ${x} 70)`} />
+            {/* Date line */}
+            <line x1={x} y1={i % 2 === 0 ? 30 : 46} x2={x} y2={58} stroke="#D4A84B" strokeWidth="0.5" opacity="0.2" />
+            <line x1={x - 12} y1={i % 2 === 0 ? 26 : 42} x2={x + 12} y2={i % 2 === 0 ? 26 : 42} stroke="#D4A84B" strokeWidth="0.5" opacity="0.15" />
+            {/* Content below */}
+            <line x1={x} y1={82} x2={x} y2={i % 2 === 0 ? 105 : 98} stroke="#D4A84B" strokeWidth="0.5" opacity="0.2" />
+            <line x1={x - 14} y1={i % 2 === 0 ? 108 : 102} x2={x + 14} y2={i % 2 === 0 ? 108 : 102} stroke="#D4A84B" strokeWidth="0.5" opacity="0.12" />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function WireframeDashboard() {
+  return (
+    <svg viewBox="0 0 200 140" fill="none" className="w-full h-full">
+      {/* Top bar */}
+      <rect x="8" y="8" width="184" height="16" stroke="#D4A84B" strokeWidth="1" opacity="0.4" />
+      <circle cx="18" cy="16" r="3" fill="#D4A84B" fillOpacity="0.3" />
+      <line x1="28" y1="16" x2="70" y2="16" stroke="#D4A84B" strokeWidth="0.6" opacity="0.2" />
+      {/* Main chart area */}
+      <rect x="8" y="30" width="120" height="72" stroke="#D4A84B" strokeWidth="1.2" opacity="0.6" />
+      {/* Chart bars */}
+      {[20, 38, 56, 74, 92, 110].map((x, i) => (
+        <rect key={i} x={x} y={102 - [30, 45, 35, 55, 40, 50][i]} width="10" height={[30, 45, 35, 55, 40, 50][i]} fill="#D4A84B" fillOpacity={0.08 + i * 0.02} stroke="#D4A84B" strokeWidth="0.5" opacity="0.5" />
+      ))}
+      {/* KPI panels */}
+      {[0, 1, 2].map((i) => (
+        <g key={i}>
+          <rect x="136" y={30 + i * 26} width="56" height="20" stroke="#D4A84B" strokeWidth="0.8" opacity="0.4" />
+          <line x1="142" y1={38 + i * 26} x2="168" y2={38 + i * 26} stroke="#D4A84B" strokeWidth="0.6" opacity="0.2" />
+          <line x1="142" y1={44 + i * 26} x2="158" y2={44 + i * 26} stroke="#D4A84B" strokeWidth="0.4" opacity="0.15" />
+        </g>
+      ))}
+      {/* Bottom row */}
+      <rect x="8" y="108" width="88" height="24" stroke="#D4A84B" strokeWidth="0.8" opacity="0.35" />
+      <rect x="102" y="108" width="90" height="24" stroke="#D4A84B" strokeWidth="0.8" opacity="0.35" />
+    </svg>
+  );
+}
+
+function WireframeTree() {
+  return (
+    <svg viewBox="0 0 200 140" fill="none" className="w-full h-full">
+      {/* Root */}
+      <rect x="80" y="8" width="40" height="18" stroke="#D4A84B" strokeWidth="1.2" fill="#D4A84B" fillOpacity="0.06" opacity="0.8" />
+      <line x1="88" y1="16" x2="110" y2="16" stroke="#D4A84B" strokeWidth="0.6" opacity="0.3" />
+      {/* Level 1 branches */}
+      <line x1="100" y1="26" x2="100" y2="38" stroke="#D4A84B" strokeWidth="0.8" opacity="0.4" />
+      <line x1="40" y1="38" x2="160" y2="38" stroke="#D4A84B" strokeWidth="0.8" opacity="0.3" />
+      {[40, 100, 160].map((x, i) => (
+        <g key={i}>
+          <line x1={x} y1={38} x2={x} y2={48} stroke="#D4A84B" strokeWidth="0.8" opacity="0.3" />
+          <rect x={x - 18} y={48} width="36" height="14" stroke="#D4A84B" strokeWidth="1" opacity="0.6" />
+          <line x1={x - 12} y1={54} x2={x + 10} y2={54} stroke="#D4A84B" strokeWidth="0.5" opacity="0.2" />
+        </g>
+      ))}
+      {/* Level 2 branches */}
+      {[20, 60, 80, 120, 140, 180].map((x, i) => (
+        <g key={i}>
+          <line x1={[40, 40, 100, 100, 160, 160][i]} y1={62} x2={x} y2={78} stroke="#D4A84B" strokeWidth="0.6" opacity="0.2" />
+          <rect x={x - 14} y={78} width="28" height="12" stroke="#D4A84B" strokeWidth="0.8" opacity="0.4" />
+        </g>
+      ))}
+      {/* Level 3 leaf nodes */}
+      {[15, 35, 55, 75, 95, 115, 135, 155, 175].map((x, i) => (
+        <g key={i}>
+          <line x1={[20, 20, 60, 80, 80, 120, 140, 180, 180][i]} y1={90} x2={x} y2={105} stroke="#D4A84B" strokeWidth="0.4" opacity="0.15" />
+          <circle cx={x} cy={110} r="5" stroke="#D4A84B" strokeWidth="0.6" opacity="0.3" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   CAPABILITIES SECTION — 6 interactive boxes
+   ═══════════════════════════════════════════════════════════════ */
+
+function CapabilitiesSection({ scrollToGenerator }: { scrollToGenerator: () => void }) {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(sectionRef, { once: true, margin: '-60px' });
+
+  const boxes = [
+    {
+      stat: '22',
+      unit: 'SOURCES',
+      line: 'Fact-verified by institutional sources',
+      visual: (
+        <div className="flex flex-wrap gap-1 mt-3">
+          {['BBC', 'WHO', 'Nature', 'PubMed', 'Wikipedia'].map((s, i) => (
+            <motion.span
+              key={s}
+              initial={{ opacity: 0, x: -6 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ delay: 0.8 + i * 0.1, duration: 0.3 }}
+              className="text-[8px] font-mono text-(--z-gold)/50 bg-(--z-gold)/[0.05] px-1.5 py-0.5 border border-(--z-gold)/10"
+            >
+              {s}
+            </motion.span>
+          ))}
+          <span className="text-[8px] font-mono text-(--z-muted)/40 self-center">+17</span>
+        </div>
+      ),
+    },
+    {
+      stat: '20',
+      unit: 'LAYOUTS',
+      line: 'Bento, iceberg, hub, timeline & more',
+      visual: (
+        <div className="grid grid-cols-3 gap-1 mt-3">
+          {[WireframeBento, WireframeIceberg, WireframeHubSpoke, WireframeTimeline, WireframeDashboard, WireframeTree].map((WF, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ delay: 0.9 + i * 0.06, duration: 0.3 }}
+              className="aspect-[4/3] bg-(--z-bg)/50 border border-(--z-gold)/8 p-0.5"
+            >
+              <WF />
+            </motion.div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      stat: '20',
+      unit: 'STYLES',
+      line: 'From watercolor to technical schematic',
+      visual: (
+        <div className="flex flex-wrap gap-1 mt-3">
+          {['Craft', 'Kawaii', 'Cyberpunk', 'IKEA', 'Origami', 'Schematic'].map((s, i) => (
+            <motion.span
+              key={s}
+              initial={{ opacity: 0 }}
+              animate={isInView ? { opacity: 1 } : {}}
+              transition={{ delay: 1.0 + i * 0.08, duration: 0.3 }}
+              className="text-[8px] font-mono text-(--z-cream)/40 bg-white/[0.03] px-1.5 py-0.5 border border-white/[0.06]"
+            >
+              {s}
+            </motion.span>
+          ))}
+        </div>
+      ),
+    },
+    {
+      stat: '60',
+      unit: 'SECONDS',
+      line: 'Publication-grade, consulting-ready',
+      visual: (
+        <div className="mt-3 flex items-center gap-2">
+          <div className="flex items-center gap-1.5 px-2 py-1 border border-(--z-gold)/12 bg-(--z-gold)/[0.04]">
+            <div className="h-1.5 w-1.5" style={{ background: '#4CAF50' }} />
+            <span className="text-[8px] font-mono text-(--z-cream)/50">2K+</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-2 py-1 border border-(--z-gold)/12 bg-(--z-gold)/[0.04]">
+            <div className="h-1.5 w-1.5 bg-(--z-gold)" />
+            <span className="text-[8px] font-mono text-(--z-cream)/50">PRINT</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      stat: '7',
+      unit: 'AGENTS',
+      line: 'Agentic pipeline, zero guesswork',
+      visual: (
+        <div className="flex items-center gap-0.5 mt-3">
+          {['S', 'O', 'Sc', 'St', 'A', 'F', 'R'].map((a, i) => (
+            <motion.div
+              key={a}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ delay: 1.1 + i * 0.07, duration: 0.25, type: 'spring', stiffness: 300 }}
+              className="h-5 w-5 flex items-center justify-center text-[7px] font-mono font-bold bg-white/[0.04] border border-white/[0.08] text-(--z-cream)/40"
+            >
+              {a}
+            </motion.div>
+          ))}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={isInView ? { scaleX: 1 } : {}}
+            transition={{ delay: 1.8, duration: 0.6 }}
+            className="ml-1 h-[1px] flex-1 bg-gradient-to-r from-(--z-gold)/30 to-transparent origin-left"
+          />
+        </div>
+      ),
+    },
+    {
+      stat: '3',
+      unit: 'RATIOS',
+      line: '16:9, 9:16, and 1:1 output',
+      visual: (
+        <div className="flex items-end gap-2 mt-3">
+          {[
+            { w: 32, h: 18, label: '16:9' },
+            { w: 14, h: 24, label: '9:16' },
+            { w: 20, h: 20, label: '1:1' },
+          ].map((r, i) => (
+            <motion.div
+              key={r.label}
+              initial={{ opacity: 0, y: 8 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 1.0 + i * 0.12, duration: 0.35 }}
+              className="flex flex-col items-center gap-1"
+            >
+              <div
+                className="border border-(--z-gold)/25 bg-(--z-gold)/[0.04]"
+                style={{ width: r.w, height: r.h }}
+              />
+              <span className="text-[7px] font-mono text-(--z-muted)/50">{r.label}</span>
+            </motion.div>
+          ))}
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <div ref={ref} className="perspective-[1200px]" style={{ perspective: '1200px' }}>
-      <motion.div
-        animate={{ rotateY: flipped ? 180 : 0 }}
-        transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-        className="relative w-full"
-        style={{ transformStyle: 'preserve-3d' }}
-      >
-        {/* Front face */}
-        <div
-          className="w-full"
-          style={{ backfaceVisibility: 'hidden' }}
-        >
-          {!flipped && front}
+    <section ref={sectionRef} className="py-16 sm:py-28 bg-(--z-bg)">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        {/* Section header */}
+        <ScrollReveal>
+          <p className="label-mono text-(--z-gold) mb-3 sm:mb-4">Capabilities</p>
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-mono font-medium heading-editorial text-(--z-cream) mb-8 sm:mb-12 max-w-2xl">
+            Built to generate.
+          </h2>
+        </ScrollReveal>
+
+        {/* 6-box grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+          {boxes.map((box, i) => (
+            <motion.div
+              key={box.unit}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.2 + i * 0.08, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+              className="group relative bg-(--z-surface) border border-(--border) p-4 sm:p-5 overflow-hidden hover:border-(--z-gold)/25 transition-all duration-500"
+            >
+              {/* Hover glow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-(--z-gold)/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+              {/* Pulse dot — top right */}
+              <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+                <div className="h-1.5 w-1.5 bg-(--z-gold)/40 group-hover:bg-(--z-gold)/70 transition-colors">
+                  <div className="absolute inset-0 bg-(--z-gold)/30 animate-ping" style={{ animationDuration: `${2 + i * 0.5}s` }} />
+                </div>
+              </div>
+
+              {/* Stat */}
+              <div className="relative">
+                <p className="text-2xl sm:text-3xl lg:text-4xl font-mono font-bold text-(--z-gold) heading-editorial leading-none">
+                  {box.stat}
+                </p>
+                <p className="text-[8px] sm:text-[9px] font-mono font-medium tracking-[0.2em] text-(--z-gold)/50 mt-1">
+                  {box.unit}
+                </p>
+              </div>
+
+              {/* Description */}
+              <p className="text-[10px] sm:text-[11px] font-mono text-(--z-muted) leading-snug mt-2 sm:mt-3">
+                {box.line}
+              </p>
+
+              {/* Embedded visual */}
+              <div className="relative">
+                {box.visual}
+              </div>
+            </motion.div>
+          ))}
         </div>
-        {/* Back face */}
-        <div
-          className="w-full"
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-        >
-          {flipped && back}
+
+        {/* CTA */}
+        <div className="mt-8 sm:mt-12 text-center">
+          <ScrollReveal delay={0.2}>
+            <button
+              onClick={scrollToGenerator}
+              className="inline-flex items-center gap-2.5 bg-(--z-gold) px-6 sm:px-7 py-3 sm:py-3.5 text-xs sm:text-sm font-mono font-semibold text-(--z-bg) hover:bg-(--z-gold-dim) active:scale-[0.97] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
+            >
+              Start generating
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </ScrollReveal>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </section>
   );
 }
 
@@ -273,7 +565,7 @@ function PipelineSection({ scrollToGenerator }: { scrollToGenerator: () => void 
     <section
       ref={sectionRef}
       id="pipeline"
-      className="py-24 sm:py-40 relative overflow-hidden"
+      className="py-16 sm:py-40 relative overflow-hidden"
       style={{ background: 'linear-gradient(180deg, #0E0E12 0%, #111118 20%, #13131A 50%, #111118 80%, #0E0E12 100%)' }}
     >
       {/* Ambient glows */}
@@ -285,11 +577,11 @@ function PipelineSection({ scrollToGenerator }: { scrollToGenerator: () => void 
       <div className="relative mx-auto max-w-7xl px-6">
         <ScrollReveal>
           <p className="label-mono text-(--z-gold) mb-4">Agentic Workflow</p>
-          <h2 className="text-5xl sm:text-6xl lg:text-7xl font-mono font-medium heading-editorial mb-6 max-w-3xl">
+          <h2 className="text-3xl sm:text-5xl lg:text-7xl font-mono font-medium heading-editorial mb-6 max-w-3xl">
             Seven agents.<br />
             <span className="text-(--z-muted)">Zero guesswork.</span>
           </h2>
-          <p className="text-sm text-(--z-muted) leading-relaxed max-w-lg mb-20">
+          <p className="text-sm text-(--z-muted) leading-relaxed max-w-lg mb-10 sm:mb-20">
             Every infographic flows through an agentic pipeline — seven specialized AI agents, from raw content to publication-ready output in approximately 60 seconds.
           </p>
         </ScrollReveal>
@@ -422,37 +714,45 @@ function PipelineSection({ scrollToGenerator }: { scrollToGenerator: () => void 
           </ScrollReveal>
         </div>
 
-        {/* Mobile: vertical interactive */}
-        <div className="lg:hidden space-y-0">
-          {PIPELINE.map((stage, i) => {
-            const Icon = stage.icon;
-            return (
-              <ScrollReveal key={stage.num} delay={i * 0.05}>
-                <div className="flex gap-5 group">
-                  <div className="flex flex-col items-center">
-                    <div className={`h-10 w-10 flex items-center justify-center shrink-0 transition-all ${
-                      stage.highlight ? 'bg-(--z-gold)/10 text-(--z-gold)' : 'bg-white/[0.04] text-white/50'
-                    }`}>
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    {i < PIPELINE.length - 1 && <div className="w-px flex-1 bg-(--border)" />}
-                  </div>
-                  <div className="pb-8">
-                    <div className="flex items-baseline gap-3 mb-0.5">
-                      <span className={`text-lg font-mono font-bold ${stage.highlight ? 'text-(--z-gold)' : 'text-(--z-surface-2)'}`}>
+        {/* Mobile: compact grid */}
+        <div className="lg:hidden">
+          <ScrollReveal>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+              {PIPELINE.map((stage) => {
+                const Icon = stage.icon;
+                return (
+                  <div
+                    key={stage.num}
+                    className={`p-3 sm:p-4 border transition-colors ${
+                      stage.highlight
+                        ? 'bg-(--z-gold)/[0.06] border-(--z-gold)/20'
+                        : 'bg-white/[0.02] border-white/[0.06]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={`text-[10px] font-mono font-bold ${stage.highlight ? 'text-(--z-gold)' : 'text-white/30'}`}>
                         {stage.num}
                       </span>
-                      <span className={`text-sm font-mono font-bold ${stage.highlight ? 'text-(--z-gold)' : 'text-(--z-cream)'}`}>
-                        {stage.agent}
-                      </span>
+                      <Icon className={`h-3.5 w-3.5 ${stage.highlight ? 'text-(--z-gold)' : 'text-white/40'}`} />
                     </div>
-                    <div className="text-[9px] font-mono tracking-[0.15em] uppercase text-(--z-muted)/60 mb-1">{stage.name}</div>
-                    <p className="text-xs text-(--z-muted) leading-relaxed">{stage.desc}</p>
+                    <p className={`text-xs font-mono font-bold mb-0.5 ${stage.highlight ? 'text-(--z-gold)' : 'text-(--z-cream)'}`}>
+                      {stage.agent}
+                    </p>
+                    <p className="text-[10px] text-(--z-muted) leading-snug">{stage.desc}</p>
                   </div>
-                </div>
-              </ScrollReveal>
-            );
-          })}
+                );
+              })}
+            </div>
+          </ScrollReveal>
+          <div className="mt-6 flex items-center justify-center">
+            <button
+              onClick={scrollToGenerator}
+              className="inline-flex items-center gap-2 text-xs font-mono text-(--z-cream)/60 hover:text-(--z-gold) transition-colors"
+            >
+              Try the pipeline
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -482,6 +782,7 @@ export default function Home() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const generatorRef = useRef<HTMLDivElement>(null);
+  const { voiceState, transcript, interimTranscript, supported: voiceSupported, toggleListening, clearTranscript } = useVoiceInput();
 
   const hasContent = content.trim().length > 50;
   const isGenerating = state.phase === 'submitting' || state.phase === 'streaming';
@@ -490,6 +791,14 @@ export default function Home() {
   const { scrollY } = useScroll();
   const heroContentY = useTransform(scrollY, [0, 800], [0, 100]);
   const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
+
+  /* Sync voice transcript → content */
+  useEffect(() => {
+    if (transcript) {
+      setContent((prev) => prev + transcript);
+      clearTranscript();
+    }
+  }, [transcript, clearTranscript]);
 
   /* Auto-resize textarea */
   useEffect(() => {
@@ -718,7 +1027,7 @@ export default function Home() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           HERO — Clean, generator-first, subtle ambient backdrop
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <section className="relative h-screen min-h-[800px] flex flex-col overflow-hidden bg-(--z-bg)">
+      <section className="relative h-screen min-h-[680px] sm:min-h-[800px] flex flex-col overflow-hidden bg-(--z-bg)">
         {/* Animated gradient orbs — slow, living background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="hero-orb hero-orb-gold" />
@@ -781,7 +1090,7 @@ export default function Home() {
 
         {/* Hero content */}
         <motion.div
-          className="relative flex-1 flex flex-col items-center justify-center px-6 pt-20"
+          className="relative flex-1 flex flex-col items-center justify-center px-3 sm:px-6 pt-20"
           style={{ y: heroContentY, opacity: heroOpacity }}
         >
           {/* Label */}
@@ -789,7 +1098,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="label-mono text-(--z-gold) mb-6"
+            className="label-mono text-(--z-gold) mb-3 sm:mb-6"
           >
             The Infographic Engine
           </motion.p>
@@ -799,7 +1108,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-            className="text-center font-mono font-medium heading-editorial mb-14 text-4xl sm:text-5xl lg:text-6xl xl:text-7xl max-w-4xl"
+            className="text-center font-mono font-medium heading-editorial mb-6 sm:mb-14 text-3xl sm:text-5xl lg:text-6xl xl:text-7xl max-w-4xl"
           >
             <span className="block">Turn complexity</span>
             <span className="block text-gradient-gold">into clarity</span>
@@ -858,7 +1167,7 @@ export default function Home() {
               {/* Input area — scrollable content zone */}
               <div className="flex-1 min-h-0 overflow-y-auto z-scroll">
               {inputMode === 'text' ? (
-                <div className="p-6 relative">
+                <div className="p-4 sm:p-6 relative">
                   {extractSource && (
                     <div className="flex items-center gap-2 mb-3 text-[10px] font-mono text-(--z-olive)">
                       <CheckCircle2 className="h-3 w-3" />
@@ -871,24 +1180,46 @@ export default function Home() {
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     placeholder={"e.g. How Coffee Goes From Farm to Cup: 70% grown in Brazil, Vietnam, Colombia. A single bean travels 3 continents before reaching your mug. Fair trade covers only 5% of global supply. The industry is worth $450B and employs 125 million people worldwide."}
-                    className="w-full min-h-[130px] max-h-[300px] resize-none bg-transparent text-[15px] text-white placeholder:text-white/35 focus:outline-none leading-relaxed font-sans pr-24 z-scroll"
+                    className="w-full min-h-[90px] sm:min-h-[130px] max-h-[300px] resize-none bg-transparent text-[14px] sm:text-[15px] text-white placeholder:text-white/35 focus:outline-none leading-relaxed font-sans pr-16 sm:pr-24 z-scroll"
                     disabled={isGenerating || isImproving}
                   />
-                  {content.trim().length >= 10 && !isGenerating && (
-                    <button
-                      onClick={handleImprovePrompt}
-                      disabled={isImproving}
-                      title="Enhance this prompt with AI"
-                      className="improve-btn absolute bottom-4 right-4 flex items-center gap-1.5 px-3.5 py-1.5 text-[10px] font-mono font-semibold tracking-wide uppercase transition-all border border-(--z-gold)/30 text-(--z-gold) hover:border-(--z-gold)/60 disabled:opacity-60 disabled:animate-none overflow-hidden"
-                    >
-                      <span className="improve-shimmer absolute inset-0 pointer-events-none" />
-                      {isImproving ? <Loader2 className="h-3 w-3 animate-spin relative z-10" /> : <Wand2 className="h-3 w-3 relative z-10" />}
-                      <span className="relative z-10">{isImproving ? 'Improving...' : 'Improve'}</span>
-                    </button>
+                  {/* Voice + Improve buttons */}
+                  <div className="absolute bottom-4 right-4 flex items-center gap-2">
+                    {voiceSupported && (
+                      <button
+                        onClick={toggleListening}
+                        title={voiceState === 'listening' ? 'Stop recording' : 'Voice input'}
+                        className={`flex items-center justify-center w-8 h-8 transition-all ${
+                          voiceState === 'listening'
+                            ? 'text-(--z-brick) voice-recording'
+                            : 'text-white/30 hover:text-white/60'
+                        }`}
+                      >
+                        {voiceState === 'listening' ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                      </button>
+                    )}
+                    {content.trim().length >= 10 && !isGenerating && (
+                      <button
+                        onClick={handleImprovePrompt}
+                        disabled={isImproving}
+                        title="Enhance this prompt with AI"
+                        className="improve-btn flex items-center gap-1.5 px-3.5 py-1.5 text-[10px] font-mono font-semibold tracking-wide uppercase transition-all border border-(--z-gold)/30 text-(--z-gold) hover:border-(--z-gold)/60 disabled:opacity-60 disabled:animate-none overflow-hidden"
+                      >
+                        <span className="improve-shimmer absolute inset-0 pointer-events-none" />
+                        {isImproving ? <Loader2 className="h-3 w-3 animate-spin relative z-10" /> : <Wand2 className="h-3 w-3 relative z-10" />}
+                        <span className="relative z-10">{isImproving ? 'Improving...' : 'Improve'}</span>
+                      </button>
+                    )}
+                  </div>
+                  {/* Voice interim transcript */}
+                  {voiceState === 'listening' && interimTranscript && (
+                    <div className="absolute bottom-12 right-4 text-[11px] text-(--z-gold)/50 font-mono italic max-w-[200px] truncate">
+                      {interimTranscript}
+                    </div>
                   )}
                 </div>
               ) : inputMode === 'url' || inputMode === 'video' ? (
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   <div className="flex items-center gap-2 mb-3">
                     {inputMode === 'video' ? <Video className="h-4 w-4 text-rose-400" /> : <Link2 className="h-4 w-4 text-blue-400" />}
                     <span className="text-[11px] font-mono text-white/50">
@@ -928,7 +1259,7 @@ export default function Home() {
                 </div>
               ) : (
                 /* File upload mode */
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -977,7 +1308,7 @@ export default function Home() {
               </div>{/* end scrollable input zone */}
 
               {/* Style preset bar */}
-              <div className="flex items-center gap-2 border-t border-white/[0.06] px-5 py-2.5 overflow-x-auto shrink-0 z-scroll-x">
+              <div className="flex items-center gap-2 border-t border-white/[0.06] px-3 sm:px-5 py-2.5 overflow-x-auto shrink-0 z-scroll-x">
                 {POPULAR_PRESETS.map((p) => (
                   <button
                     key={p.id}
@@ -1046,15 +1377,15 @@ export default function Home() {
               )}
 
               {/* Options bar */}
-              <div className="flex items-center justify-between border-t border-white/[0.06] px-5 py-3 shrink-0">
-                <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] px-3 sm:px-5 py-2.5 sm:py-3 shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3">
                   {/* Aspect ratio */}
                   <div className="flex bg-white/[0.04] p-0.5">
                     {SIZES.map((s) => (
                       <button
                         key={s.value}
                         onClick={() => setSelectedSize(s.value)}
-                        className={`px-3 py-1.5 text-[11px] font-mono font-medium transition-all ${
+                        className={`px-2 sm:px-3 py-1.5 text-[10px] sm:text-[11px] font-mono font-medium transition-all ${
                           selectedSize === s.value
                             ? 'bg-white/[0.1] text-white'
                             : 'text-white/50 hover:text-white/70'
@@ -1068,7 +1399,7 @@ export default function Home() {
                   {/* Simplify */}
                   <button
                     onClick={() => setSimplify(!simplify)}
-                    className={`flex items-center gap-2 px-3 py-1.5 text-[11px] font-mono font-medium transition-all border ${
+                    className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 text-[10px] sm:text-[11px] font-mono font-medium transition-all border ${
                       simplify
                         ? 'bg-(--z-gold)/10 text-(--z-gold) border-(--z-gold)/20'
                         : 'text-white/50 border-transparent hover:text-white/70'
@@ -1080,14 +1411,14 @@ export default function Home() {
                 </div>
 
                 {/* Generate */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   {hasContent && (
                     <span className="text-[10px] text-white/50 font-mono hidden sm:inline">~60s</span>
                   )}
                   <button
                     onClick={() => handleGenerate()}
                     disabled={!hasContent || isGenerating}
-                    className="flex items-center gap-2 bg-(--z-gold) px-6 py-2.5 text-xs font-mono font-bold text-(--z-bg) hover:bg-(--z-gold-dim) active:scale-[0.97] transition-all disabled:opacity-20 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
+                    className="flex items-center gap-2 bg-(--z-gold) px-4 sm:px-6 py-2 sm:py-2.5 text-[11px] sm:text-xs font-mono font-bold text-(--z-bg) hover:bg-(--z-gold-dim) active:scale-[0.97] transition-all disabled:opacity-20 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
                   >
                     <Sparkles className="h-3.5 w-3.5" />
                     Generate
@@ -1098,7 +1429,7 @@ export default function Home() {
               </div>{/* end inner content area */}
 
               {/* Metallic bezel bottom bar */}
-              <div className="flex items-center justify-center px-5 py-2 border-t border-white/[0.08] shrink-0" style={{ background: 'linear-gradient(0deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)' }}>
+              <div className="hidden sm:flex items-center justify-center px-5 py-2 border-t border-white/[0.08] shrink-0" style={{ background: 'linear-gradient(0deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)' }}>
                 <span className="text-[8px] font-mono tracking-[0.3em] text-white/20 uppercase">Agentic Infographic Pipeline — 7 modules — 400+ style combinations</span>
               </div>
             </div>
@@ -1151,7 +1482,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.8 }}
-            className="flex items-center gap-6 sm:gap-10 mt-8"
+            className="grid grid-cols-4 gap-3 sm:flex sm:items-center sm:gap-10 mt-4 sm:mt-8"
           >
             {[
               { value: '20', label: 'Layouts' },
@@ -1159,12 +1490,12 @@ export default function Home() {
               { value: '22', label: 'Sources' },
               { value: '3', label: 'Ratios' },
             ].map((stat, i) => (
-              <div key={stat.label} className="flex items-center gap-6 sm:gap-10">
-                <div className="text-center">
-                  <div className="text-xl sm:text-2xl font-mono font-bold text-white">{stat.value}</div>
-                  <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-white/40 mt-0.5">{stat.label}</div>
+              <div key={stat.label} className="flex items-center gap-3 sm:gap-6 md:gap-10">
+                <div className="text-center flex-1 sm:flex-none">
+                  <div className="text-lg sm:text-2xl font-mono font-bold text-white">{stat.value}</div>
+                  <div className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.15em] text-white/40 mt-0.5">{stat.label}</div>
                 </div>
-                {i < 3 && <div className="h-8 w-px bg-white/10" />}
+                {i < 3 && <div className="hidden sm:block h-8 w-px bg-white/10" />}
               </div>
             ))}
           </motion.div>
@@ -1193,7 +1524,7 @@ export default function Home() {
             </div>
           </ScrollReveal>
           <ScrollReveal delay={0.1}>
-            <h2 className="text-6xl sm:text-7xl lg:text-8xl font-mono font-medium heading-editorial text-(--z-light-text) mb-3">
+            <h2 className="text-5xl sm:text-7xl lg:text-8xl font-mono font-medium heading-editorial text-(--z-light-text) mb-3">
               Gallery
             </h2>
           </ScrollReveal>
@@ -1236,190 +1567,9 @@ export default function Home() {
       </section>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          BUILT TO GENERATE — BFL-style sticky split section
+          CAPABILITIES — Hybrid: Equation + Reel
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <section className="py-24 sm:py-32 bg-(--z-bg)">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="lg:grid lg:grid-cols-5 lg:gap-20">
-            {/* Left: sticky gold schematic illustration */}
-            <div className="lg:col-span-2 lg:sticky lg:top-32 lg:self-start mb-16 lg:mb-0">
-              <ScrollReveal>
-                <p className="label-mono text-(--z-gold) mb-6">Capabilities</p>
-                {/* Gold schematic SVG — abstract pipeline engine */}
-                <div className="relative mb-10">
-                  <svg viewBox="0 0 280 360" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-[280px]">
-                    {/* Grid dots */}
-                    {Array.from({ length: 7 }, (_, row) =>
-                      Array.from({ length: 5 }, (_, col) => (
-                        <circle key={`${row}-${col}`} cx={30 + col * 55} cy={20 + row * 55} r="1" fill="#D4A84B" opacity="0.15" />
-                      ))
-                    ).flat()}
-
-                    {/* Node 1 — Research hexagon */}
-                    <g>
-                      <polygon points="70,50 100,35 130,50 130,80 100,95 70,80" stroke="#D4A84B" strokeWidth="1.5" fill="none" opacity="0.8" />
-                      <circle cx="100" cy="65" r="8" stroke="#D4A84B" strokeWidth="1" fill="#D4A84B" fillOpacity="0.1" />
-                      <circle cx="100" cy="65" r="3" fill="#D4A84B" fillOpacity="0.6" />
-                      <text x="100" y="108" textAnchor="middle" fill="#D4A84B" fontSize="8" fontFamily="monospace" opacity="0.5">RESEARCH</text>
-                    </g>
-
-                    {/* Flow line 1→2 */}
-                    <path d="M100 95 L100 120 Q100 130 110 135 L140 148" stroke="#D4A84B" strokeWidth="1" opacity="0.3" strokeDasharray="4 3" />
-                    <circle cx="120" cy="132" r="2" fill="#D4A84B" opacity="0.5">
-                      <animate attributeName="opacity" values="0.2;0.8;0.2" dur="2s" repeatCount="indefinite" />
-                    </circle>
-
-                    {/* Node 2 — Design diamond */}
-                    <g>
-                      <rect x="135" y="130" width="60" height="60" rx="0" stroke="#D4A84B" strokeWidth="1.5" fill="none" opacity="0.8" transform="rotate(45 165 160)" />
-                      <rect x="153" y="148" width="24" height="24" stroke="#D4A84B" strokeWidth="0.8" fill="#D4A84B" fillOpacity="0.08" transform="rotate(45 165 160)" />
-                      <circle cx="165" cy="160" r="4" fill="#D4A84B" fillOpacity="0.5" />
-                      <text x="165" y="205" textAnchor="middle" fill="#D4A84B" fontSize="8" fontFamily="monospace" opacity="0.5">DESIGN</text>
-                    </g>
-
-                    {/* Flow line 2→3 */}
-                    <path d="M165 195 L165 215 Q165 225 155 230 L120 245" stroke="#D4A84B" strokeWidth="1" opacity="0.3" strokeDasharray="4 3" />
-                    <circle cx="145" cy="232" r="2" fill="#D4A84B" opacity="0.5">
-                      <animate attributeName="opacity" values="0.2;0.8;0.2" dur="2s" begin="0.7s" repeatCount="indefinite" />
-                    </circle>
-
-                    {/* Node 3 — Render octagon */}
-                    <g>
-                      <polygon points="80,240 110,230 140,240 150,265 140,290 110,300 80,290 70,265" stroke="#D4A84B" strokeWidth="1.5" fill="none" opacity="0.8" />
-                      <polygon points="95,255 115,248 135,255 140,270 135,285 115,290 95,285 90,270" stroke="#D4A84B" strokeWidth="0.6" fill="#D4A84B" fillOpacity="0.06" />
-                      <circle cx="110" cy="268" r="5" fill="#D4A84B" fillOpacity="0.4" />
-                      <text x="110" y="318" textAnchor="middle" fill="#D4A84B" fontSize="8" fontFamily="monospace" opacity="0.5">RENDER</text>
-                    </g>
-
-                    {/* Floating data particles */}
-                    <circle cx="45" cy="140" r="1.5" fill="#D4A84B" opacity="0.3">
-                      <animate attributeName="cy" values="140;130;140" dur="3s" repeatCount="indefinite" />
-                    </circle>
-                    <circle cx="230" cy="100" r="1.5" fill="#D4A84B" opacity="0.3">
-                      <animate attributeName="cy" values="100;90;100" dur="2.5s" repeatCount="indefinite" />
-                    </circle>
-                    <circle cx="220" cy="260" r="1.5" fill="#D4A84B" opacity="0.3">
-                      <animate attributeName="cy" values="260;250;260" dur="3.5s" repeatCount="indefinite" />
-                    </circle>
-
-                    {/* Connecting lines to edges */}
-                    <line x1="70" y1="65" x2="30" y2="65" stroke="#D4A84B" strokeWidth="0.5" opacity="0.15" />
-                    <line x1="207" y1="160" x2="260" y2="160" stroke="#D4A84B" strokeWidth="0.5" opacity="0.15" />
-                    <line x1="150" y1="268" x2="250" y2="268" stroke="#D4A84B" strokeWidth="0.5" opacity="0.15" />
-                  </svg>
-                </div>
-
-                <h2 className="text-3xl sm:text-4xl font-mono font-medium heading-editorial mb-4">
-                  Built to generate.
-                </h2>
-                <p className="text-sm text-(--z-muted) leading-relaxed max-w-sm mb-8">
-                  Research. Design. Render. Our pipeline handles everything from source verification to publication-quality output.
-                </p>
-                <button
-                  onClick={scrollToGenerator}
-                  className="inline-flex items-center gap-2.5 bg-(--z-gold) px-7 py-3.5 text-sm font-mono font-semibold text-(--z-bg) hover:bg-(--z-gold-dim) active:scale-[0.97] transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
-                >
-                  Start generating
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </ScrollReveal>
-            </div>
-
-            {/* Right: scrolling flip cards with flow connector */}
-            <div className="lg:col-span-3 relative">
-              {/* Animated vertical flow line */}
-              <div className="absolute left-0 top-0 bottom-0 w-px bg-white/[0.04] hidden lg:block" />
-
-              <div className="space-y-6">
-                {PRODUCTS.map((product, i) => {
-                  const Icon = product.icon;
-                  return (
-                    <FlipCard
-                      key={product.name}
-                      delay={i * 0.25}
-                      front={
-                        <div className="bg-(--z-surface) border border-(--border) p-8 sm:p-10 terminal-shadow relative overflow-hidden">
-                          {/* Flow connector dot */}
-                          <div className="absolute left-[-22px] top-12 h-[10px] w-[10px] bg-(--z-gold)/30 border border-(--z-gold)/20 hidden lg:block" />
-                          <div className="absolute left-[-18px] top-[52px] w-[18px] h-px bg-white/[0.08] hidden lg:block" />
-
-                          <div className="flex items-center gap-5">
-                            <div className="h-16 w-16 bg-(--z-gold)/10 flex items-center justify-center shrink-0">
-                              <Icon className="h-8 w-8 text-(--z-gold)" />
-                            </div>
-                            <div>
-                              <h3 className="text-2xl sm:text-3xl font-mono font-medium heading-editorial">
-                                {product.name}
-                              </h3>
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                {product.labels.map((label) => (
-                                  <span
-                                    key={label}
-                                    className="text-[9px] font-mono font-medium tracking-[0.15em] text-(--z-muted) bg-(--z-surface-2) px-2.5 py-1"
-                                  >
-                                    {label}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      }
-                      back={
-                        <div className="bg-(--z-surface) border border-(--z-gold)/20 p-8 sm:p-10 terminal-shadow relative overflow-hidden">
-                          {/* Gold accent left border */}
-                          <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-(--z-gold) via-(--z-gold)/50 to-transparent" />
-
-                          {/* Flow connector dot - active */}
-                          <div className="absolute left-[-22px] top-12 h-[10px] w-[10px] bg-(--z-gold) shadow-[0_0_12px_rgba(212,168,75,0.4)] hidden lg:block" />
-                          <div className="absolute left-[-18px] top-[52px] w-[18px] h-px bg-(--z-gold)/30 hidden lg:block" />
-
-                          <div className="flex items-start gap-4 mb-5">
-                            <div className="h-10 w-10 bg-(--z-gold)/10 flex items-center justify-center shrink-0">
-                              <Icon className="h-5 w-5 text-(--z-gold)" />
-                            </div>
-                            <h3 className="text-2xl sm:text-3xl font-mono font-medium heading-editorial">
-                              {product.name}
-                            </h3>
-                          </div>
-
-                          <div className="flex flex-wrap gap-3 mb-5">
-                            {product.labels.map((label) => (
-                              <span
-                                key={label}
-                                className="text-[10px] font-mono font-medium tracking-[0.15em] text-(--z-gold)/70 bg-(--z-gold)/[0.06] px-3 py-1.5 border border-(--z-gold)/10"
-                              >
-                                {label}
-                              </span>
-                            ))}
-                          </div>
-
-                          <p className="text-sm text-(--z-muted) leading-relaxed mb-6 max-w-lg">
-                            {product.description}
-                          </p>
-
-                          <div className="flex gap-5">
-                            {product.links.map((link) => (
-                              <a
-                                key={link.label}
-                                href={link.href}
-                                className="text-xs font-mono text-(--z-cream) hover:text-(--z-gold) transition-colors inline-flex items-center gap-1.5"
-                              >
-                                <ArrowRight className="h-3 w-3" />
-                                {link.label}
-                              </a>
-                            ))}
-                          </div>
-                        </div>
-                      }
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CapabilitiesSection scrollToGenerator={scrollToGenerator} />
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           PIPELINE — Interactive seven-stage scroll experience
@@ -1436,7 +1586,7 @@ export default function Home() {
               <p className="label-mono text-(--z-gold) mb-4">Art & Technique</p>
             </ScrollReveal>
             <ScrollReveal delay={0.1}>
-              <h2 className="text-5xl sm:text-6xl lg:text-7xl font-mono font-medium heading-editorial text-(--z-light-text) max-w-3xl">
+              <h2 className="text-3xl sm:text-5xl lg:text-7xl font-mono font-medium heading-editorial text-(--z-light-text) max-w-3xl">
                 Every style has<br />
                 <span className="text-(--z-light-muted)">a visual language.</span>
               </h2>
@@ -1474,8 +1624,8 @@ export default function Home() {
                       </span>
                     </div>
 
-                    {/* Arrow — top right on hover */}
-                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    {/* Arrow — top right, visible on touch devices */}
+                    <div className="absolute top-4 right-4 opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
                       <ArrowUpRight className="h-4 w-4 text-white/70" />
                     </div>
                   </div>
@@ -1514,7 +1664,7 @@ export default function Home() {
             <p className="label-mono text-(--z-muted) mb-8">Start creating</p>
           </ScrollReveal>
           <ScrollReveal delay={0.1}>
-            <h2 className="text-6xl sm:text-7xl lg:text-8xl xl:text-[110px] font-mono font-medium heading-editorial mb-8">
+            <h2 className="text-4xl sm:text-6xl lg:text-7xl xl:text-[110px] font-mono font-medium heading-editorial mb-8">
               From complexity,<br />
               <span className="text-gradient-gold">clarity.</span>
             </h2>
@@ -1571,7 +1721,7 @@ export default function Home() {
             </div>
 
             {/* Links grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-10 mb-20">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-8 sm:gap-10 mb-16 sm:mb-20">
               <div>
                 <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/40 mb-5">Product</p>
                 <div className="space-y-3">
@@ -1623,7 +1773,7 @@ export default function Home() {
 
             {/* Large ZIGNAL text */}
             <div className="mb-12 overflow-hidden">
-              <p className="text-[80px] sm:text-[120px] lg:text-[180px] font-mono font-bold text-white/[0.03] leading-none tracking-tighter select-none heading-editorial">
+              <p className="text-[52px] sm:text-[120px] lg:text-[180px] font-mono font-bold text-white/[0.03] leading-none tracking-tighter select-none heading-editorial">
                 ZGNAL.AI
               </p>
             </div>
@@ -1642,6 +1792,8 @@ export default function Home() {
           </div>
         </div>
       </footer>
+      {/* ── Chat FAB ── */}
+      <ChatFAB />
     </main>
   );
 }
