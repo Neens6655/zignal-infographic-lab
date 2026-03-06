@@ -87,7 +87,7 @@ const STYLES_SHOWCASE = [
 
 const PIPELINE = [
   { num: '01', agent: 'Sentinel', name: 'Extract', desc: 'Parse any format — text, URL, PDF, audio', detail: 'Intelligent content parser handles articles, research papers, raw data, URLs, and file uploads. Strips formatting noise while preserving semantic structure.', icon: FileText },
-  { num: '02', agent: 'Oracle', name: 'Research', desc: 'AI finds real references & verifies facts', detail: 'Routes content to 22 trusted sources — Wikipedia, BBC, WHO, Nature, and more. Every visual claim is verified. Reference images are sourced automatically.', highlight: true, icon: Search },
+  { num: '02', agent: 'Oracle', name: 'Verify', desc: 'Multi-source research & cross-verification', detail: 'Exa + Perplexity search in parallel. Each claim is triangulated against multiple sources. Credibility score is deterministic — no AI self-grading.', highlight: true, icon: Search },
   { num: '03', agent: 'Scribe', name: 'Simplify', desc: 'Rewrite at 8th-grade reading level', detail: 'NLP rewriting engine distills complex jargon into clear, scannable language. Flesch-Kincaid optimized for maximum comprehension in visual format.', icon: Wand2 },
   { num: '04', agent: 'Strategist', name: 'Analyze', desc: 'Select optimal layout and style combination', detail: 'Content classifier maps topic, density, and hierarchy to the best layout × style pairing from 400+ combinations. Or override with your own selection.', icon: Brain },
   { num: '05', agent: 'Architect', name: 'Structure', desc: 'Organize content into visual hierarchy', detail: 'Builds the information architecture — decides section order, data visualization types, callout placement, and visual flow based on content type.', icon: Layers3 },
@@ -343,7 +343,7 @@ function CapabilitiesSection({ scrollToGenerator }: { scrollToGenerator: () => v
     {
       stat: '22',
       unit: 'SOURCES',
-      line: 'Fact-verified by institutional sources',
+      line: 'Multi-source verified with credibility scoring',
       visual: (
         <div className="flex flex-wrap gap-1 mt-3">
           {['BBC', 'WHO', 'Nature', 'PubMed', 'Wikipedia'].map((s, i) => (
@@ -1110,8 +1110,8 @@ export default function Home() {
             transition={{ delay: 0.4, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
             className="text-center font-mono font-medium heading-editorial mb-6 sm:mb-14 text-3xl sm:text-5xl lg:text-6xl xl:text-7xl max-w-4xl"
           >
-            <span className="block">Turn complexity</span>
-            <span className="block text-gradient-gold">into clarity</span>
+            <span className="block">Turn complexity into</span>
+            <span className="block text-gradient-gold">verified clarity</span>
           </motion.h1>
 
           {/* Generator card — THE first touchpoint */}

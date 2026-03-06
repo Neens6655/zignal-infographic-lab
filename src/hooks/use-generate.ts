@@ -2,24 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { track } from '@vercel/analytics';
-import type { GenerateInput } from '@/lib/types';
-
-type ProvenanceData = {
-  seed: string;
-  generatedAt: string;
-  contentHash: string;
-  models: { analysis: string; image: string };
-  pipeline: { stage: string; agent: string; result: string }[];
-  references: string[];
-  topics: string[];
-  contentSources: string[];
-  compliance?: {
-    score: number;
-    corrections: number;
-    riskWords: string[];
-    factFlags: string[];
-  };
-};
+import type { GenerateInput, ProvenanceData } from '@/lib/types';
 
 type GeneratePhase =
   | { phase: 'idle' }

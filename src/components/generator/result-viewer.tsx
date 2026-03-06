@@ -68,22 +68,8 @@ type GenerationContext = {
   simplify: boolean;
 };
 
-type ProvenanceData = {
-  seed: string;
-  generatedAt: string;
-  contentHash: string;
-  models: { analysis: string; image: string };
-  pipeline: { stage: string; agent: string; result: string }[];
-  references: string[];
-  topics: string[];
-  contentSources: string[];
-  compliance?: {
-    score: number;
-    corrections: number;
-    riskWords: string[];
-    factFlags: string[];
-  };
-};
+// ProvenanceData imported from shared types
+import type { ProvenanceData } from '@/lib/types';
 
 type Props = {
   imageUrl: string;
@@ -433,42 +419,37 @@ export function ResultViewer({
         </motion.div>
       )}
 
-      {/* ── Compliance badge ── */}
-      {provenance?.compliance && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.88 }}
-          className="flex items-center justify-center"
-        >
-          <span className={`inline-flex items-center px-3 py-1 text-[10px] font-mono border ${
-            provenance.compliance.score >= 80
-              ? 'bg-[#8BC34A]/10 text-[#8BC34A] border-[#8BC34A]/20'
-              : provenance.compliance.score >= 50
-                ? 'bg-[#D4A84B]/10 text-[#D4A84B] border-[#D4A84B]/20'
-                : 'bg-red-500/10 text-red-400 border-red-500/20'
-          }`}>
-            Compliance: {provenance.compliance.score}/100
-            {provenance.compliance.corrections > 0 && ` · ${provenance.compliance.corrections} fixes`}
-          </span>
-        </motion.div>
-      )}
-
-      {/* ── Certificate button ── */}
+      {/* ── Verification Report button (prominent — this is the differentiator) ── */}
       {provenance && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9 }}
-          className="flex items-center justify-center gap-3"
+          transition={{ delay: 0.88 }}
+          className="space-y-2"
         >
           <button
             onClick={() => setShowCertificate(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-mono font-semibold text-[#D4A84B]/80 bg-[#D4A84B]/[0.06] border border-[#D4A84B]/20 hover:bg-[#D4A84B]/10 hover:text-[#D4A84B] transition-all"
+            className="w-full flex items-center justify-center gap-3 px-5 py-3 text-xs font-mono font-semibold border-2 border-[#D4A84B]/40 bg-[#D4A84B]/[0.08] text-[#D4A84B] hover:bg-[#D4A84B]/15 hover:border-[#D4A84B]/60 transition-all"
           >
-            <Shield className="h-3.5 w-3.5" />
-            Certificate {provenance.seed}
+            <Shield className="h-4 w-4" />
+            <span>View Verification Report</span>
+            {provenance.credibility && (
+              <span className={`ml-1 px-2 py-0.5 text-[9px] font-bold tracking-wider ${
+                provenance.credibility.overall >= 80
+                  ? 'bg-[#8BC34A]/15 text-[#8BC34A] border border-[#8BC34A]/20'
+                  : provenance.credibility.overall >= 60
+                    ? 'bg-[#D4A84B]/15 text-[#D4A84B] border border-[#D4A84B]/20'
+                    : 'bg-red-500/15 text-red-400 border border-red-500/20'
+              }`}>
+                {provenance.credibility.overall}/100
+              </span>
+            )}
           </button>
+          {provenance.credibility && (
+            <p className="text-[8px] font-mono text-white/25 text-center">
+              {provenance.credibility.claimsCrossVerified}/{provenance.credibility.claimsTotal} claims verified across {provenance.research?.citations?.length || 0} sources
+            </p>
+          )}
         </motion.div>
       )}
 

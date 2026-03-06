@@ -5,6 +5,9 @@
  */
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import type { ProvenanceData, SourceCitation, VerifiedClaim, CredibilityScore } from './types';
+import { searchPerplexity } from './research/perplexity';
+import { extractClaims, crossVerifyClaims, computeCredibilityScore } from './research/verify';
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -23,37 +26,6 @@ type PipelineInput = {
   quality?: string;
   language?: string;
   simplify?: boolean;
-};
-
-type ProvenanceData = {
-  seed: string;
-  generatedAt: string;
-  contentHash: string;
-  models: {
-    analysis: string;
-    image: string;
-  };
-  pipeline: {
-    stage: string;
-    agent: string;
-    result: string;
-  }[];
-  references: string[];
-  topics: string[];
-  contentSources: string[];
-  compliance?: {
-    score: number;
-    corrections: number;
-    riskWords: string[];
-    factFlags: string[];
-  };
-  research?: {
-    queriesRun: number;
-    findingsCount: number;
-    verifiedFacts: string[];
-    sourceUrls: string[];
-    referenceImages: number;
-  };
 };
 
 type PipelineResult = {
@@ -275,7 +247,7 @@ async function hashContent(content: string): Promise<string> {
   const data = encoder.encode(content);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 12);
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // ── Reference file loader ──────────────────────────────────────
@@ -375,15 +347,50 @@ ${content.slice(0, 3000)}`);
   }
 }
 
-// ── Research stage (Exa web search) ───────────────────────────
+// ── Research stage (Exa + Perplexity — parallel) ─────────────
 
 async function researchContent(
   topics: string[],
   contentSnippet: string,
-): Promise<ResearchResult> {
-  const empty: ResearchResult = { findings: [], verifiedFacts: [], sourceUrls: [], searchQueries: [] };
+): Promise<ResearchResult & { citations: SourceCitation[] }> {
+  const empty = { findings: [], verifiedFacts: [], sourceUrls: [], searchQueries: [], citations: [] as SourceCitation[] };
+  if (topics.length === 0) return empty;
+
+  // Run Exa and Perplexity in parallel — either can fail independently
+  const [exaResult, perplexityResult] = await Promise.all([
+    runExaSearch(topics),
+    searchPerplexity(topics, contentSnippet),
+  ]);
+
+  // Merge citations from both sources
+  const allCitations: SourceCitation[] = [
+    ...exaResult.citations,
+    ...perplexityResult.citations,
+  ];
+
+  // Dedupe by URL
+  const seen = new Set<string>();
+  const uniqueCitations = allCitations.filter(c => {
+    if (seen.has(c.url)) return false;
+    seen.add(c.url);
+    return true;
+  });
+
+  return {
+    findings: exaResult.findings,
+    verifiedFacts: exaResult.verifiedFacts,
+    sourceUrls: uniqueCitations.map(c => c.url),
+    searchQueries: exaResult.searchQueries,
+    citations: uniqueCitations,
+  };
+}
+
+async function runExaSearch(
+  topics: string[],
+): Promise<ResearchResult & { citations: SourceCitation[] }> {
+  const empty = { findings: [], verifiedFacts: [], sourceUrls: [], searchQueries: [], citations: [] as SourceCitation[] };
   const exaApiKey = process.env.EXA_API_KEY;
-  if (!exaApiKey || topics.length === 0) return empty;
+  if (!exaApiKey) return empty;
 
   try {
     const Exa = (await import('exa-js')).default;
@@ -396,7 +403,7 @@ async function researchContent(
     }
 
     const allFindings: string[] = [];
-    const allUrls: string[] = [];
+    const allCitations: SourceCitation[] = [];
 
     const results = await Promise.all(
       queries.map(q =>
@@ -411,17 +418,21 @@ async function researchContent(
     for (const result of results) {
       if (!result?.results) continue;
       for (const r of result.results) {
-        if (r.text) {
-          const excerpt = r.text.slice(0, 200).trim();
-          if (excerpt.length > 30) allFindings.push(excerpt);
+        const snippet = r.text ? r.text.slice(0, 200).trim() : '';
+        if (snippet.length > 30) allFindings.push(snippet);
+        if (r.url) {
+          allCitations.push({
+            url: r.url,
+            title: r.title || extractDomainFromUrl(r.url),
+            snippet,
+            provider: 'exa',
+            publishedDate: r.publishedDate || undefined,
+          });
         }
-        if (r.url) allUrls.push(r.url);
       }
     }
 
-    const uniqueUrls = [...new Set(allUrls)];
-
-    // Extract verified facts from raw findings via Gemini
+    // Extract factual statements from raw findings via Gemini
     let verifiedFacts: string[] = [];
     if (allFindings.length > 0) {
       try {
@@ -429,8 +440,8 @@ async function researchContent(
 
 ${allFindings.map((f, i) => `[${i + 1}] ${f}`).join('\n\n')}
 
-Extract 3-5 verified factual statements (statistics, dates, named entities, specific claims). Return as JSON array of strings only (no markdown fences):
-["fact 1", "fact 2", "fact 3"]`;
+Extract 3-5 specific factual claims from these sources (statistics, dates, named entities). Return as JSON array of strings only (no markdown fences):
+["claim 1", "claim 2", "claim 3"]`;
         const factResponse = await geminiGenerate(TEXT_MODEL, factPrompt);
         const jsonMatch = factResponse.match(/\[[\s\S]*\]/);
         if (jsonMatch) verifiedFacts = JSON.parse(jsonMatch[0]);
@@ -440,12 +451,21 @@ Extract 3-5 verified factual statements (statistics, dates, named entities, spec
     return {
       findings: allFindings.slice(0, 6),
       verifiedFacts: verifiedFacts.slice(0, 5),
-      sourceUrls: uniqueUrls.slice(0, 8),
+      sourceUrls: allCitations.map(c => c.url),
       searchQueries: queries,
+      citations: allCitations.slice(0, 8),
     };
   } catch (err) {
     console.error('[Research] Exa search failed:', err instanceof Error ? err.message : err);
     return empty;
+  }
+}
+
+function extractDomainFromUrl(url: string): string {
+  try {
+    return new URL(url).hostname.replace('www.', '');
+  } catch {
+    return url;
   }
 }
 
@@ -569,7 +589,7 @@ CONTENT TYPE: ${analysis.contentType}
 LAYOUT: ${analysis.layout}
 STYLE: ${analysis.style}
 ${research && research.verifiedFacts.length > 0 ? `
-RESEARCH CONTEXT — Use these verified facts for accuracy:
+RESEARCH CONTEXT — Use these sourced claims for accuracy:
 ${research.verifiedFacts.map(f => `- ${f}`).join('\n')}
 ` : ''}
 CONTENT:
@@ -821,7 +841,7 @@ async function assemblePrompt(
   if (research && (research.verifiedFacts.length > 0 || research.findings.length > 0)) {
     const parts: string[] = [];
     if (research.verifiedFacts.length > 0) {
-      parts.push('Verified facts to incorporate:\n' + research.verifiedFacts.map(f => `- ${f}`).join('\n'));
+      parts.push('Sourced claims to incorporate:\n' + research.verifiedFacts.map(f => `- ${f}`).join('\n'));
     }
     if (research.sourceUrls.length > 0) {
       parts.push(`Sources: ${research.sourceUrls.slice(0, 3).join(', ')}`);
@@ -854,14 +874,14 @@ export async function runPipeline(
   pipelineTrace.push({ stage: '01', agent: 'Sentinel', result: `Extracted ${input.content.length} chars, type: ${analysis.contentType}` });
   onProgress({ status: 'analyzing', progress: 25, message: `Selected: ${analysis.layout} + ${analysis.style}` });
 
-  // Stage 1.5: Research + Reference Images (PARALLEL)
+  // Stage 1.5: Research + Reference Images (PARALLEL — Exa + Perplexity + Apify)
   onProgress({ status: 'researching', progress: 15, message: 'Researching topics and finding references...' });
   const [research, referenceImages] = await Promise.all([
     researchContent(analysis.topics, input.content.slice(0, 500)),
     fetchReferenceImages(analysis.topics),
   ]);
-  const researchSummary = research.findings.length > 0
-    ? `${research.findings.length} findings, ${research.sourceUrls.length} sources`
+  const researchSummary = research.citations.length > 0
+    ? `${research.citations.length} citations from ${new Set(research.citations.map(c => c.provider)).size} sources`
     : 'No external research';
   pipelineTrace.push({
     stage: '01.5',
@@ -870,8 +890,24 @@ export async function runPipeline(
   });
   onProgress({
     status: 'researching',
-    progress: 25,
-    message: `Found ${research.sourceUrls.length} sources, ${referenceImages.length} reference images`,
+    progress: 22,
+    message: `Found ${research.citations.length} citations, ${referenceImages.length} reference images`,
+  });
+
+  // Stage 1.7: Cross-verify claims against sources
+  onProgress({ status: 'verifying', progress: 25, message: 'Verifying claims against sources...' });
+  const claims = await extractClaims(input.content);
+  const verifiedClaims = await crossVerifyClaims(claims, research.citations);
+  const credibility = computeCredibilityScore(verifiedClaims, research.citations);
+  pipelineTrace.push({
+    stage: '01.7',
+    agent: 'Verifier',
+    result: `${credibility.claimsCrossVerified}/${credibility.claimsTotal} claims verified, score: ${credibility.overall}/100`,
+  });
+  onProgress({
+    status: 'verifying',
+    progress: 32,
+    message: `Credibility: ${credibility.overall}/100 (${credibility.claimsCrossVerified}/${credibility.claimsTotal} claims verified)`,
   });
 
   // Stage 2: Structure content
@@ -880,10 +916,10 @@ export async function runPipeline(
   pipelineTrace.push({ stage: '02', agent: 'Architect', result: `${structured.sections.length} sections, tone: ${analysis.tone}` });
   onProgress({ status: 'structuring', progress: 50, message: `Created ${structured.sections.length} sections` });
 
-  // Stage 2.5: Compliance validation
+  // Stage 2.5: Compliance validation (spelling/grammar — credibility score is deterministic from Stage 1.7)
   onProgress({ status: 'validating', progress: 52, message: 'Running compliance checks...' });
   const { cleaned, report } = await validateContent(structured);
-  pipelineTrace.push({ stage: '02.5', agent: 'Compliance', result: `Score: ${report.score}/100, ${report.corrections.length} fixes` });
+  pipelineTrace.push({ stage: '02.5', agent: 'Compliance', result: `${report.corrections.length} text fixes, credibility: ${credibility.overall}/100` });
   onProgress({ status: 'validating', progress: 55, message: `Compliance: ${report.corrections.length} corrections applied` });
 
   // Stage 3: Assemble prompt
@@ -925,7 +961,7 @@ export async function runPipeline(
       topics: analysis.topics,
       contentSources: analysis.contentSources,
       compliance: {
-        score: report.score,
+        score: credibility.overall, // Deterministic score from cross-verification
         corrections: report.corrections.length,
         riskWords: report.riskWords,
         factFlags: report.factFlags,
@@ -933,10 +969,12 @@ export async function runPipeline(
       research: {
         queriesRun: research.searchQueries.length,
         findingsCount: research.findings.length,
-        verifiedFacts: research.verifiedFacts,
+        sourcedClaims: verifiedClaims,
         sourceUrls: research.sourceUrls,
+        citations: research.citations,
         referenceImages: referenceImages.length,
       },
+      credibility,
     },
   };
 }

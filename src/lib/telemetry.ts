@@ -8,6 +8,10 @@ type TelemetryInput = {
   layout?: string;
   aspectRatio?: string;
   complianceScore?: number;
+  credibilityScore?: number;
+  claimsTotal?: number;
+  claimsCrossVerified?: number;
+  researchProviders?: string[];
   researchQueries?: number;
   researchFindings?: number;
   sourceUrls?: string[];

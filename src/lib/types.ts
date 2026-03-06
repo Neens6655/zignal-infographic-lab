@@ -61,5 +61,67 @@ export type SSEEvent = {
     download_url?: string;
     error?: string;
     metadata?: Record<string, any>;
+    provenance?: ProvenanceData;
   };
+};
+
+// ── Credibility Engine Types ────────────────────────────────
+
+export type SourceCitation = {
+  url: string;
+  title: string;
+  snippet: string;
+  provider: 'exa' | 'perplexity' | 'user';
+  publishedDate?: string;
+};
+
+export type VerifiedClaim = {
+  claim: string;
+  sources: SourceCitation[];
+  agreement: number; // 0-1 scale
+  confidence: 'high' | 'medium' | 'low';
+};
+
+export type CredibilityScore = {
+  overall: number; // 0-100
+  breakdown: {
+    sourceCount: number;
+    crossVerified: number;
+    recency: number;
+  };
+  claimsTotal: number;
+  claimsCrossVerified: number;
+};
+
+export type ProvenanceData = {
+  seed: string;
+  generatedAt: string;
+  contentHash: string;
+  models: {
+    analysis: string;
+    image: string;
+  };
+  pipeline: {
+    stage: string;
+    agent: string;
+    result: string;
+  }[];
+  references: string[];
+  topics: string[];
+  contentSources: string[];
+  compliance?: {
+    score: number;
+    corrections: number;
+    riskWords: string[];
+    factFlags: string[];
+  };
+  research?: {
+    queriesRun: number;
+    findingsCount: number;
+    sourcedClaims: VerifiedClaim[];
+    sourceUrls: string[];
+    citations: SourceCitation[];
+    referenceImages: number;
+  };
+  credibility?: CredibilityScore;
 };

@@ -2,24 +2,8 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Download, Shield } from 'lucide-react';
-
-type ProvenanceData = {
-  seed: string;
-  generatedAt: string;
-  contentHash: string;
-  models: { analysis: string; image: string };
-  pipeline: { stage: string; agent: string; result: string }[];
-  references: string[];
-  topics: string[];
-  contentSources: string[];
-  compliance?: {
-    score: number;
-    corrections: number;
-    riskWords: string[];
-    factFlags: string[];
-  };
-};
+import { X, Download, Shield, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
+import type { ProvenanceData, VerifiedClaim, SourceCitation } from '@/lib/types';
 
 type Props = {
   provenance: ProvenanceData;
@@ -27,16 +11,128 @@ type Props = {
   onClose: () => void;
 };
 
+function CredibilityGauge({ score }: { score: number }) {
+  const color = score >= 80 ? '#8BC34A' : score >= 60 ? '#D4A84B' : '#C04B3C';
+  const label = score >= 80 ? 'HIGH' : score >= 60 ? 'MODERATE' : 'LOW';
+  const circumference = 2 * Math.PI * 40;
+  const offset = circumference - (score / 100) * circumference;
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative h-24 w-24">
+        <svg className="h-24 w-24 -rotate-90" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" />
+          <circle
+            cx="50" cy="50" r="40" fill="none"
+            stroke={color} strokeWidth="6"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="butt"
+            className="transition-all duration-1000"
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-mono font-bold text-white">{score}</span>
+          <span className="text-[8px] font-mono text-white/40">/100</span>
+        </div>
+      </div>
+      <span className="text-[9px] font-mono font-semibold tracking-[0.2em]" style={{ color }}>
+        {label} CREDIBILITY
+      </span>
+    </div>
+  );
+}
+
+function ClaimRow({ claim, index }: { claim: VerifiedClaim; index: number }) {
+  const confidenceColor = claim.confidence === 'high' ? '#8BC34A'
+    : claim.confidence === 'medium' ? '#D4A84B' : '#C04B3C';
+
+  return (
+    <div className="bg-white/[0.02] border border-white/[0.06] p-3 space-y-2">
+      <div className="flex items-start gap-2">
+        <span className="text-[9px] font-mono text-[#D4A84B] font-bold shrink-0 mt-0.5">
+          [{index + 1}]
+        </span>
+        <p className="text-[11px] font-mono text-white/70 leading-relaxed">{claim.claim}</p>
+      </div>
+      <div className="flex items-center gap-3 pl-5">
+        <span
+          className="text-[8px] font-mono font-semibold tracking-wider uppercase px-1.5 py-0.5 border"
+          style={{
+            color: confidenceColor,
+            borderColor: `${confidenceColor}33`,
+            backgroundColor: `${confidenceColor}0D`,
+          }}
+        >
+          {claim.confidence}
+        </span>
+        <span className="text-[9px] font-mono text-white/30">
+          {claim.sources.length} source{claim.sources.length !== 1 ? 's' : ''}
+        </span>
+        {claim.sources.length > 0 && (
+          <div className="flex gap-1">
+            {[...new Set(claim.sources.map(s => s.provider))].map(provider => (
+              <span
+                key={provider}
+                className="text-[8px] font-mono text-white/40 bg-white/[0.04] px-1 py-0.5"
+              >
+                {provider}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CitationRow({ citation, index }: { citation: SourceCitation; index: number }) {
+  const providerColor = citation.provider === 'exa' ? '#5B8DEF' : citation.provider === 'perplexity' ? '#8BC34A' : '#D4A84B';
+
+  return (
+    <div className="flex items-start gap-2 text-[10px] font-mono">
+      <span className="text-white/25 shrink-0">[{index + 1}]</span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <a
+            href={citation.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#5B8DEF]/70 hover:text-[#5B8DEF] truncate transition-colors"
+          >
+            {citation.title || citation.url}
+          </a>
+          <ExternalLink className="h-2.5 w-2.5 text-white/20 shrink-0" />
+          <span
+            className="text-[7px] font-semibold tracking-wider uppercase px-1 py-0.5 shrink-0"
+            style={{ color: providerColor, backgroundColor: `${providerColor}15` }}
+          >
+            {citation.provider}
+          </span>
+        </div>
+        {citation.snippet && (
+          <p className="text-white/30 mt-0.5 line-clamp-1">{citation.snippet}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [downloading, setDownloading] = useState(false);
+
+  const credibility = provenance.credibility;
+  const score = credibility?.overall ?? provenance.compliance?.score ?? 0;
+  const claims = provenance.research?.sourcedClaims || [];
+  const citations = provenance.research?.citations || [];
 
   const downloadCertificate = useCallback(async () => {
     setDownloading(true);
     try {
       const canvas = document.createElement('canvas');
       const w = 800;
-      const h = 1200;
+      const h = 1400;
       canvas.width = w;
       canvas.height = h;
       const ctx = canvas.getContext('2d')!;
@@ -60,40 +156,33 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
       ctx.lineWidth = 2;
       ctx.strokeRect(30, 30, w - 60, h - 60);
 
-      // Inner border
-      ctx.strokeStyle = 'rgba(212, 168, 75, 0.2)';
-      ctx.lineWidth = 0.5;
-      ctx.strokeRect(40, 40, w - 80, h - 80);
-
-      // Diamond icon
       const cx = w / 2;
-      ctx.fillStyle = '#D4A84B';
-      ctx.beginPath();
-      ctx.moveTo(cx, 70); ctx.lineTo(cx + 12, 85); ctx.lineTo(cx, 100); ctx.lineTo(cx - 12, 85);
-      ctx.closePath(); ctx.fill();
 
       // Title
       ctx.fillStyle = '#D4A84B';
       ctx.font = '600 14px "IBM Plex Mono", monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('CERTIFICATE OF INFOGRAPHIC LINEAGE', cx, 130);
-
-      // Divider
-      ctx.strokeStyle = 'rgba(212, 168, 75, 0.3)';
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(100, 145); ctx.lineTo(w - 100, 145); ctx.stroke();
+      ctx.fillText('ZGNAL VERIFICATION REPORT', cx, 80);
 
       // Seed + timestamp
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.font = '700 22px "IBM Plex Mono", monospace';
-      ctx.fillText(provenance.seed, cx, 180);
+      ctx.fillText(provenance.seed, cx, 115);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
       ctx.font = '400 11px "IBM Plex Mono", monospace';
-      ctx.fillText(new Date(provenance.generatedAt).toLocaleString(), cx, 200);
+      ctx.fillText(new Date(provenance.generatedAt).toLocaleString(), cx, 135);
 
-      // Section helper
-      let y = 240;
+      // Credibility score
+      const scoreColor = score >= 80 ? '#8BC34A' : score >= 60 ? '#D4A84B' : '#C04B3C';
+      ctx.fillStyle = scoreColor;
+      ctx.font = '700 48px "IBM Plex Mono", monospace';
+      ctx.fillText(`${score}`, cx, 195);
+      ctx.font = '400 12px "IBM Plex Mono", monospace';
+      ctx.fillText('/100 CREDIBILITY SCORE', cx, 215);
+
+      let y = 250;
+
       const drawSection = (title: string) => {
         ctx.fillStyle = '#D4A84B';
         ctx.font = '600 10px "IBM Plex Mono", monospace';
@@ -105,23 +194,52 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
         y += 18;
       };
 
-      const drawField = (label: string, value: string) => {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        ctx.font = '400 10px "IBM Plex Mono", monospace';
-        ctx.fillText(label, 70, y);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.font = '500 12px "IBM Plex Mono", monospace';
-        ctx.fillText(value, 220, y);
-        y += 22;
-      };
+      // Sourced Claims
+      if (claims.length > 0) {
+        drawSection(`SOURCED CLAIMS (${credibility?.claimsCrossVerified || 0}/${claims.length} VERIFIED)`);
+        for (const claim of claims.slice(0, 8)) {
+          const claimColor = claim.confidence === 'high' ? '#8BC34A'
+            : claim.confidence === 'medium' ? '#D4A84B' : '#C04B3C';
+          ctx.fillStyle = claimColor;
+          ctx.font = '700 9px "IBM Plex Mono", monospace';
+          ctx.fillText(`[${claim.confidence.toUpperCase()}]`, 70, y);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+          ctx.font = '400 10px "IBM Plex Mono", monospace';
+          const claimText = claim.claim.length > 70 ? claim.claim.slice(0, 67) + '...' : claim.claim;
+          ctx.fillText(claimText, 140, y);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+          ctx.font = '400 9px "IBM Plex Mono", monospace';
+          ctx.fillText(`${claim.sources.length} src`, w - 110, y);
+          y += 20;
+        }
+        y += 10;
+      }
+
+      // Citations
+      if (citations.length > 0) {
+        drawSection(`CITATIONS (${citations.length})`);
+        for (const cit of citations.slice(0, 10)) {
+          ctx.fillStyle = cit.provider === 'exa' ? '#5B8DEF' : '#8BC34A';
+          ctx.font = '600 8px "IBM Plex Mono", monospace';
+          ctx.fillText(cit.provider.toUpperCase(), 70, y);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.font = '400 9px "IBM Plex Mono", monospace';
+          const title = (cit.title || cit.url).slice(0, 65);
+          ctx.fillText(title, 130, y);
+          y += 16;
+        }
+        y += 10;
+      }
 
       // Content fingerprint
       drawSection('CONTENT FINGERPRINT');
-      drawField('SHA-256', provenance.contentHash);
-      y += 10;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.font = '400 10px "IBM Plex Mono", monospace';
+      ctx.fillText(`SHA-256: ${provenance.contentHash}`, 70, y);
+      y += 25;
 
       // Pipeline trace
-      drawSection('PIPELINE TRACE');
+      drawSection('DATA LINEAGE');
       for (const step of provenance.pipeline) {
         ctx.fillStyle = '#D4A84B';
         ctx.font = '700 11px "IBM Plex Mono", monospace';
@@ -135,77 +253,36 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
         ctx.fillText(`\u2192 ${truncated}`, 220, y);
         y += 22;
       }
-      y += 10;
-
-      // References
-      drawSection('REFERENCES USED');
-      for (const ref of provenance.references) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.font = '400 10px "IBM Plex Mono", monospace';
-        ctx.fillText(`\u2022  ${ref}`, 80, y);
-        y += 18;
-      }
-      y += 10;
-
-      // Topics
-      if (provenance.topics.length > 0) {
-        drawSection('TOPICS');
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.font = '400 10px "IBM Plex Mono", monospace';
-        ctx.fillText(provenance.topics.join('  \u2022  '), 80, y);
-        y += 28;
-      }
-
-      // Content Sources
-      if (provenance.contentSources && provenance.contentSources.length > 0) {
-        drawSection('CONTENT SOURCES');
-        for (const source of provenance.contentSources) {
-          ctx.fillStyle = 'rgba(91, 141, 239, 0.6)';
-          ctx.font = '400 10px "IBM Plex Mono", monospace';
-          ctx.fillText(`\u2022  ${source.length > 60 ? source.slice(0, 57) + '...' : source}`, 80, y);
-          y += 18;
-        }
-        y += 10;
-      }
-
-      // Compliance
-      if (provenance.compliance) {
-        drawSection('COMPLIANCE');
-        drawField('Score', `${provenance.compliance.score}/100`);
-        drawField('Corrections', `${provenance.compliance.corrections}`);
-        if (provenance.compliance.riskWords.length > 0) {
-          drawField('Risk Words', provenance.compliance.riskWords.slice(0, 5).join(', '));
-        }
-        y += 10;
-      }
-
-      // Models
-      drawSection('MODELS');
-      drawField('Analysis', provenance.models.analysis);
-      drawField('Rendering', provenance.models.image);
       y += 20;
 
-      // Footer divider
+      // Footer
       ctx.strokeStyle = 'rgba(212, 168, 75, 0.3)';
       ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(w - 100, y); ctx.stroke();
-      y += 30;
+      y += 25;
 
       ctx.fillStyle = '#D4A84B';
       ctx.font = '600 10px "IBM Plex Mono", monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('\u2500\u2500\u2500  ZGNAL.AI  \u2500\u2500\u2500  Algorithmic Art  \u2500\u2500\u2500', cx, y);
-      y += 18;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.font = '400 9px "IBM Plex Mono", monospace';
-      ctx.fillText('Responsible AI  \u2022  Transparent Pipeline  \u2022  Verifiable Provenance', cx, y);
+      ctx.fillText('VERIFIED BY ZGNAL  \u2022  C2PA-INSPIRED  \u2022  zgnal.ai', cx, y);
+      y += 16;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.font = '400 8px "IBM Plex Mono", monospace';
+      ctx.fillText('Multi-source verification  \u2022  Deterministic scoring  \u2022  Full provenance chain', cx, y);
 
-      // Download
-      canvas.toBlob((blob) => {
+      // Trim canvas to content
+      const finalHeight = Math.min(y + 60, h);
+      const trimmedCanvas = document.createElement('canvas');
+      trimmedCanvas.width = w;
+      trimmedCanvas.height = finalHeight;
+      const trimCtx = trimmedCanvas.getContext('2d')!;
+      trimCtx.drawImage(canvas, 0, 0);
+
+      trimmedCanvas.toBlob((blob) => {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `zgnal-certificate-${provenance.seed}.png`;
+        a.download = `zgnal-verification-${provenance.seed}.png`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -214,7 +291,7 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
     } finally {
       setDownloading(false);
     }
-  }, [provenance]);
+  }, [provenance, score, claims, citations, credibility]);
 
   return (
     <AnimatePresence>
@@ -255,7 +332,7 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
                   <Shield className="h-5 w-5 text-[#D4A84B]" />
                 </div>
                 <p className="text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B]">
-                  Certificate of Infographic Lineage
+                  ZGNAL Verification Report
                 </p>
                 <p className="text-2xl font-mono font-bold text-white tracking-tight">{provenance.seed}</p>
                 <p className="text-[10px] font-mono text-white/30">
@@ -263,20 +340,69 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
                 </p>
               </div>
 
-              {/* Divider */}
+              {/* Credibility Score */}
               <div className="h-px bg-gradient-to-r from-transparent via-[#D4A84B]/30 to-transparent" />
+              <div className="flex justify-center">
+                <CredibilityGauge score={score} />
+              </div>
+
+              {/* Score Breakdown */}
+              {credibility && (
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2 text-center">
+                    <p className="text-[8px] font-mono text-white/30 mb-0.5">Sources</p>
+                    <p className="text-sm font-mono font-bold text-white/70">{credibility.breakdown.sourceCount}%</p>
+                  </div>
+                  <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2 text-center">
+                    <p className="text-[8px] font-mono text-white/30 mb-0.5">Verified</p>
+                    <p className="text-sm font-mono font-bold text-white/70">{credibility.breakdown.crossVerified}%</p>
+                  </div>
+                  <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2 text-center">
+                    <p className="text-[8px] font-mono text-white/30 mb-0.5">Recency</p>
+                    <p className="text-sm font-mono font-bold text-white/70">{credibility.breakdown.recency}%</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Sourced Claims */}
+              {claims.length > 0 && (
+                <div>
+                  <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-3">
+                    Sourced Claims ({credibility?.claimsCrossVerified || 0}/{claims.length} verified)
+                  </p>
+                  <div className="space-y-2">
+                    {claims.map((claim, i) => (
+                      <ClaimRow key={i} claim={claim} index={i} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Citations */}
+              {citations.length > 0 && (
+                <div>
+                  <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-3">
+                    Citations ({citations.length})
+                  </p>
+                  <div className="space-y-2 bg-white/[0.02] border border-white/[0.04] p-3">
+                    {citations.map((cit, i) => (
+                      <CitationRow key={i} citation={cit} index={i} />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Content Fingerprint */}
               <div>
                 <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-2">Content Fingerprint</p>
-                <p className="text-xs font-mono text-white/60 bg-white/[0.03] border border-white/[0.06] px-3 py-2">
+                <p className="text-[10px] font-mono text-white/50 bg-white/[0.03] border border-white/[0.06] px-3 py-2 break-all">
                   SHA-256: {provenance.contentHash}
                 </p>
               </div>
 
-              {/* Pipeline Trace */}
+              {/* Data Lineage */}
               <div>
-                <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-3">Pipeline Trace</p>
+                <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-3">Data Lineage</p>
                 <div className="space-y-2">
                   {provenance.pipeline.map((step) => (
                     <div key={step.stage} className="flex items-start gap-3 text-xs font-mono">
@@ -288,114 +414,34 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
                 </div>
               </div>
 
-              {/* References */}
-              <div>
-                <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-2">References Used</p>
-                <div className="space-y-1">
-                  {provenance.references.map((ref) => (
-                    <p key={ref} className="text-[11px] font-mono text-white/40 pl-3 border-l border-white/[0.06]">
-                      {ref}
-                    </p>
-                  ))}
-                </div>
-              </div>
-
-              {/* Topics */}
-              {provenance.topics.length > 0 && (
-                <div>
-                  <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-2">Topics</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {provenance.topics.map((topic) => (
-                      <span key={topic} className="text-[10px] font-mono text-white/50 bg-white/[0.04] border border-white/[0.06] px-2 py-0.5">
-                        {topic}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Content Sources */}
-              {provenance.contentSources && provenance.contentSources.length > 0 && (
-                <div>
-                  <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-2">Content Sources</p>
-                  <div className="space-y-1">
-                    {provenance.contentSources.map((source, i) => (
-                      <p key={i} className="text-[11px] font-mono text-[#5B8DEF]/60 pl-3 border-l border-[#5B8DEF]/20">
-                        {source}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Compliance Report */}
+              {/* Compliance */}
               {provenance.compliance && (
                 <div>
-                  <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-2">Compliance</p>
+                  <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-2">Text Compliance</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2">
-                      <p className="text-[9px] font-mono text-white/30 mb-0.5">Score</p>
-                      <p className={`text-[14px] font-mono font-bold ${
-                        provenance.compliance.score >= 80 ? 'text-[#8BC34A]'
-                          : provenance.compliance.score >= 50 ? 'text-[#D4A84B]'
-                          : 'text-[#C04B3C]'
-                      }`}>
-                        {provenance.compliance.score}/100
-                      </p>
-                    </div>
                     <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2">
                       <p className="text-[9px] font-mono text-white/30 mb-0.5">Corrections</p>
                       <p className="text-[14px] font-mono font-bold text-white/60">{provenance.compliance.corrections}</p>
                     </div>
+                    <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2">
+                      <p className="text-[9px] font-mono text-white/30 mb-0.5">Risk Words</p>
+                      <p className="text-[14px] font-mono font-bold text-white/60">{provenance.compliance.riskWords.length}</p>
+                    </div>
                   </div>
-                  {provenance.compliance.riskWords.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-[9px] font-mono text-white/30 mb-1">Risk Words</p>
-                      <div className="flex flex-wrap gap-1">
-                        {provenance.compliance.riskWords.map((word, i) => (
-                          <span key={i} className="text-[9px] font-mono text-[#D4A84B]/60 bg-[#D4A84B]/[0.06] border border-[#D4A84B]/10 px-1.5 py-0.5">
-                            {word}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {provenance.compliance.factFlags.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-[9px] font-mono text-white/30 mb-1">Fact Warnings</p>
-                      {provenance.compliance.factFlags.map((flag, i) => (
-                        <p key={i} className="text-[10px] font-mono text-[#C04B3C]/70 pl-2 border-l border-[#C04B3C]/20">
-                          {flag}
-                        </p>
-                      ))}
-                    </div>
-                  )}
                 </div>
               )}
-
-              {/* Models */}
-              <div>
-                <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-2">Models</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2">
-                    <p className="text-[9px] font-mono text-white/30 mb-0.5">Analysis</p>
-                    <p className="text-[11px] font-mono text-white/60">{provenance.models.analysis}</p>
-                  </div>
-                  <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2">
-                    <p className="text-[9px] font-mono text-white/30 mb-0.5">Rendering</p>
-                    <p className="text-[11px] font-mono text-white/60">{provenance.models.image}</p>
-                  </div>
-                </div>
-              </div>
 
               {/* Footer */}
               <div className="h-px bg-gradient-to-r from-transparent via-[#D4A84B]/30 to-transparent" />
               <div className="text-center space-y-1">
                 <p className="text-[10px] font-mono font-semibold text-[#D4A84B]/60">
-                  ZGNAL.AI — Algorithmic Art
+                  Verified by ZGNAL &bull; C2PA-Inspired &bull; zgnal.ai
                 </p>
-                <p className="text-[9px] font-mono text-white/25">
-                  Responsible AI &bull; Transparent Pipeline &bull; Verifiable Provenance
+                <p className="text-[8px] font-mono text-white/20">
+                  Multi-source verification &bull; Deterministic scoring &bull; Full provenance chain
+                </p>
+                <p className="text-[7px] font-mono text-white/15 mt-2">
+                  Credibility score measures source corroboration, not absolute truth.
                 </p>
               </div>
 
@@ -406,7 +452,7 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
                 className="w-full flex items-center justify-center gap-2 border border-[#D4A84B]/30 bg-[#D4A84B]/[0.06] px-4 py-3 text-xs font-mono font-semibold text-[#D4A84B] hover:bg-[#D4A84B]/10 transition-colors disabled:opacity-50"
               >
                 <Download className="h-3.5 w-3.5" />
-                {downloading ? 'Generating...' : 'Download Certificate PNG'}
+                {downloading ? 'Generating...' : 'Download Verification Report'}
               </button>
             </div>
 

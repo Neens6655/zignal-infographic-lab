@@ -20,7 +20,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' https://fonts.gstatic.com",
-      "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.exa.ai https://api.apify.com",
+      "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.exa.ai https://api.apify.com https://api.perplexity.ai",
       "frame-ancestors 'none'",
     ].join("; "),
   },
