@@ -4,10 +4,45 @@
 
 export type ChatRole = 'user' | 'assistant';
 
+export type ResearchFact = {
+  text: string;
+  value: string;
+  unit: string;
+  year: string;
+  sources: string[];
+  confidence: 'verified' | 'corroborated' | 'single-source';
+};
+
+export type ResearchPreviewData = {
+  verified: ResearchFact[];
+  corroborated: ResearchFact[];
+  excluded: { text: string; reason: string }[];
+  sourceNames: string[];
+  dataFreshness: string;
+  overallConfidence: number;
+};
+
+export type QualityBadgeData = {
+  level: 'green' | 'yellow' | 'red';
+  label: string;
+  description: string;
+  overall: number;
+  accuracy: number;
+  readability: number;
+  retryCount: number;
+};
+
 export type ChatMessage =
   | { type: 'text'; id: string; role: ChatRole; content: string }
   | { type: 'style-picker'; id: string; role: 'assistant'; selectedStyle?: string; selectedAspect?: string }
   | { type: 'generating'; id: string; role: 'assistant'; progress: number; status: string; message: string }
+  | {
+      type: 'research-preview';
+      id: string;
+      role: 'assistant';
+      data: ResearchPreviewData;
+      approved: boolean;
+    }
   | {
       type: 'image-result';
       id: string;
@@ -17,6 +52,7 @@ export type ChatMessage =
       metadata: Record<string, any>;
       provenance?: ProvenanceData;
       context: GenerationContext;
+      qualityBadge?: QualityBadgeData;
     }
   | { type: 'error'; id: string; role: 'assistant'; error: string };
 
@@ -74,3 +110,14 @@ export const STYLE_CATALOG = [
 ] as const;
 
 export type StyleEntry = (typeof STYLE_CATALOG)[number];
+
+// ── Layout and Style ID lists (used by pipeline analyze + edit-classifier) ──
+
+export const LAYOUT_IDS = [
+  'linear-progression', 'binary-comparison', 'comparison-matrix', 'hierarchical-layers',
+  'tree-branching', 'hub-spoke', 'structural-breakdown', 'bento-grid', 'iceberg', 'bridge',
+  'funnel', 'isometric-map', 'dashboard', 'periodic-table', 'comic-strip', 'story-mountain',
+  'jigsaw', 'venn-diagram', 'winding-roadmap', 'circular-flow',
+] as const;
+
+export const STYLE_IDS = STYLE_CATALOG.map((s) => s.id);

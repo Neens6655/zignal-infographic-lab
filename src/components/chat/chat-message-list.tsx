@@ -11,6 +11,8 @@ type Props = {
   onSelectAspect: (aspect: string) => void;
   onToggleSimplify: () => void;
   onRegenerate: (content: string, style?: string) => void;
+  onApproveResearch?: () => void;
+  onEditResearch?: () => void;
 };
 
 export function ChatMessageList({
@@ -20,6 +22,8 @@ export function ChatMessageList({
   onSelectAspect,
   onToggleSimplify,
   onRegenerate,
+  onApproveResearch,
+  onEditResearch,
 }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,6 +47,8 @@ export function ChatMessageList({
           onSelectAspect={onSelectAspect}
           onToggleSimplify={onToggleSimplify}
           onRegenerate={onRegenerate}
+          onApproveResearch={onApproveResearch}
+          onEditResearch={onEditResearch}
         />
       ))}
       <div ref={bottomRef} />

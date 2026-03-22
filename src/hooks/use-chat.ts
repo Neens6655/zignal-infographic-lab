@@ -187,6 +187,48 @@ export function useChat() {
     [addMessage, sendMessage]
   );
 
+  const approveResearch = useCallback(() => {
+    // Mark the research-preview message as approved
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.type === 'research-preview' ? { ...m, approved: true } as ChatMessage : m
+      )
+    );
+    // Continue generation with the pending content
+    if (pendingContent.current) {
+      const genId = nextId();
+      genCounter.current += 1;
+      activeGenId.current = genId;
+      const genMsg: ChatMessage = {
+        type: 'generating',
+        id: genId,
+        role: 'assistant',
+        progress: 30,
+        status: 'structuring',
+        message: 'Research approved — structuring content...',
+      };
+      addMessage(genMsg);
+
+      const input: GenerateInput = {
+        content: pendingContent.current,
+        preset: config.preset === 'auto' ? undefined : config.preset,
+        style: config.style || undefined,
+        aspect_ratio: config.aspectRatio,
+        simplify: config.simplify,
+      };
+      generate(input);
+    }
+  }, [config, addMessage, generate]);
+
+  const editResearch = useCallback(() => {
+    addMessage({
+      type: 'text',
+      id: nextId(),
+      role: 'assistant',
+      content: 'Edit the facts above by telling me what to change. For example: "Remove the semiconductor data" or "The $260B number should be $280B".',
+    });
+  }, [addMessage]);
+
   const resetChat = useCallback(() => {
     resetGen();
     activeGenId.current = null;
@@ -204,6 +246,8 @@ export function useChat() {
     selectAspect,
     toggleSimplify,
     regenerate,
+    approveResearch,
+    editResearch,
     resetChat,
   };
 }

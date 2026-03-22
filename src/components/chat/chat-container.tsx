@@ -22,6 +22,8 @@ export function ChatContainer({ onClose, onToggleMaximize, isMaximized, isFullPa
     selectAspect,
     toggleSimplify,
     regenerate,
+    approveResearch,
+    editResearch,
     resetChat,
   } = useChat();
 
@@ -73,6 +75,8 @@ export function ChatContainer({ onClose, onToggleMaximize, isMaximized, isFullPa
         onSelectAspect={selectAspect}
         onToggleSimplify={toggleSimplify}
         onRegenerate={regenerate}
+        onApproveResearch={approveResearch}
+        onEditResearch={editResearch}
       />
 
       {/* ── Input ── */}

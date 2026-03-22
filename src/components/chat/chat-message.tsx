@@ -6,6 +6,7 @@ import { StylePickerMessage } from './messages/style-picker-message';
 import { GeneratingMessage } from './messages/generating-message';
 import { ImageResultMessage } from './messages/image-result-message';
 import { ErrorMessage } from './messages/error-message';
+import { ResearchPreviewMessage } from './messages/research-preview-message';
 
 type Props = {
   message: ChatMessage;
@@ -14,6 +15,8 @@ type Props = {
   onSelectAspect: (aspect: string) => void;
   onToggleSimplify: () => void;
   onRegenerate: (content: string, style?: string) => void;
+  onApproveResearch?: () => void;
+  onEditResearch?: () => void;
 };
 
 export function ChatMessageView({
@@ -23,6 +26,8 @@ export function ChatMessageView({
   onSelectAspect,
   onToggleSimplify,
   onRegenerate,
+  onApproveResearch,
+  onEditResearch,
 }: Props) {
   switch (message.type) {
     case 'text':
@@ -35,6 +40,14 @@ export function ChatMessageView({
           onSelectStyle={onSelectStyle}
           onSelectAspect={onSelectAspect}
           onToggleSimplify={onToggleSimplify}
+        />
+      );
+    case 'research-preview':
+      return (
+        <ResearchPreviewMessage
+          message={message}
+          onApprove={onApproveResearch ?? (() => {})}
+          onEdit={onEditResearch ?? (() => {})}
         />
       );
     case 'generating':

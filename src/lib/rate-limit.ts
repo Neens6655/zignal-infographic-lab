@@ -2,6 +2,12 @@ const WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const DEFAULT_LIMIT = 5;
 const AUTH_LIMIT = 20;
 
+export const RATE_LIMIT_TIER = {
+  anonymous: DEFAULT_LIMIT,
+  authenticated: AUTH_LIMIT,
+  edit: 40,
+} as const;
+
 type Entry = {
   count: number;
   windowStart: number;
