@@ -79,30 +79,58 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "ZGNAL Infographic Lab",
-  applicationCategory: "DesignApplication",
-  operatingSystem: "Web",
-  url: BASE_URL,
-  description:
-    "AI-powered infographic engine that generates research-backed, consulting-grade infographics in 60 seconds.",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-    availability: "https://schema.org/InStock",
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "ZGNAL Infographic Lab",
+    applicationCategory: "DesignApplication",
+    operatingSystem: "Web",
+    url: BASE_URL,
+    description:
+      "AI-powered infographic engine that generates research-backed, consulting-grade infographics in 60 seconds.",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+    },
+    featureList: [
+      "20 professional layouts",
+      "20 visual styles",
+      "22 trusted research sources",
+      "Seven-stage AI pipeline",
+      "Compliance and fact-checking",
+      "Provenance tracking",
+    ],
   },
-  featureList: [
-    "20 professional layouts",
-    "20 visual styles",
-    "22 trusted research sources",
-    "Seven-stage AI pipeline",
-    "Compliance and fact-checking",
-    "Provenance tracking",
-  ],
-};
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "ZGNAL",
+    url: BASE_URL,
+    logo: `${BASE_URL}/og-image.png`,
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: "hello@zgnal.ai",
+      contactType: "customer service",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "ZGNAL Infographic Lab",
+    url: BASE_URL,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${BASE_URL}/chat?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  },
+];
 
 export default function RootLayout({
   children,
@@ -112,10 +140,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        {jsonLd.map((schema, i) => (
+          <script
+            key={i}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          />
+        ))}
       </head>
       <body
         className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} antialiased`}

@@ -1,0 +1,222 @@
+[
+  {
+    "slug": "bento-grid",
+    "name": "Bento Grid",
+    "description": "Modular grid of illustrated panels, each telling one part of the story — ideal for multi-topic overviews and executive summaries.",
+    "longDescription": "The Bento Grid layout arranges content into a modular mosaic of rectangular panels, each sized proportionally to its importance. Inspired by Japanese bento box composition, this layout excels at presenting multiple distinct topics within a single cohesive visual frame. Panels can vary in size — hero panels spanning two columns for key messages, smaller tiles for supporting data points. The grid structure creates natural visual hierarchy without requiring explicit numbering or arrows. Best deployed when your audience needs to absorb five or more distinct but related concepts at a glance, such as quarterly reports, product feature overviews, or strategy summaries.",
+    "answerBlock": "A Bento Grid infographic arranges content into modular rectangular panels of varying sizes, like a Japanese bento box, creating visual hierarchy for multi-topic overviews.",
+    "category": "Grid",
+    "bestFor": ["Multi-topic overviews", "Executive summaries", "Dashboards", "Feature showcases", "Annual reports"],
+    "keywords": ["bento grid infographic", "modular layout", "grid infographic", "multi-panel design", "dashboard layout", "mosaic infographic", "content grid", "panel layout", "executive summary design", "overview infographic"],
+    "relatedStyles": ["executive-institutional", "bold-graphic", "cyberpunk-neon", "corporate-memphis", "pixel-art"]
+  },
+  {
+    "slug": "binary-comparison",
+    "name": "Binary Comparison",
+    "description": "Two-panel side-by-side layout for comparing options, before/after states, or contrasting perspectives.",
+    "longDescription": "The Binary Comparison layout splits the canvas into two distinct halves, each representing one side of a dichotomy. A central dividing line or transitional element separates the panels, creating immediate visual tension that draws the viewer into the contrast. Each half mirrors the other structurally — matching data points, icons, and typography — so differences become instantly apparent. Color coding reinforces the opposition: warm versus cool, light versus dark. This layout works best when the audience must choose between exactly two options or understand a transformation. It reduces cognitive load by eliminating the need to mentally map one dataset onto another, placing them in direct visual opposition instead.",
+    "answerBlock": "A Binary Comparison infographic places two options side by side in mirrored panels, making differences immediately visible for product comparisons, before/after, or A/B decisions.",
+    "category": "Comparison",
+    "bestFor": ["Product comparisons", "Before/after", "Pros/cons", "A/B decisions", "Policy alternatives"],
+    "keywords": ["comparison infographic", "side by side layout", "before after infographic", "versus layout", "pros cons design", "two column comparison", "binary layout", "split screen infographic", "A/B comparison"],
+    "relatedStyles": ["bold-graphic", "executive-institutional", "ui-wireframe"]
+  },
+  {
+    "slug": "bridge",
+    "name": "Bridge",
+    "description": "Connects two states — problem to solution, before to after — with a central pathway showing the transformation.",
+    "longDescription": "The Bridge layout positions two distinct states on opposite sides of the canvas and connects them with a prominent visual pathway — an arch, a span, or a literal bridge structure. The left side typically represents the current state, pain point, or problem; the right side shows the desired outcome or solution. The bridge itself carries the mechanism of change: steps, tools, strategies, or interventions that enable the transformation. This compositional metaphor is immediately intuitive to any audience. It works exceptionally well for consulting decks, change management communications, and marketing narratives where the story arc follows a problem-solution structure. The visual weight of the bridge element naturally draws the eye through the narrative in the intended sequence.",
+    "answerBlock": "A Bridge infographic connects two states — problem and solution — with a central pathway, visually narrating the transformation journey between them.",
+    "category": "Narrative",
+    "bestFor": ["Problem-solution stories", "Transformation narratives", "Before/after journeys", "Change management", "Strategy proposals"],
+    "keywords": ["bridge infographic", "problem solution layout", "transformation infographic", "before after narrative", "change visualization", "gap analysis design", "transition infographic", "solution pathway"],
+    "relatedStyles": ["craft-handmade", "storybook-watercolor", "corporate-memphis"]
+  },
+  {
+    "slug": "circular-flow",
+    "name": "Circular Flow",
+    "description": "Continuous cycle showing repeating processes, feedback loops, or systems that have no fixed start or end point.",
+    "longDescription": "The Circular Flow layout arranges process stages along a circular or elliptical path, with directional arrows connecting each stage to the next and the final stage looping back to the first. This layout communicates continuity and perpetual motion — there is no terminal state, only ongoing iteration. Each node along the circle represents a distinct phase, and the connecting segments can carry annotations explaining transitions. The circular form naturally conveys concepts like agile sprints, biological cycles, economic flows, and quality improvement loops. It is particularly effective when you need to counter linear thinking in your audience, emphasizing that a process does not simply end but feeds back into itself. Radial symmetry gives every stage equal visual weight, preventing any single phase from dominating the narrative.",
+    "answerBlock": "A Circular Flow infographic arranges process stages in a continuous loop, showing how each phase feeds into the next with no fixed beginning or end.",
+    "category": "Process",
+    "bestFor": ["Business cycles", "Feedback loops", "Seasonal patterns", "Iterative processes", "Quality improvement"],
+    "keywords": ["circular flow infographic", "cycle diagram", "loop infographic", "feedback loop design", "process cycle", "iterative flow", "continuous process", "circular diagram", "recurring process visualization"],
+    "relatedStyles": ["subway-map", "technical-schematic", "corporate-memphis"]
+  },
+  {
+    "slug": "comic-strip",
+    "name": "Comic Strip",
+    "description": "Sequential panels telling a visual story from left to right, combining illustration and text in each frame.",
+    "longDescription": "The Comic Strip layout divides the canvas into sequential rectangular panels arranged in rows, read left-to-right and top-to-bottom like a traditional comic page. Each panel encapsulates a single moment, step, or concept, with illustrations carrying the primary narrative and text providing context through captions or speech bubbles. Panel sizes can vary for dramatic effect — a wide establishing panel followed by tight close-ups, or a dramatic full-width panel for the climax. Gutters between panels create natural pauses that help the viewer process each beat before moving on. This layout excels at making complex tutorials approachable, turning dry processes into engaging stories, and reaching audiences who might disengage from traditional infographic formats. The inherent narrative momentum of the comic form keeps viewers reading to the end.",
+    "answerBlock": "A Comic Strip infographic tells a visual story through sequential illustrated panels read left to right, combining images and text to make complex information engaging.",
+    "category": "Narrative",
+    "bestFor": ["Step-by-step tutorials", "User journeys", "Chronological stories", "Onboarding flows", "Educational content"],
+    "keywords": ["comic strip infographic", "sequential panels", "visual storytelling", "illustrated tutorial", "panel layout", "comic infographic", "narrative panels", "story infographic", "step by step comic"],
+    "relatedStyles": ["kawaii", "pixel-art", "ikea-manual", "craft-handmade"]
+  },
+  {
+    "slug": "comparison-matrix",
+    "name": "Comparison Matrix",
+    "description": "Multi-column grid for structured feature-by-feature comparison across three or more options.",
+    "longDescription": "The Comparison Matrix layout organizes information into a structured table-like grid where rows represent features or criteria and columns represent the items being compared. Header cells identify each option, while intersection cells contain check marks, ratings, values, or mini-visualizations that encode the comparison data. Visual treatments like alternating row shading, color-coded performance indicators, and highlighted winner columns make patterns easy to spot. Unlike the Binary Comparison layout which handles two options, the Comparison Matrix scales to three, four, or more alternatives, making it the go-to format for vendor evaluations, competitive landscapes, and feature audits. The rigid grid structure projects objectivity and thoroughness, which is why it appears frequently in analyst reports and buyer's guides.",
+    "answerBlock": "A Comparison Matrix infographic uses a structured grid to compare three or more options feature by feature, with rows for criteria and columns for each alternative.",
+    "category": "Comparison",
+    "bestFor": ["Feature comparisons", "Vendor selection", "Competitive analysis", "Buyer's guides", "Technology evaluations"],
+    "keywords": ["comparison matrix infographic", "feature comparison", "grid comparison", "vendor comparison", "competitive matrix", "evaluation grid", "multi-option comparison", "feature table", "structured comparison"],
+    "relatedStyles": ["executive-institutional", "aged-academia", "knolling", "ui-wireframe"]
+  },
+  {
+    "slug": "dashboard",
+    "name": "Dashboard",
+    "description": "Data-heavy layout with KPI tiles, charts, and metrics panels arranged for at-a-glance performance monitoring.",
+    "longDescription": "The Dashboard layout mimics the structure of a real-time analytics interface, combining KPI scorecards, sparkline charts, bar graphs, donut charts, and status indicators into a dense but scannable composition. Large numeric tiles at the top display headline metrics, while supporting visualizations below provide context, trends, and breakdowns. The layout uses a strict grid system with consistent gutters, ensuring alignment across all elements regardless of chart type. Color is used functionally — green for positive, red for negative, neutral for context — rather than decoratively. This layout is optimized for audiences who are already familiar with the subject matter and need rapid status assessment rather than narrative explanation. It pairs particularly well with periodic reporting where the structure stays constant but the numbers change each period.",
+    "answerBlock": "A Dashboard infographic combines KPI tiles, charts, and metrics panels in a dense grid layout optimized for at-a-glance performance monitoring and data analysis.",
+    "category": "Data",
+    "bestFor": ["Analytics dashboards", "Performance reports", "Monitoring views", "Monthly metrics", "Status overviews"],
+    "keywords": ["dashboard infographic", "KPI dashboard", "metrics layout", "data dashboard design", "analytics infographic", "performance dashboard", "chart layout", "data visualization dashboard", "metrics overview"],
+    "relatedStyles": ["executive-institutional", "cyberpunk-neon", "ui-wireframe", "bold-graphic"]
+  },
+  {
+    "slug": "funnel",
+    "name": "Funnel",
+    "description": "Narrowing stages from top to bottom — wide input at the top, filtered output at the base.",
+    "longDescription": "The Funnel layout uses a tapering trapezoidal shape to represent progressive narrowing, filtering, or qualification across stages. The widest section at the top represents the full universe of inputs — all leads, all candidates, all raw data — and each subsequent band narrows as items are filtered, qualified, or refined. Percentage labels and absolute numbers at each stage quantify the conversion between levels. The funnel shape is one of the most universally recognized business metaphors, making it immediately legible to any professional audience. It works best when the narrative is about reduction, selection, or progressive refinement. The visual proportions of each band encode the magnitude of drop-off, so a sudden narrowing communicates a bottleneck without requiring any additional annotation.",
+    "answerBlock": "A Funnel infographic uses a tapering shape to show progressive narrowing across stages, from wide input at top to filtered output at bottom, quantifying conversion at each level.",
+    "category": "Process",
+    "bestFor": ["Sales funnels", "Conversion paths", "Filtering processes", "Recruitment pipelines", "Qualification stages"],
+    "keywords": ["funnel infographic", "sales funnel design", "conversion funnel", "pipeline visualization", "narrowing stages", "funnel diagram", "marketing funnel", "filter funnel", "stage funnel"],
+    "relatedStyles": ["corporate-memphis", "bold-graphic", "executive-institutional"]
+  },
+  {
+    "slug": "hierarchical-layers",
+    "name": "Hierarchical Layers",
+    "description": "Stacked horizontal bands showing levels of a system, organization, or conceptual framework from top to bottom.",
+    "longDescription": "The Hierarchical Layers layout stacks horizontal bands across the full width of the canvas, with each band representing a distinct level in a system or organization. The topmost layer typically represents the highest level of abstraction — strategy, leadership, or the user-facing surface — while deeper layers reveal increasing specificity, technical detail, or foundational infrastructure. Each band can contain its own icons, labels, and annotations, and vertical connectors between layers show dependencies or communication paths. This layout is the natural choice for system architecture diagrams, organizational charts viewed by level rather than by individual, and any concept where understanding the depth of a structure matters more than the breadth. The horizontal orientation gives each layer equal visual prominence, avoiding the top-heavy bias of traditional org charts.",
+    "answerBlock": "A Hierarchical Layers infographic stacks horizontal bands to show system levels from top to bottom, revealing how each layer relates to those above and below it.",
+    "category": "Structure",
+    "bestFor": ["Organizational hierarchy", "System architecture", "Geological layers", "Technology stacks", "Conceptual frameworks"],
+    "keywords": ["hierarchical layers infographic", "stacked layers", "system architecture diagram", "layer diagram", "organizational levels", "stack visualization", "tiered infographic", "depth diagram", "level hierarchy"],
+    "relatedStyles": ["deconstruct", "aged-academia", "technical-schematic"]
+  },
+  {
+    "slug": "hub-spoke",
+    "name": "Hub & Spoke",
+    "description": "Central concept radiating outward to connected ideas, features, or components arranged in a circular pattern.",
+    "longDescription": "The Hub and Spoke layout places a single core concept at the center of the canvas with satellite elements radiating outward along evenly spaced axes, connected by lines or arrows. The hub is visually dominant — larger, bolder, often a different color — establishing it as the unifying theme. Each spoke terminates in a node containing a related subtopic, feature, or component, and these outer nodes can carry their own supporting details. The radial symmetry communicates that all spokes share equal importance relative to the hub, which makes this layout ideal for frameworks, ecosystems, and feature overviews where no single element takes priority over another. The visual form resembles a wheel, a sun with rays, or a mind map, all of which carry positive connotations of completeness and connectivity.",
+    "answerBlock": "A Hub and Spoke infographic places a central concept at the core with related ideas radiating outward in a radial pattern, showing equal-weight connections to the center.",
+    "category": "Radial",
+    "bestFor": ["Frameworks", "Ecosystems", "Feature overviews", "Concept maps", "Capability summaries"],
+    "keywords": ["hub and spoke infographic", "radial layout", "central concept diagram", "mind map infographic", "spoke diagram", "ecosystem visualization", "framework infographic", "radial diagram", "concept hub"],
+    "relatedStyles": ["technical-schematic", "cyberpunk-neon", "chalkboard", "claymation", "kawaii"]
+  },
+  {
+    "slug": "iceberg",
+    "name": "Iceberg",
+    "description": "Visible tip above the waterline with hidden complexity below — revealing what lies beneath the surface.",
+    "longDescription": "The Iceberg layout divides the canvas horizontally at a waterline, placing a small visible portion above and a much larger hidden mass below. The above-water section represents what is commonly seen, known, or discussed — the public face, the obvious symptoms, the surface-level understanding. Below the waterline, the bulk of the iceberg reveals hidden complexity: root causes, underlying systems, unseen effort, or deeper knowledge. The dramatic size contrast between the visible tip and the submerged mass creates an immediate emotional impact, making viewers reconsider their assumptions. This metaphorical layout is exceptionally powerful for thought leadership content, educational material about hidden costs or overlooked factors, and any narrative that argues there is more to a story than meets the eye.",
+    "answerBlock": "An Iceberg infographic splits content at a waterline — a small visible tip above represents the obvious, while the massive submerged portion reveals hidden complexity beneath.",
+    "category": "Metaphor",
+    "bestFor": ["Hidden complexity", "Surface vs depth", "Visible vs invisible factors", "Root cause analysis", "Misconception correction"],
+    "keywords": ["iceberg infographic", "hidden complexity", "surface vs depth", "waterline diagram", "iceberg model", "beneath the surface", "hidden factors visualization", "depth infographic", "iceberg metaphor"],
+    "relatedStyles": ["craft-handmade", "storybook-watercolor", "aged-academia"]
+  },
+  {
+    "slug": "isometric-map",
+    "name": "Isometric Map",
+    "description": "3D isometric view of a space, facility, or environment with labeled zones and interactive elements.",
+    "longDescription": "The Isometric Map layout renders a scene in isometric projection — a pseudo-3D view at a fixed 30-degree angle that reveals three faces of every object simultaneously. Buildings, rooms, equipment, or landscape features are drawn as extruded geometric forms, creating a miniature world the viewer looks down upon. Labels, callouts, and data annotations are anchored to specific locations within the scene, turning the illustration into an information-rich spatial diagram. This layout excels when physical geography or spatial relationships are central to the story — campus tours, warehouse logistics, city planning proposals, or facility management overviews. The isometric perspective avoids the distortion of true 3D perspective while still conveying depth, making it both visually engaging and dimensionally accurate enough for practical use.",
+    "answerBlock": "An Isometric Map infographic uses a pseudo-3D angled view to show spaces, facilities, or environments with labeled zones, combining spatial context with data annotations.",
+    "category": "Spatial",
+    "bestFor": ["Campus maps", "Facility layouts", "City planning", "Process geography", "Warehouse logistics"],
+    "keywords": ["isometric infographic", "3D map layout", "isometric illustration", "facility map", "spatial infographic", "isometric diagram", "campus map design", "environment visualization", "isometric view"],
+    "relatedStyles": ["aerial-explainer", "technical-schematic", "cyberpunk-neon"]
+  },
+  {
+    "slug": "jigsaw",
+    "name": "Jigsaw",
+    "description": "Interlocking puzzle pieces, each containing a concept, showing how separate parts fit together into a whole.",
+    "longDescription": "The Jigsaw layout presents information as interlocking puzzle pieces, each carrying a distinct concept, role, or component. The pieces connect along irregular edges, visually demonstrating that these elements are not merely listed together but are structurally dependent on one another — remove one piece and the picture is incomplete. Each piece can be color-coded by category and contains its own title, icon, and brief description. The assembled puzzle forms a recognizable shape — typically a rectangle, circle, or custom silhouette — that represents the complete system or solution. This layout is highly effective for team-building communications, modular product architectures, and any narrative where the central message is interdependence. The playful puzzle metaphor also makes dense content feel more approachable and less intimidating to non-specialist audiences.",
+    "answerBlock": "A Jigsaw infographic presents concepts as interlocking puzzle pieces, visually demonstrating how separate components depend on each other to form a complete system.",
+    "category": "Modular",
+    "bestFor": ["How parts fit together", "Team roles", "Component systems", "Modular architectures", "Integration stories"],
+    "keywords": ["jigsaw infographic", "puzzle piece layout", "interlocking components", "modular infographic", "puzzle diagram", "component visualization", "interconnected parts", "jigsaw diagram", "assembly infographic"],
+    "relatedStyles": ["origami", "lego-brick", "claymation"]
+  },
+  {
+    "slug": "linear-progression",
+    "name": "Linear Progression",
+    "description": "Left-to-right or top-to-bottom sequential flow showing timelines, step-by-step processes, or workflows.",
+    "longDescription": "The Linear Progression layout arranges content along a single directional axis — horizontal for timelines and workflows, vertical for step-by-step processes. A connecting line, arrow, or track runs the full length, with numbered nodes or milestone markers positioned at each stage. Each node expands into a content block containing a title, description, and optional icon or data point. The linear form communicates sequence unambiguously: first this, then this, then this. It is the most intuitive layout for any content where order matters — historical timelines, onboarding procedures, manufacturing processes, or project phases. The simplicity of the single axis means viewers never lose their place in the narrative, making it one of the highest-completion-rate infographic formats. Variations include serpentine paths that fold the line to fit vertical space.",
+    "answerBlock": "A Linear Progression infographic arranges steps along a single directional axis with connected nodes, showing clear sequential order from start to finish.",
+    "category": "Process",
+    "bestFor": ["Timelines", "Step-by-step processes", "Historical sequences", "Workflows", "Onboarding procedures"],
+    "keywords": ["linear progression infographic", "timeline layout", "step by step infographic", "sequential flow", "process timeline", "workflow diagram", "progression infographic", "linear timeline", "ordered steps"],
+    "relatedStyles": ["technical-schematic", "craft-handmade", "ikea-manual", "subway-map", "corporate-memphis"]
+  },
+  {
+    "slug": "periodic-table",
+    "name": "Periodic Table",
+    "description": "Grid of categorized elements, each with classification data — a structured catalog of related items.",
+    "longDescription": "The Periodic Table layout arranges items into a dense grid where each cell represents one element in a larger taxonomy. Borrowing from the iconic chemistry periodic table, each cell contains a short code, full name, and one or two classification attributes. Cells are color-coded by category, and the spatial arrangement groups related elements together — creating clusters that reveal patterns in the taxonomy. This layout handles large collections of items that would overwhelm a simple list: marketing tools, design patterns, programming languages, industry players, or skill inventories. The tabular density allows fifty or more items to coexist on a single canvas without scrolling, while the color coding and spatial grouping prevent the density from becoming chaotic. It projects encyclopedic authority and is frequently shared as a reference poster.",
+    "answerBlock": "A Periodic Table infographic arranges items in a color-coded grid with classification data in each cell, organizing large taxonomies into a dense, scannable reference format.",
+    "category": "Classification",
+    "bestFor": ["Taxonomies", "Categorization", "Element catalogs", "Tool directories", "Skill inventories"],
+    "keywords": ["periodic table infographic", "taxonomy grid", "classification infographic", "element catalog", "categorized grid", "periodic layout", "reference grid", "tool directory infographic", "taxonomy visualization"],
+    "relatedStyles": ["pixel-art", "knolling", "executive-institutional"]
+  },
+  {
+    "slug": "story-mountain",
+    "name": "Story Mountain",
+    "description": "Rising action to climax to resolution — a narrative arc shape that structures dramatic storytelling.",
+    "longDescription": "The Story Mountain layout traces a narrative arc across the canvas: a rising slope on the left represents escalating tension, a peak at the center marks the climax or turning point, and a descending slope on the right shows resolution. Content nodes are positioned along the slope at key plot points — the inciting incident, rising complications, the crisis, the climax, and the denouement. The mountain silhouette itself becomes the primary visual element, with the topography encoding the emotional intensity of each moment. This layout transforms case studies, project retrospectives, and brand origin stories into compelling dramatic narratives. It leverages the same storytelling structure humans have used for millennia, which means the audience instinctively understands the pacing and anticipates the payoff at the peak.",
+    "answerBlock": "A Story Mountain infographic traces a narrative arc — rising action, climax, and resolution — along a mountain-shaped path, structuring content as dramatic storytelling.",
+    "category": "Narrative",
+    "bestFor": ["Case studies", "Project narratives", "Hero's journey", "Dramatic arcs", "Brand origin stories"],
+    "keywords": ["story mountain infographic", "narrative arc", "dramatic structure", "storytelling layout", "rising action diagram", "climax visualization", "story arc infographic", "narrative infographic", "plot structure"],
+    "relatedStyles": ["craft-handmade", "storybook-watercolor", "aged-academia"]
+  },
+  {
+    "slug": "structural-breakdown",
+    "name": "Structural Breakdown",
+    "description": "Exploded or cross-section view revealing internal components and how a system is constructed inside.",
+    "longDescription": "The Structural Breakdown layout uses exploded-view or cross-section illustration techniques to reveal the internal composition of an object, product, or system. Components are separated along an axis with leader lines connecting each part to its label and description, while maintaining enough spatial coherence that the viewer can mentally reassemble the whole. Cross-section variants slice through the subject to expose internal layers, chambers, or mechanisms that are invisible from outside. This layout is the definitive choice for explaining how things work — product teardowns, system architecture deep-dives, anatomical explanations, or engineering overviews. The visual drama of seeing inside a familiar object creates an immediate hook, and the technical illustration style projects expertise and precision that builds credibility with knowledgeable audiences.",
+    "answerBlock": "A Structural Breakdown infographic uses exploded or cross-section views to reveal internal components, showing how a system or product is constructed beneath its surface.",
+    "category": "Structure",
+    "bestFor": ["Product internals", "System architecture", "How things work", "Technical explanations", "Engineering overviews"],
+    "keywords": ["structural breakdown infographic", "exploded view", "cross section diagram", "internal components", "teardown infographic", "anatomy diagram", "system breakdown", "component visualization", "how it works infographic"],
+    "relatedStyles": ["deconstruct", "aerial-explainer", "origami", "lego-brick"]
+  },
+  {
+    "slug": "tree-branching",
+    "name": "Tree Branching",
+    "description": "Root concept splitting into branches and sub-branches, mapping hierarchical relationships top-down.",
+    "longDescription": "The Tree Branching layout starts with a single root node and progressively splits into branches, sub-branches, and leaves, mapping hierarchical relationships in a top-down or left-to-right orientation. Each branching point represents a decision, category split, or organizational division, and the terminal leaves contain the most specific items in the taxonomy. Branch thickness can encode volume or importance, with thicker limbs representing larger segments. Color coding distinguishes major branches, making it easy to trace any leaf back to its parent category. This layout is the canonical choice for decision trees, organizational charts, biological taxonomies, and any classification system where items have clear parent-child relationships. The organic tree metaphor makes even complex hierarchies feel natural and navigable, and the progressive disclosure from trunk to leaf mirrors how humans naturally decompose complex topics.",
+    "answerBlock": "A Tree Branching infographic starts from a root concept and splits into progressively finer branches, mapping hierarchical parent-child relationships in a navigable structure.",
+    "category": "Hierarchy",
+    "bestFor": ["Decision trees", "Organizational charts", "Taxonomies", "Family trees", "Classification systems"],
+    "keywords": ["tree branching infographic", "decision tree", "hierarchy diagram", "branching layout", "organizational chart", "taxonomy tree", "tree diagram", "hierarchical infographic", "branch visualization"],
+    "relatedStyles": ["technical-schematic", "chalkboard", "aged-academia"]
+  },
+  {
+    "slug": "venn-diagram",
+    "name": "Venn Diagram",
+    "description": "Overlapping circles showing relationships, shared traits, and intersections between two or more groups.",
+    "longDescription": "The Venn Diagram layout uses two or three overlapping circles to map relationships between groups, concepts, or categories. Each circle represents a distinct set, with its non-overlapping area containing traits unique to that group. The overlapping zones — where circles intersect — highlight shared characteristics, common ground, or synergies. A central intersection where all circles meet can represent the ideal synthesis or sweet spot. Labels, icons, and brief descriptions populate each zone, turning the abstract set theory visualization into a practical communication tool. This layout works best when the core insight is about relationship and overlap — identifying where two markets converge, which skills span multiple disciplines, or what shared values unite different stakeholders. The Venn form is one of the most universally recognized diagram types, requiring zero explanation of how to read it.",
+    "answerBlock": "A Venn Diagram infographic uses overlapping circles to show how groups relate, with intersection zones highlighting shared traits, common ground, or ideal combinations.",
+    "category": "Relationship",
+    "bestFor": ["Shared traits", "Market overlap", "Skill intersections", "Concept relationships", "Stakeholder alignment"],
+    "keywords": ["venn diagram infographic", "overlapping circles", "intersection diagram", "relationship visualization", "set diagram", "overlap infographic", "shared traits diagram", "venn layout", "concept intersection"],
+    "relatedStyles": ["corporate-memphis", "bold-graphic", "executive-institutional"]
+  },
+  {
+    "slug": "winding-roadmap",
+    "name": "Winding Roadmap",
+    "description": "Curved path with milestones along the journey — a visual roadmap for projects, plans, or progressions.",
+    "longDescription": "The Winding Roadmap layout traces a serpentine or curved path across the canvas, with milestone markers positioned at key waypoints along the journey. The path winds back and forth to fit a long sequence into a compact vertical space, and its curves create a sense of journey and adventure that a straight timeline cannot match. Each milestone expands into a content block with a date or phase label, title, and description. The road itself can carry visual cues — dashed lines for future phases, solid lines for completed ones, highlighted segments for the current position. Landscape elements like terrain, signposts, and horizon lines reinforce the journey metaphor. This layout excels at product roadmaps, project timelines, learning paths, and career progressions where the audience needs to see both the big picture trajectory and the specific milestones along the way.",
+    "answerBlock": "A Winding Roadmap infographic traces a curved path with milestone markers, visualizing a journey from start to destination with key waypoints along the route.",
+    "category": "Journey",
+    "bestFor": ["Project roadmaps", "Product timelines", "Learning paths", "Career progression", "Strategic plans"],
+    "keywords": ["winding roadmap infographic", "roadmap layout", "milestone timeline", "journey infographic", "curved path diagram", "project roadmap", "product timeline", "roadmap visualization", "path infographic", "milestone map"],
+    "relatedStyles": ["craft-handmade", "storybook-watercolor", "subway-map"]
+  }
+]

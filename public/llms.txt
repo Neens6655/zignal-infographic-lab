@@ -1,0 +1,83 @@
+# ZGNAL Infographic Lab
+
+> AI-powered infographic generator. Research-backed, consulting-grade infographics in 60 seconds.
+
+## What It Does
+
+ZGNAL Infographic Lab transforms any topic into a professional infographic using a 7-stage AI pipeline:
+
+1. **Sentinel** — Analyzes your input and identifies key themes
+2. **Oracle** — Researches the topic using 22 trusted sources
+3. **Architect** — Structures information into the optimal layout
+4. **Compliance** — Validates facts and source quality
+5. **Assembler** — Composes the visual prompt with style + layout DNA
+6. **Renderer** — Generates the infographic image via Gemini AI
+7. **Provenance** — Traces every source and decision for transparency
+
+## Key Features
+
+- 20 visual styles (Executive Institutional, Cyberpunk Neon, Kawaii, and 17 more)
+- 20 layout types (Bento Grid, Hub & Spoke, Timeline, and 17 more)
+- 400+ unique style × layout combinations
+- 22 trusted research sources
+- Export to PNG, PDF, and PPTX
+- Full provenance tracking on every generation
+
+## Styles
+
+- /styles/executive-institutional — McKinsey-grade corporate dashboards
+- /styles/deconstruct — NYT-style exploded views
+- /styles/aerial-explainer — Drone-view isometric cutaways
+- /styles/technical-schematic — Blueprint process flows
+- /styles/craft-handmade — Watercolor narrative paths
+- /styles/bold-graphic — Swiss poster high-contrast
+- /styles/cyberpunk-neon — Neon glow futuristic
+- /styles/claymation — Soft 3D clay objects
+- /styles/kawaii — Cute pastel characters
+- /styles/storybook-watercolor — Delicate paint washes
+- /styles/chalkboard — Educational chalk-on-green
+- /styles/aged-academia — Scholarly sepia engravings
+- /styles/corporate-memphis — Flat geometric characters
+- /styles/origami — Paper-folded 3D forms
+- /styles/pixel-art — Retro 8-bit sprites
+- /styles/ui-wireframe — Clean wireframe specification
+- /styles/subway-map — Transit-map processes
+- /styles/ikea-manual — Minimal assembly steps
+- /styles/knolling — Top-down flat-lay organization
+- /styles/lego-brick — Plastic brick construction
+
+## Layouts
+
+- /layouts/bento-grid — Modular mixed-size panel grid
+- /layouts/binary-comparison — Two-panel side-by-side
+- /layouts/bridge — Problem-to-solution pathway
+- /layouts/circular-flow — Continuous cycle diagram
+- /layouts/comic-strip — Sequential visual storytelling
+- /layouts/comparison-matrix — Multi-column feature grid
+- /layouts/dashboard — KPI tiles and chart panels
+- /layouts/funnel — Narrowing stage visualization
+- /layouts/hierarchical-layers — Stacked level bands
+- /layouts/hub-spoke — Central concept radiating outward
+- /layouts/iceberg — Visible tip, hidden depth
+- /layouts/isometric-map — 3D spatial overview
+- /layouts/jigsaw — Interlocking puzzle concepts
+- /layouts/linear-progression — Sequential timeline
+- /layouts/periodic-table — Categorized element grid
+- /layouts/story-mountain — Narrative arc shape
+- /layouts/structural-breakdown — Exploded cross-section
+- /layouts/tree-branching — Root splitting to branches
+- /layouts/venn-diagram — Overlapping relationship circles
+- /layouts/winding-roadmap — Curved milestone path
+
+## Pricing
+
+Free during public preview. No credit card required.
+
+## Links
+
+- Homepage: https://zgnal.ai
+- Create an infographic: https://zgnal.ai/chat
+- All styles: https://zgnal.ai/styles
+- Documentation: https://zgnal.ai/docs
+- About: https://zgnal.ai/about
+- Contact: hello@zgnal.ai
