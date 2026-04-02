@@ -4,6 +4,7 @@
 import type { ResearchResult, ReferenceImage } from './types';
 import type { SourceCitation } from '../types';
 import { searchPerplexity } from '../research/perplexity';
+import { enrichCitations } from '../research/firecrawl';
 
 // ── Source authority classification ───────────────────────────
 
@@ -85,12 +86,24 @@ export async function researchContent(
     findings.push(perplexityResult.answer.replace(/\*\*/g, '').slice(0, 6000));
   }
 
+  // ── Firecrawl enrichment: scrape top citations for full content ──
+  const { enriched, enhancedCitations } = await enrichCitations(citations, 3);
+
+  if (enriched.length > 0) {
+    console.log(`[Research] Firecrawl enriched ${enriched.length} citations with deep content`);
+    // Add extracted facts from scraped pages to findings
+    const firecrawlFacts = enriched.flatMap(r => r.facts);
+    if (firecrawlFacts.length > 0) {
+      findings.push(`\n--- Deep-sourced facts (Firecrawl) ---\n${firecrawlFacts.join('\n')}`);
+    }
+  }
+
   return {
     findings,
     verifiedFacts: [],
-    sourceUrls: citations.map(c => c.url),
+    sourceUrls: enhancedCitations.map(c => c.url),
     searchQueries: topics,
-    citations,
+    citations: enhancedCitations,
   };
 }
 

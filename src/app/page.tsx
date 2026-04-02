@@ -1752,7 +1752,7 @@ export default function Home() {
                   {[
                     { label: 'About', href: '/about' },
                     { label: 'Contact', href: '/contact' },
-                    { label: 'GitHub', href: 'https://github.com/ziadmustafa1' },
+                    { label: 'GitHub', href: 'https://github.com/Neens6655' },
                   ].map((link) => (
                     <a key={link.label} href={link.href} className="block text-xs text-white/50 hover:text-white transition-colors font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)">{link.label}</a>
                   ))}
@@ -1786,7 +1786,7 @@ export default function Home() {
               <div className="flex items-center gap-5 text-[11px] text-white/40 font-mono">
                 <a href="/privacy" className="hover:text-white/50 transition-colors">Privacy</a>
                 <a href="/terms" className="hover:text-white/50 transition-colors">Terms</a>
-                <a href="https://github.com/ziadmustafa1" target="_blank" rel="noopener noreferrer" className="hover:text-white/50 transition-colors">GitHub</a>
+                <a href="https://github.com/Neens6655" target="_blank" rel="noopener noreferrer" className="hover:text-white/50 transition-colors">GitHub</a>
               </div>
             </div>
           </div>

@@ -148,7 +148,7 @@ const SECTIONS: Section[] = [
   { id: 'deployment', label: 'Deployment' },
 ];
 
-const GITHUB_URL = 'https://github.com/ziadmustafa1/zignal-infographic-lab';
+const GITHUB_URL = 'https://github.com/Neens6655/zignal-infographic-lab';
 
 const PIPELINE_STAGES = [
   {

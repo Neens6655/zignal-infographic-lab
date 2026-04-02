@@ -40,7 +40,7 @@ const FOOTER_RESOURCES = [
 const FOOTER_COMPANY = [
   { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
-  { label: 'GitHub', href: 'https://github.com/ziadmustafa1', external: true },
+  { label: 'GitHub', href: 'https://github.com/Neens6655', external: true },
 ];
 
 const FOOTER_LEGAL = [
@@ -363,7 +363,7 @@ export default function PagesLayout({ children }: { children: React.ReactNode })
               <span className="text-white/10">|</span>
               <div className="flex items-center gap-3">
                 <a
-                  href="https://github.com/ziadmustafa1"
+                  href="https://github.com/Neens6655"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white/30 hover:text-[#D4A84B] transition-colors"

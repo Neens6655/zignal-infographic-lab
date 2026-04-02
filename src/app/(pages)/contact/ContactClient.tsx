@@ -282,8 +282,8 @@ const LINKS: {
   {
     icon: <CodeBracketIcon />,
     label: "GitHub",
-    href: "https://github.com/ziadmustafa1",
-    text: "github.com/ziadmustafa1",
+    href: "https://github.com/Neens6655",
+    text: "github.com/Neens6655",
     external: true,
   },
   {
