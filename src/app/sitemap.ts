@@ -1,8 +1,7 @@
 import type { MetadataRoute } from 'next';
 import styles from '@/data/styles.json';
 import layouts from '@/data/layouts.json';
-
-const BASE_URL = 'https://zgnal.ai';
+import { BASE_URL } from '@/lib/config';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [

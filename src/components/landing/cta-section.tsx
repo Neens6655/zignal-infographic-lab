@@ -19,7 +19,7 @@ export function CTASection({ text, href, accent }: CTASectionProps) {
         </p>
         <Link
           href={href}
-          className="inline-flex items-center gap-2 px-6 py-3 font-mono text-sm font-semibold transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-3 font-mono text-sm font-semibold transition-colors hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white focus-visible:ring-offset-[#0A0A0B] outline-none"
           style={{
             backgroundColor: accent ?? '#D4A84B',
             color: '#0A0A0B',

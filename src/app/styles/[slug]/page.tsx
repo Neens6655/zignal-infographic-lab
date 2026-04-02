@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import styles from '@/data/styles.json'
 import layouts from '@/data/layouts.json'
+import { BASE_URL } from '@/lib/config'
 import { PageHero } from '@/components/landing/page-hero'
 import { FeatureGrid } from '@/components/landing/feature-grid'
 import { RelatedContent } from '@/components/landing/related-content'
@@ -21,11 +22,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${style.name} Infographic Style — Create ${style.category} Infographics`,
     description: style.description,
     keywords: style.keywords,
-    alternates: { canonical: `https://zgnal.ai/styles/${style.slug}` },
+    alternates: { canonical: `${BASE_URL}/styles/${style.slug}` },
     openGraph: {
       title: `${style.name} Infographic Style`,
       description: style.description,
-      url: `https://zgnal.ai/styles/${style.slug}`,
+      url: `${BASE_URL}/styles/${style.slug}`,
       type: 'website',
       images: ['/og-image.png'],
     },
@@ -38,7 +39,7 @@ export default async function StylePage({ params }: { params: Promise<{ slug: st
   if (!style) notFound()
 
   const relatedLayoutItems = style.relatedLayouts
-    .map((slug) => layouts.find((l) => l.slug === slug))
+    .map((layoutSlug) => layouts.find((l) => l.slug === layoutSlug))
     .filter(Boolean) as typeof layouts
 
   return (
@@ -131,17 +132,17 @@ export default async function StylePage({ params }: { params: Promise<{ slug: st
             '@type': 'WebPage',
             name: `${style.name} Infographic Style`,
             description: style.description,
-            url: `https://zgnal.ai/styles/${style.slug}`,
+            url: `${BASE_URL}/styles/${style.slug}`,
             isPartOf: {
               '@type': 'WebSite',
               name: 'ZGNAL Infographic Lab',
-              url: 'https://zgnal.ai',
+              url: BASE_URL,
             },
             breadcrumb: {
               '@type': 'BreadcrumbList',
               itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://zgnal.ai' },
-                { '@type': 'ListItem', position: 2, name: 'Styles', item: 'https://zgnal.ai/styles' },
+                { '@type': 'ListItem', position: 1, name: 'Home', item: BASE_URL },
+                { '@type': 'ListItem', position: 2, name: 'Styles', item: `${BASE_URL}/styles` },
                 { '@type': 'ListItem', position: 3, name: style.name },
               ],
             },

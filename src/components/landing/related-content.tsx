@@ -34,7 +34,6 @@ export function RelatedContent({ title, items, basePath, accent }: RelatedConten
               </span>
               <ArrowRight
                 className="h-3 w-3 text-white/20 group-hover:text-white/50 transition-colors"
-                style={{ color: accent }}
               />
             </div>
             <h3 className="text-sm font-mono font-bold text-white mb-1">{item.name}</h3>
