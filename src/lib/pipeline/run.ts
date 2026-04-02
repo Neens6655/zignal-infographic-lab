@@ -54,11 +54,11 @@ export async function runPipeline(
   onProgress({ status: 'analyzing', progress: 25, message: `Intent: ${analysis.intent} | ${analysis.layout} + ${analysis.style}` });
 
   // Stage 1.5: Research + Reference Images (PARALLEL)
+  // RULE: If user provides ANY numbers, their data is sacred — research only supplements, never replaces
   const contentLength = input.content.trim().length;
-  const isSelfContained = contentLength > 300 && (
-    (input.content.match(/\d+/g)?.length || 0) > 5 ||
-    (input.content.split(/\n/).filter(l => l.trim().length > 10).length) > 3
-  );
+  const hasUserNumbers = (input.content.match(/\d+/g)?.length || 0) >= 2;
+  const hasStructuredLines = (input.content.split(/\n/).filter(l => l.trim().length > 10).length) > 2;
+  const isSelfContained = hasUserNumbers || (contentLength > 200 && hasStructuredLines);
 
   let research: ResearchResult;
   let referenceImages: ReferenceImage[];

@@ -1,5 +1,5 @@
 const WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const DEFAULT_LIMIT = 5;
+const DEFAULT_LIMIT = 100; // Temp for testing
 const AUTH_LIMIT = 20;
 
 export const RATE_LIMIT_TIER = {

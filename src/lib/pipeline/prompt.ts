@@ -119,20 +119,45 @@ export async function assemblePrompt(
   }
   prompt = prompt.replace('{{RESEARCH_CONTEXT}}', researchContext);
 
-  // Executive style override — suppress illustration-heavy base prompt directives
+  // ── MASTER ILLUSTRATOR DIRECTIVE — applies to ALL styles ──
+  prompt += `\n\n## MASTER ILLUSTRATOR DIRECTIVE — HIGHEST PRIORITY
+
+You are a world-renowned editorial illustrator creating a single masterpiece infographic. Think Nigel Holmes meets Edward Tufte meets the New York Times graphics desk. Every piece you create should be worthy of framing.
+
+### STORYTELLING FLOW (NON-NEGOTIABLE)
+- This is NOT a grid of random boxes. It is a VISUAL NARRATIVE that guides the eye.
+- Create a clear left-to-right OR top-to-bottom flow — like turning pages of a story.
+- Each section flows INTO the next with visual connectors: rivers, roads, arrows, pipes, timelines, or illustrated landscapes.
+- The viewer should understand the story in 5 seconds by scanning the visual flow.
+- Think: presentation slide storytelling, NOT dashboard tiles.
+
+### ILLUSTRATION QUALITY
+- Every section features a RICH, DETAILED illustration that EXPLAINS the concept — not decorates it.
+- Illustrations should be informational: cutaways, cross-sections, visual metaphors, annotated diagrams.
+- Quality bar: National Geographic, The Economist, McKinsey Global Institute reports.
+- NO clip art. NO generic icons. NO stock-photo feel. Every visual element carries meaning.
+
+### TEXT RULES
+- ONLY render text that appears in the content below. Do NOT invent, rephrase, or add any text.
+- Do NOT render these instruction words: "SECTION", "Key Concept", "Visual:", "Labels:", "Narrative", "Design Notes".
+- MINIMUM font: 20pt body, 28pt headings, 40pt+ hero statistics.
+- If content doesn't fit legibly, REMOVE content — never shrink text.
+- Title at top, stats bar at bottom, story flows between them.
+
+### COMPOSITION
+- Maximum whitespace between sections. Let the illustrations breathe.
+- One dominant visual anchor (the largest illustration) with supporting smaller ones.
+- Color palette should feel cohesive — 3-4 colors maximum plus neutrals.
+`;
+
+  // Executive style additions
   if (analysis.style === 'executive-institutional') {
-    prompt += `\n\n## EXECUTIVE STYLE OVERRIDE — HIGHEST PRIORITY
-
-This is a strategic research brief on a DARK NAVY canvas with WHITE content cards. Follow these rules absolutely:
-
-1. **DARK BACKGROUND (#0F172A)** with WHITE content cards in a grid. This is NOT a white-background document.
-2. **The title is a strategic research headline** — e.g., "Which Professions Face the Highest AI Exposure?" — NEVER use "Infographic", "Overview", "Summary", or any generic label.
-3. **Each white card = one strategic insight.** Card heading is a finding statement (e.g., "Software Developers Face 85% Automation Risk"), NOT a category label (NOT "Software Developer", NOT "Overview").
-4. **NO cartoon characters, illustrated people, robots, or figures.** Zero. Cards contain: text, numbers, and clean data charts ONLY.
-5. **NO instruction leakage.** Do NOT render these words as visible text: "Narrative insight:", "SECTION", "Key Concept:", "Data Visualization:", "LABEL | VALUE", "Callout Labels:". These are internal formatting — render the actual content only.
-6. **Colors**: Dark navy background, white cards, charcoal text on cards, institutional blue (#2563EB) for key numbers and chart data, gold (#B8860B) hairline accent.
-7. **This should look like a Goldman Sachs or McKinsey strategy slide** — dark, authoritative, data-driven.
-8. **MINIMUM FONT SIZE: 18pt body, 24pt headings, 36pt+ for key statistics.** If content doesn't fit at this size, use FEWER cards with LESS text. Never shrink text — remove content instead. Readability is non-negotiable.`;
+    prompt += `\n### EXECUTIVE INSTITUTIONAL ADDITIONS
+- Light or white background with navy (#0F172A) header bar and footer stats bar.
+- Clean sans-serif typography. Institutional blue (#2563EB) for key numbers.
+- NO cartoon characters or illustrated people. Use: data charts, architectural illustrations, technical diagrams.
+- This should look like a McKinsey or Goldman Sachs strategy slide.
+`;
   }
 
   // Data confidence watermark — rendered on the infographic itself

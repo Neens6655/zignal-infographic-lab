@@ -65,39 +65,39 @@ type IntentConfig = {
 
 const INTENT_DEFAULTS: Record<string, IntentConfig> = {
   ranking: {
-    layout: 'bento-grid',
-    minSections: 10,
+    layout: 'linear-progression', // Was bento-grid — storytelling flow, not random boxes
+    minSections: 4,
     defaultStyle: 'executive-institutional',
     regex: /top\s+\d+|largest|biggest|best\s+\d+|ranking|most\s+\w+\s+countries|highest|lowest|richest|poorest|fastest|leading/i,
-    styleOptions: ['executive-institutional', 'bold-graphic', 'knolling', 'ui-wireframe'],
+    styleOptions: ['executive-institutional', 'bold-graphic', 'deconstruct', 'aerial-explainer'],
   },
   comparison: {
-    layout: 'comparison-matrix',
+    layout: 'binary-comparison',
     minSections: 2,
     defaultStyle: 'executive-institutional',
     regex: /\bvs\.?\b|versus|compared?\s+to|difference\s+between|pros?\s+(and|&)\s+cons?/i,
-    styleOptions: ['executive-institutional', 'technical-schematic', 'corporate-memphis', 'deconstruct'],
+    styleOptions: ['executive-institutional', 'deconstruct', 'bold-graphic', 'aerial-explainer'],
   },
   metrics: {
-    layout: 'dashboard',
+    layout: 'linear-progression', // Was dashboard — flow, not tiles
     minSections: 4,
     defaultStyle: 'executive-institutional',
     regex: /revenue|Q[1-4]\b|KPI|financial|earnings|quarterly|annual\s+report|dashboard|budget|forecast/i,
-    styleOptions: ['executive-institutional', 'ui-wireframe', 'technical-schematic', 'corporate-memphis'],
+    styleOptions: ['executive-institutional', 'bold-graphic', 'deconstruct', 'aerial-explainer'],
   },
   process: {
     layout: 'winding-roadmap',
-    minSections: 5,
+    minSections: 4,
     defaultStyle: 'executive-institutional',
     regex: /how\s+(does|do|to)|step.by.step|process|lifecycle|workflow|supply\s*chain|timeline|history\s+of|evolution\s+of|phases?\s+of/i,
-    styleOptions: ['executive-institutional', 'ikea-manual', 'subway-map', 'technical-schematic'],
+    styleOptions: ['executive-institutional', 'aged-academia', 'deconstruct', 'aerial-explainer'],
   },
   overview: {
-    layout: 'bento-grid',
-    minSections: 5,
+    layout: 'hub-spoke', // Was bento-grid — centered narrative, not random boxes
+    minSections: 4,
     defaultStyle: 'executive-institutional',
     regex: null,
-    styleOptions: ['executive-institutional', 'corporate-memphis', 'aerial-explainer', 'bold-graphic'],
+    styleOptions: ['executive-institutional', 'aerial-explainer', 'bold-graphic', 'deconstruct'],
   },
 };
 

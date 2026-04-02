@@ -15,16 +15,16 @@ export type DensityReport = {
   violations: string[];
 };
 
-const MAX_TITLE_WORDS = 8;
-const MAX_SUBTITLE_WORDS = 15;
-const MAX_SECTIONS = 6;
+const MAX_TITLE_WORDS = 7;
+const MAX_SUBTITLE_WORDS = 12;
+const MAX_SECTIONS = 4; // Was 6 — fewer sections = more breathing room = better illustrations
 const MAX_HEADING_WORDS = 4;
-const MAX_STATS_BAR = 6;
+const MAX_STATS_BAR = 5;
 const MAX_STAT_LABEL_WORDS = 3;
-const MAX_CONTENT_ITEMS = 2;
-const MAX_CONTENT_ITEM_CHARS = 40;
-const MAX_LABELS_PER_SECTION = 4;
-const MAX_LABEL_CHARS = 25;
+const MAX_CONTENT_ITEMS = 1; // Was 2 — one key point per section, not two
+const MAX_CONTENT_ITEM_CHARS = 30; // Was 40 — shorter = renders better
+const MAX_LABELS_PER_SECTION = 3; // Was 4
+const MAX_LABEL_CHARS = 20; // Was 25
 
 function truncateWords(text: string, max: number): { text: string; truncated: boolean } {
   const words = text.split(/\s+/).filter(Boolean);
