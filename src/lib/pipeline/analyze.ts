@@ -174,47 +174,96 @@ ${content.slice(0, 6000)}`);
     console.log(`[Intent] Regex matched: ${regexIntent}`);
   }
 
-  // LLM: Combined intent classification + research plan (single call, saves ~3s round-trip)
-  const combinedResponse = await geminiGenerate(TEXT_MODEL, `You are an intent classifier AND research planner for an infographic engine. Do BOTH tasks in ONE response.
+  // ── STEP 1: Intent Classification (dedicated call — DO NOT merge with research plan) ──
+  // WHY SEPARATE: Merging caused misclassification ("process" instead of "ranking")
+  // which cascaded into wrong entities, wrong Perplexity queries, and broken infographics.
+  // The 3s cost is irrelevant with Vercel Pro 300s budget.
+  const intentResponse = await geminiGenerate(TEXT_MODEL, `You are an intent classifier for an infographic engine. Classify this user query into ONE intent and extract metadata.
 
-═══ TASK 1: INTENT CLASSIFICATION ═══
-
-Classify this query into ONE intent and extract metadata.
-
-INTENTS:
-- "ranking" — Top N lists, best/worst/largest. E.g. "top 10 GDP economies"
-- "comparison" — Side-by-side 2-4 items. E.g. "iPhone vs Samsung"
-- "metrics" — Data dashboard, KPIs. E.g. "Q4 revenue breakdown"
-- "process" — Step-by-step, timelines, supply chains. E.g. "how vaccines work"
-- "overview" — General knowledge (catch-all). E.g. "the future of AI"
-
-═══ TASK 2: RESEARCH PLAN ═══
-
-Based on your classification:
-- For ranking/comparison/metrics: List the ACTUAL top entities by the primary metric. Generate ONE search topic per entity combining ALL metrics.
-- For process/overview: Generate 4-8 search-optimized topic phrases for research.
-- Extract any sources cited in the query.
-
-═══ RESPONSE FORMAT ═══
+INTENTS (pick exactly one):
+- "ranking" — Top N lists, best/worst/largest/smallest of something. Examples: "top 10 GDP economies", "largest oil producers", "best universities", "smartest people in history"
+- "comparison" — Side-by-side comparison of 2-4 named items. Examples: "iPhone vs Samsung", "React vs Vue vs Angular"
+- "metrics" — Data dashboard, KPIs, financial results. Examples: "Q4 2025 revenue breakdown", "startup metrics"
+- "process" — Step-by-step how something works, timelines, history, supply chains. Examples: "how vaccines work", "history of the internet", "global coffee supply chain"
+- "overview" — General knowledge, concepts, explainers (catch-all). Examples: "what is climate change", "the future of AI"
 
 Respond in JSON only (no markdown fences):
 {
   "intent": "ranking|comparison|metrics|process|overview",
-  "entity_type": "country|company|person|product|event|concept",
-  "metrics": ["primary metric with units", "secondary metric"],
+  "entity_type": "what kind of entities (country, company, person, product, event, concept)",
+  "metrics": ["primary metric", "secondary metric if requested"],
   "count": 10,
-  "style": "pick from: ${styleList}",
-  "tone": "professional|academic|technical|editorial",
-  "entities": ["Entity1", "Entity2"],
-  "topics": ["Entity1 metric data year", "Entity2 metric data year"],
-  "sources": ["any cited URLs or publications"]
+  "style": "best-style-id",
+  "tone": "professional|academic|technical|editorial"
 }
 
 RULES:
-- "metrics": Be specific (include units like "volume", "tonnes", "USD"). Always include at least one.
-- "count": For rankings, use the number specified (e.g., "top 5" → 5). Default to 10. For comparisons, count items. For others, use 0.
-- "entities": For rankings, list the ACTUAL top entities based on your knowledge. Do NOT guess.
-- "topics": ONE topic per entity combining ALL metrics. For process/overview, 4-8 descriptive phrases.
+- "metrics": List ALL metrics the user wants to see. Be specific (include units like "volume", "tonnes", "USD"). Always include at least one.
+- "count": For rankings, use the number specified (e.g., "top 5" → 5). If no number specified, default to 10.
+- "count": For comparisons, count the items being compared. For other intents, use 0 (will use default).
+- "style": Pick from: ${styleList}
+
+QUERY:
+${content.slice(0, 4000)}`);
+
+  try {
+    const jsonMatch = intentResponse.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(jsonMatch?.[0] || '{}');
+    if (!regexIntent && parsed.intent && INTENT_DEFAULTS[parsed.intent]) {
+      intent = parsed.intent;
+    }
+    entityType = parsed.entity_type || 'concept';
+    metrics = Array.isArray(parsed.metrics) ? parsed.metrics : (parsed.metric ? [parsed.metric] : []);
+    count = parsed.count || 0;
+    style = parsed.style && STYLE_IDS.includes(parsed.style) ? parsed.style : INTENT_DEFAULTS[intent].defaultStyle;
+    tone = parsed.tone || 'professional';
+  } catch { /* defaults already set */ }
+
+  const defaults = INTENT_DEFAULTS[intent];
+  const sectionCount = count > 0 ? count : defaults.minSections;
+  const layout = userLayout || defaults.layout;
+
+  console.log(`[Intent] ${intent} | entities: ${entityType} | metrics: ${metrics.join(', ')} | count: ${sectionCount} | layout: ${layout}`);
+
+  // ── STEP 2: Research Plan — uses classified intent to enumerate entities + search queries ──
+  const isEntityBased = ['ranking', 'comparison', 'metrics'].includes(intent);
+  const metricsStr = metrics.length > 0 ? metrics.join(' AND ') : 'general data';
+
+  const researchPlanResponse = await geminiGenerate(TEXT_MODEL, `You are a research planner for an infographic engine. Given the user's query and its classified intent, generate a research plan.
+
+INTENT: ${intent}
+ENTITY TYPE: ${entityType}
+METRICS REQUESTED: ${metrics.join(', ') || 'general'}
+COUNT: ${sectionCount}
+
+YOUR TASK:
+${isEntityBased ? `List EXACTLY ${sectionCount} specific ${entityType} entities that should appear in this infographic, ranked by the primary metric.
+For each entity, generate search-optimized topic strings covering ALL requested metrics.
+
+CRITICAL: Generate ONE topic per entity that combines ALL metrics. This ensures research returns complete data.
+
+Example for "top olive oil exporters and production" (count=10, metrics: ["olive oil exports volume", "olive oil production volume"]):
+{
+  "entities": ["Spain", "Italy", "Greece", "Tunisia", "Turkey", "Portugal", "Morocco", "Syria", "Argentina", "Algeria"],
+  "topics": ["Spain olive oil exports production volume tonnes 2024", "Italy olive oil exports production volume tonnes 2024", ...]
+}
+
+IMPORTANT: The entities must be the ACTUAL top ${sectionCount} by the primary metric based on your knowledge. Do NOT guess or include minor players.` : `Generate 4-8 descriptive topic keywords for research. Each topic should be a search-optimized phrase.
+
+Example for "how does blockchain work":
+{
+  "entities": [],
+  "topics": ["blockchain technology explained", "distributed ledger mechanism", "blockchain consensus algorithms", "cryptocurrency mining process", "smart contracts explanation"]
+}`}
+
+Also extract any sources cited in the query.
+
+Respond in JSON only (no markdown fences):
+{
+  "entities": ["Entity1", "Entity2"],
+  "topics": ["Entity1 ${metricsStr} year", "Entity2 ${metricsStr} year"],
+  "sources": ["any cited URLs or publications"]
+}
 
 QUERY:
 ${content.slice(0, 4000)}`);
@@ -224,30 +273,18 @@ ${content.slice(0, 4000)}`);
   let contentSources: string[] = [];
 
   try {
-    const jsonMatch = combinedResponse.match(/\{[\s\S]*\}/);
+    const jsonMatch = researchPlanResponse.match(/\{[\s\S]*\}/);
     const parsed = JSON.parse(jsonMatch?.[0] || '{}');
-
-    // Extract intent classification
-    if (!regexIntent && parsed.intent && INTENT_DEFAULTS[parsed.intent]) {
-      intent = parsed.intent;
-    }
-    entityType = parsed.entity_type || 'concept';
-    metrics = Array.isArray(parsed.metrics) ? parsed.metrics : (parsed.metric ? [parsed.metric] : []);
-    count = parsed.count || 0;
-    style = parsed.style && STYLE_IDS.includes(parsed.style) ? parsed.style : INTENT_DEFAULTS[intent].defaultStyle;
-    tone = parsed.tone || 'professional';
-
-    // Extract research plan
     entities = parsed.entities || [];
     topics = parsed.topics || [];
     contentSources = parsed.sources || [];
-  } catch { /* defaults already set */ }
+  } catch { /* fallback to empty */ }
 
-  const defaults = INTENT_DEFAULTS[intent];
-  const sectionCount = count > 0 ? count : defaults.minSections;
-  const layout = userLayout || defaults.layout;
-
-  console.log(`[Intent+Research] ${intent} | entities: ${entityType} (${entities.length}) | metrics: ${metrics.join(', ')} | count: ${sectionCount} | layout: ${layout} | topics: ${topics.length}`);
+  // Validate entity count for rankings
+  if (isEntityBased && entities.length < sectionCount) {
+    console.warn(`[ResearchPlan] WARNING: Expected ${sectionCount} entities but got ${entities.length}. Research quality may be degraded.`);
+  }
+  console.log(`[ResearchPlan] ${entities.length} entities, ${topics.length} topics`);
 
   const contentTypeMap: Record<string, string> = {
     ranking: 'comparison',
