@@ -187,8 +187,8 @@ export async function runPipeline(
     `styles/${analysis.style}.md`,
   ];
 
-  // Stage 4: Generate + Verify + Retry Loop (max 1 retry — fits within Vercel 120s)
-  const MAX_RETRIES = 1;
+  // Stage 4: Generate + Verify (no retries — single attempt to fit within Vercel 120s)
+  const MAX_RETRIES = 0;
   let bestImage = '';
   let postGenFlags: string[] = [];
   let qualityScore = computeQualityScore([]);
@@ -224,7 +224,15 @@ export async function runPipeline(
     if (!imageBase64) break;
     bestImage = imageBase64;
 
-    // OCR + Gates
+    // OCR + Gates — skip if time budget is tight (< 25s remaining)
+    const timeRemaining = TIME_BUDGET_MS - (Date.now() - pipelineStart);
+    if (timeRemaining < 25_000) {
+      console.log(`[Pipeline] Skipping OCR/gates — only ${(timeRemaining / 1000).toFixed(1)}s remaining. Shipping render directly.`);
+      pipelineTrace.push({ stage: '04.5', agent: 'Inspector', result: `Skipped — ${(timeRemaining / 1000).toFixed(0)}s remaining` });
+      postGenFlags.push('OCR skipped — time budget tight');
+      break;
+    }
+
     try {
       onProgress({ status: 'verifying', progress: progressBase + 20, message: 'Running OCR verification...' });
       const ocrResult = await ocrInfographic(imageBase64);
