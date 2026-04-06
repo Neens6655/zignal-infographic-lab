@@ -68,7 +68,7 @@ const INTENT_DEFAULTS: Record<string, IntentConfig> = {
     layout: 'linear-progression', // Was bento-grid — storytelling flow, not random boxes
     minSections: 4,
     defaultStyle: 'executive-institutional',
-    regex: /top\s+\d+|largest|biggest|best\s+\d+|ranking|most\s+\w+\s+countries|highest|lowest|richest|poorest|fastest|leading/i,
+    regex: /top\s+\d+|largest|biggest|best\s+\d+|ranking|most\s+\w+\s+\w+|highest|lowest|richest|poorest|fastest|smartest|greatest|strongest|most\s+\w+|leading/i,
     styleOptions: ['executive-institutional', 'bold-graphic', 'deconstruct', 'aerial-explainer'],
   },
   comparison: {
@@ -102,7 +102,11 @@ const INTENT_DEFAULTS: Record<string, IntentConfig> = {
 };
 
 export function detectIntentByRegex(query: string): string | null {
-  for (const [intent, config] of Object.entries(INTENT_DEFAULTS)) {
+  // Check in priority order: ranking > comparison > metrics > process > overview
+  // This ensures "smartest people in history" matches ranking (not process via "history of")
+  const priorityOrder = ['ranking', 'comparison', 'metrics', 'process', 'overview'];
+  for (const intent of priorityOrder) {
+    const config = INTENT_DEFAULTS[intent];
     if (config.regex && config.regex.test(query)) return intent;
   }
   return null;
