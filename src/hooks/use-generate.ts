@@ -29,7 +29,7 @@ type GeneratePhase =
   | { phase: 'error'; message: string };
 
 /** Maximum time to wait for a complete/error event before showing timeout error */
-const STREAM_TIMEOUT_MS = 60_000;
+const STREAM_TIMEOUT_MS = 90_000;
 /** If no SSE event (including heartbeat) arrives within this window, assume connection died */
 const HEARTBEAT_TIMEOUT_MS = 15_000;
 
@@ -44,6 +44,8 @@ export function useGenerate() {
 
     setState({ phase: 'submitting' });
     const startTime = Date.now();
+    let lastEventTime = Date.now();
+    let timedOut = false;
 
     try {
       const res = await fetch('/api/generate', {
@@ -70,23 +72,18 @@ export function useGenerate() {
       const decoder = new TextDecoder();
       let buffer = '';
       let eventType = '';
-      let lastEventTime = Date.now();
 
       // Stream timeout — abort if total time exceeds limit
       const streamTimer = setTimeout(() => {
+        timedOut = true;
         controller.abort();
-        setState({ phase: 'error', message: 'Generation timed out. Please try again.' });
-        track('generation_error', { message: 'stream_timeout_60s' });
       }, STREAM_TIMEOUT_MS);
 
       // Heartbeat watchdog — abort if no data arrives for too long
       let heartbeatTimer = setInterval(() => {
         if (Date.now() - lastEventTime > HEARTBEAT_TIMEOUT_MS) {
+          timedOut = true;
           controller.abort();
-          clearTimeout(streamTimer);
-          clearInterval(heartbeatTimer);
-          setState({ phase: 'error', message: 'Connection lost. Please try again.' });
-          track('generation_error', { message: 'heartbeat_timeout' });
         }
       }, 5_000);
 
@@ -159,7 +156,20 @@ export function useGenerate() {
         clearInterval(heartbeatTimer);
       }
     } catch (err: any) {
-      if (err.name === 'AbortError') return;
+      if (err.name === 'AbortError') {
+        // Only swallow abort if user-initiated (e.g. new generate call or reset)
+        // If OUR timeout caused it, show the error
+        if (timedOut) {
+          const elapsed = Date.now() - startTime;
+          const isHeartbeat = Date.now() - lastEventTime > HEARTBEAT_TIMEOUT_MS;
+          const msg = isHeartbeat
+            ? 'Connection lost. Please try again.'
+            : 'Generation timed out. Please try again.';
+          setState({ phase: 'error', message: msg });
+          track('generation_error', { message: isHeartbeat ? 'heartbeat_timeout' : `stream_timeout_${Math.round(elapsed / 1000)}s` });
+        }
+        return;
+      }
       setState({ phase: 'error', message: err.message || 'Failed to start generation' });
     }
   }, []);
