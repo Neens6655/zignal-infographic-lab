@@ -104,6 +104,7 @@ export async function ocrInfographic(imageBase64: string): Promise<OcrResult> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(requestBody),
+    signal: AbortSignal.timeout(15_000), // 15s timeout — prevent OCR from eating the time budget
   });
 
   if (!response.ok) {

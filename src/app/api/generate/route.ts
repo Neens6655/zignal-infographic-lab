@@ -59,8 +59,17 @@ export async function POST(request: Request) {
   const stream = new ReadableStream({
     async start(controller) {
       function sendEvent(event: string, data: Record<string, unknown>) {
-        controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+        try {
+          controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+        } catch {
+          // Stream already closed — ignore
+        }
       }
+
+      // Heartbeat — send a ping every 5s to keep the connection alive
+      const heartbeat = setInterval(() => {
+        sendEvent('heartbeat', { ts: Date.now() });
+      }, 5_000);
 
       try {
         const result = await runPipeline(
@@ -110,6 +119,7 @@ export async function POST(request: Request) {
         console.error('[generate]', err);
         sendEvent('error', { error: 'Generation failed. Please try again.' });
       } finally {
+        clearInterval(heartbeat);
         controller.close();
       }
     },

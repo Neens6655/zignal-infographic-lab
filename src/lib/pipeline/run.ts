@@ -10,7 +10,7 @@ import { analyzeContent } from './analyze';
 import { researchContent, fetchReferenceImages } from './research';
 import { structureContent, validateContent } from './structure';
 import { assemblePrompt } from './prompt';
-import { extractClaims, crossVerifyClaims, computeCredibilityScore, extractNumericalClaims, crossVerifyNumbers } from '../research/verify';
+import { crossVerifyClaims, computeCredibilityScore, extractNumericalClaims, crossVerifyNumbers } from '../research/verify';
 import { enforceDensity } from './density';
 import { runGates } from './gate';
 import { ocrInfographic } from './ocr';
@@ -44,6 +44,11 @@ export async function runPipeline(
   const seed = generateSeed();
   const generatedAt = new Date().toISOString();
   const pipelineTrace: ProvenanceData['pipeline'] = [];
+  const pipelineStart = Date.now();
+
+  /** Time budget: stop retrying if less than this many ms remain before Vercel kills us */
+  const TIME_BUDGET_MS = 105_000; // 105s hard budget (15s safety margin on 120s limit)
+  const hasTimeBudget = () => Date.now() - pipelineStart < TIME_BUDGET_MS;
 
   const contentHash = await hashContent(input.content);
 
@@ -90,21 +95,19 @@ export async function runPipeline(
     message: `Found ${research.citations.length} citations, ${referenceImages.length} reference images`,
   });
 
-  // Stage 1.7: Cross-verify claims
-  onProgress({ status: 'verifying', progress: 25, message: 'Verifying claims against sources...' });
-  const verifiableContent = research.findings.join('\n\n') || research.citations.map(c => c.snippet).filter(Boolean).join('\n');
-  const claims = await extractClaims(verifiableContent);
-  const verifiedClaims = await crossVerifyClaims(claims, research.citations);
-  const credibility = computeCredibilityScore(verifiedClaims, research.citations);
+  // Stage 1.7: Credibility scoring (lightweight — skips full claim verification for speed)
+  onProgress({ status: 'verifying', progress: 28, message: 'Scoring source credibility...' });
+  const credibility = computeCredibilityScore([], research.citations);
+  const verifiedClaims: Awaited<ReturnType<typeof crossVerifyClaims>> = [];
   pipelineTrace.push({
     stage: '01.7',
     agent: 'Verifier',
-    result: `${credibility.claimsCrossVerified}/${credibility.claimsTotal} claims verified, score: ${credibility.overall}/100`,
+    result: `Credibility: ${credibility.overall}/100 (${research.citations.length} sources scored, claim verification deferred)`,
   });
   onProgress({
     status: 'verifying',
-    progress: 32,
-    message: `Credibility: ${credibility.overall}/100 (${credibility.claimsCrossVerified}/${credibility.claimsTotal} claims verified)`,
+    progress: 30,
+    message: `Credibility: ${credibility.overall}/100 (${research.citations.length} sources)`,
   });
 
   // Stage 2: Structure content
@@ -184,8 +187,8 @@ export async function runPipeline(
     `styles/${analysis.style}.md`,
   ];
 
-  // Stage 4: Generate + Verify + Retry Loop (max 2 retries)
-  const MAX_RETRIES = 2;
+  // Stage 4: Generate + Verify + Retry Loop (max 1 retry — fits within Vercel 120s)
+  const MAX_RETRIES = 1;
   let bestImage = '';
   let postGenFlags: string[] = [];
   let qualityScore = computeQualityScore([]);
@@ -195,6 +198,13 @@ export async function runPipeline(
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const isRetry = attempt > 0;
     const progressBase = isRetry ? 70 + attempt * 8 : 60;
+
+    // Time budget check — don't start a new attempt if not enough time remains
+    if (isRetry && !hasTimeBudget()) {
+      console.log(`[Pipeline] Time budget exhausted (${((Date.now() - pipelineStart) / 1000).toFixed(1)}s elapsed). Shipping best attempt.`);
+      postGenFlags.push('Time budget exhausted — shipped best available render');
+      break;
+    }
 
     onProgress({
       status: 'generating',

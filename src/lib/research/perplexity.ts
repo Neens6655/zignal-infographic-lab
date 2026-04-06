@@ -76,6 +76,7 @@ export async function searchPerplexity(
         messages,
         max_tokens: MAX_TOKENS,
       }),
+      signal: AbortSignal.timeout(20_000), // 20s timeout — prevent Perplexity from eating the time budget
     });
 
     if (!response.ok) {
