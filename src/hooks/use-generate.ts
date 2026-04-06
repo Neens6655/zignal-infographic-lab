@@ -29,11 +29,11 @@ type GeneratePhase =
   | { phase: 'error'; message: string };
 
 /**
- * Client timeout must be HIGHER than the server's time budget (105s) + safety margin.
- * Server: maxDuration=120s, pipeline budget=105s.
- * Client: 115s — gives the server enough room to finish and send complete/error.
+ * Client timeout must be HIGHER than the server's time budget.
+ * Server: maxDuration=300s (Vercel Pro), pipeline budget=270s.
+ * Client: 280s — gives the server enough room to finish and send complete/error.
  */
-const STREAM_TIMEOUT_MS = 115_000;
+const STREAM_TIMEOUT_MS = 280_000;
 
 /** If no SSE event (including heartbeat) arrives within this window, assume connection died */
 const HEARTBEAT_TIMEOUT_MS = 20_000;

@@ -4,7 +4,7 @@ import { saveGeneration } from '@/lib/telemetry';
 import { createClient } from '@/lib/supabase/server';
 import { getClientIp, hashIp } from '@/lib/request-utils';
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
   // Rate limiting
