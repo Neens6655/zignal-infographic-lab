@@ -1464,8 +1464,11 @@ export default function Home() {
 
             {/* Error */}
             {state.phase === 'error' && (
-              <div className="mt-4 border border-(--z-brick)/30 bg-(--z-brick)/5 px-5 py-4">
-                <p className="text-sm text-(--z-brick) mb-4">{state.message}</p>
+              <div
+                ref={(el) => { el?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }}
+                className="mt-4 border-2 border-(--z-brick)/50 bg-(--z-brick)/10 px-5 py-5"
+              >
+                <p className="text-sm text-(--z-brick) font-mono font-semibold mb-4">{state.message}</p>
                 <button
                   onClick={reset}
                   className="inline-flex items-center gap-2 bg-(--z-brick) px-5 py-2.5 text-xs font-mono font-semibold text-white hover:bg-(--z-brick)/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-brick)"

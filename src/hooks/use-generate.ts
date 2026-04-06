@@ -28,24 +28,42 @@ type GeneratePhase =
   | { phase: 'complete'; jobId: string; imageUrl: string; downloadUrl: string; metadata: Record<string, any>; provenance?: ProvenanceData }
   | { phase: 'error'; message: string };
 
-/** Maximum time to wait for a complete/error event before showing timeout error */
-const STREAM_TIMEOUT_MS = 90_000;
+/**
+ * Client timeout must be HIGHER than the server's time budget (105s) + safety margin.
+ * Server: maxDuration=120s, pipeline budget=105s.
+ * Client: 115s — gives the server enough room to finish and send complete/error.
+ */
+const STREAM_TIMEOUT_MS = 115_000;
+
 /** If no SSE event (including heartbeat) arrives within this window, assume connection died */
-const HEARTBEAT_TIMEOUT_MS = 15_000;
+const HEARTBEAT_TIMEOUT_MS = 20_000;
 
 export function useGenerate() {
   const [state, setState] = useState<GeneratePhase>({ phase: 'idle' });
   const abortRef = useRef<AbortController | null>(null);
+  // Track whether WE caused the abort (timeout/heartbeat) vs user-initiated
+  const timedOutRef = useRef(false);
 
   const generate = useCallback(async (input: GenerateInput) => {
+    // Abort any previous in-flight request
     abortRef.current?.abort();
+    timedOutRef.current = false;
+
     const controller = new AbortController();
     abortRef.current = controller;
 
     setState({ phase: 'submitting' });
     const startTime = Date.now();
     let lastEventTime = Date.now();
-    let timedOut = false;
+
+    // Cleanup refs for timers
+    let streamTimer: ReturnType<typeof setTimeout> | null = null;
+    let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+
+    function cleanup() {
+      if (streamTimer) { clearTimeout(streamTimer); streamTimer = null; }
+      if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; }
+    }
 
     try {
       const res = await fetch('/api/generate', {
@@ -72,17 +90,18 @@ export function useGenerate() {
       const decoder = new TextDecoder();
       let buffer = '';
       let eventType = '';
+      let completed = false;
 
       // Stream timeout — abort if total time exceeds limit
-      const streamTimer = setTimeout(() => {
-        timedOut = true;
+      streamTimer = setTimeout(() => {
+        timedOutRef.current = true;
         controller.abort();
       }, STREAM_TIMEOUT_MS);
 
       // Heartbeat watchdog — abort if no data arrives for too long
-      let heartbeatTimer = setInterval(() => {
+      heartbeatTimer = setInterval(() => {
         if (Date.now() - lastEventTime > HEARTBEAT_TIMEOUT_MS) {
-          timedOut = true;
+          timedOutRef.current = true;
           controller.abort();
         }
       }, 5_000);
@@ -104,8 +123,8 @@ export function useGenerate() {
               try {
                 const data = JSON.parse(line.slice(6));
                 if (eventType === 'complete') {
-                  clearTimeout(streamTimer);
-                  clearInterval(heartbeatTimer);
+                  cleanup();
+                  completed = true;
                   const durationMs = Date.now() - startTime;
                   setState({
                     phase: 'complete',
@@ -123,8 +142,8 @@ export function useGenerate() {
                   });
                   return;
                 } else if (eventType === 'error') {
-                  clearTimeout(streamTimer);
-                  clearInterval(heartbeatTimer);
+                  cleanup();
+                  completed = true;
                   track('generation_error', { message: data.error || 'Generation failed' });
                   setState({ phase: 'error', message: data.error || 'Generation failed' });
                   return;
@@ -144,30 +163,28 @@ export function useGenerate() {
           }
         }
 
-        // Stream ended without complete/error event — treat as error
-        clearTimeout(streamTimer);
-        clearInterval(heartbeatTimer);
-        if (state.phase === 'streaming' || state.phase === 'submitting') {
+        // Stream ended without complete/error event
+        cleanup();
+        if (!completed) {
           setState({ phase: 'error', message: 'Generation interrupted. Please try again.' });
           track('generation_error', { message: 'stream_ended_without_complete' });
         }
       } finally {
-        clearTimeout(streamTimer);
-        clearInterval(heartbeatTimer);
+        cleanup();
       }
     } catch (err: any) {
+      cleanup();
       if (err.name === 'AbortError') {
-        // Only swallow abort if user-initiated (e.g. new generate call or reset)
-        // If OUR timeout caused it, show the error
-        if (timedOut) {
-          const elapsed = Date.now() - startTime;
+        // OUR timeout caused the abort — show error to user
+        if (timedOutRef.current) {
           const isHeartbeat = Date.now() - lastEventTime > HEARTBEAT_TIMEOUT_MS;
           const msg = isHeartbeat
             ? 'Connection lost. Please try again.'
-            : 'Generation timed out. Please try again.';
+            : 'Generation is taking longer than expected. Please try again.';
           setState({ phase: 'error', message: msg });
-          track('generation_error', { message: isHeartbeat ? 'heartbeat_timeout' : `stream_timeout_${Math.round(elapsed / 1000)}s` });
+          track('generation_error', { message: isHeartbeat ? 'heartbeat_timeout' : 'stream_timeout' });
         }
+        // User-initiated abort (new generate call or reset) — don't show error
         return;
       }
       setState({ phase: 'error', message: err.message || 'Failed to start generation' });
@@ -177,6 +194,7 @@ export function useGenerate() {
   const reset = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
+    timedOutRef.current = false;
     setState({ phase: 'idle' });
   }, []);
 
