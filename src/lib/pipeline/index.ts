@@ -14,8 +14,8 @@ export type {
   ReferenceImage,
 } from './types';
 
-export { analyzeContent } from './analyze';
-export { geminiGenerate, geminiGenerateImage, TEXT_MODEL, IMAGE_MODEL } from './gemini';
+export { analyzeContent, localAnalyze } from './analyze';
+export { geminiGenerate, geminiGenerateImage, TEXT_MODEL, PRO_MODEL, IMAGE_MODEL } from './gemini';
 export { researchContent, fetchReferenceImages, classifySourceTier } from './research';
 export { structureContent, validateContent } from './structure';
 export { assemblePrompt, applyStructureEdit } from './prompt';

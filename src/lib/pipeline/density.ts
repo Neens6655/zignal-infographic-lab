@@ -15,16 +15,18 @@ export type DensityReport = {
   violations: string[];
 };
 
-const MAX_TITLE_WORDS = 7;
-const MAX_SUBTITLE_WORDS = 12;
-const MAX_SECTIONS = 4; // Was 6 — fewer sections = more breathing room = better illustrations
-const MAX_HEADING_WORDS = 4;
-const MAX_STATS_BAR = 5;
-const MAX_STAT_LABEL_WORDS = 3;
-const MAX_CONTENT_ITEMS = 1; // Was 2 — one key point per section, not two
-const MAX_CONTENT_ITEM_CHARS = 30; // Was 40 — shorter = renders better
-const MAX_LABELS_PER_SECTION = 3; // Was 4
-const MAX_LABEL_CHARS = 20; // Was 25
+// Hybrid renderer (Satori) handles text programmatically — no garbling risk.
+// Limits exist to prevent visual clutter, not to avoid AI text rendering errors.
+const MAX_TITLE_WORDS = 12;
+const MAX_SUBTITLE_WORDS = 20;
+const MAX_SECTIONS = 4; // Overview default — intent-aware override applies
+const MAX_HEADING_WORDS = 10;
+const MAX_STATS_BAR = 6;
+const MAX_STAT_LABEL_WORDS = 4;
+const MAX_CONTENT_ITEMS = 3; // Rich detail from research
+const MAX_CONTENT_ITEM_CHARS = 80; // Full sentences, not fragments
+const MAX_LABELS_PER_SECTION = 4;
+const MAX_LABEL_CHARS = 50; // "1,300-1,600°C under extreme pressure" fits now
 
 function truncateWords(text: string, max: number): { text: string; truncated: boolean } {
   const words = text.split(/\s+/).filter(Boolean);
@@ -37,7 +39,25 @@ function truncateChars(text: string, max: number): { text: string; truncated: bo
   return { text: text.slice(0, max - 3).trimEnd() + '...', truncated: true };
 }
 
-export function enforceDensity(content: StructuredContent): { content: StructuredContent; report: DensityReport } {
+/**
+ * Intent-aware density enforcement.
+ * Rankings/comparisons need more sections (up to 10) to show all entities.
+ * Process/overview can stay tight at 4-6.
+ */
+export function enforceDensity(
+  content: StructuredContent,
+  intent?: string,
+): { content: StructuredContent; report: DensityReport } {
+  // Intent-aware section limits
+  const maxSections = (() => {
+    switch (intent) {
+      case 'ranking': return 10;
+      case 'comparison': return 8;
+      case 'metrics': return 6;
+      case 'process': return 6;
+      default: return MAX_SECTIONS; // 4 for overview
+    }
+  })();
   const violations: string[] = [];
   let removedParagraphs = 0;
   let truncatedLabels = 0;
@@ -61,10 +81,10 @@ export function enforceDensity(content: StructuredContent): { content: Structure
   }
 
   // ── Max 6 sections (drop last ones) ─────────────────────────
-  if (out.sections.length > MAX_SECTIONS) {
-    const removed = out.sections.length - MAX_SECTIONS;
-    violations.push(`Removed ${removed} section(s) beyond limit of ${MAX_SECTIONS}`);
-    out.sections = out.sections.slice(0, MAX_SECTIONS);
+  if (out.sections.length > maxSections) {
+    const removed = out.sections.length - maxSections;
+    violations.push(`Removed ${removed} section(s) beyond limit of ${maxSections} (intent: ${intent || 'overview'})`);
+    out.sections = out.sections.slice(0, maxSections);
   }
 
   // ── Per-section enforcement ─────────────────────────────────
@@ -77,10 +97,18 @@ export function enforceDensity(content: StructuredContent): { content: Structure
       truncatedLabels++;
     }
 
-    // Eliminate keyConcept paragraph text
+    // keyConcept: keep for ranking/comparison (truncate to 1 sentence), remove for overview
     if (section.keyConcept && section.keyConcept.length > 0) {
-      removedParagraphs++;
-      section.keyConcept = '';
+      if (intent === 'ranking' || intent === 'comparison') {
+        // Keep first sentence only
+        const firstSentence = section.keyConcept.split(/[.!?]\s/)[0];
+        if (firstSentence.length < section.keyConcept.length) {
+          section.keyConcept = firstSentence + '.';
+        }
+      } else {
+        removedParagraphs++;
+        section.keyConcept = '';
+      }
     }
 
     // Content array: max 2 items, max 40 chars each

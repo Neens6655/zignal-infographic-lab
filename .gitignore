@@ -42,3 +42,12 @@ next-env.d.ts
 
 .vercel
 supabase/.temp/
+node_modules/
+**/node_modules/
+sdk/
+*.exe
+*.node
+*.parquet
+*.db
+dist/
+.next/

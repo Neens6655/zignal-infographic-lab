@@ -30,6 +30,16 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  outputFileTracingIncludes: {
+    '/api/generate': [
+      './src/lib/fonts/**/*',
+      './node_modules/@resvg/resvg-wasm/index_bg.wasm',
+    ],
+    '/api/jobs/**': [
+      './src/lib/fonts/**/*',
+      './node_modules/@resvg/resvg-wasm/index_bg.wasm',
+    ],
+  },
   async headers() {
     return [
       {

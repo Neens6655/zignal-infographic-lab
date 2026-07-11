@@ -12,6 +12,7 @@ function getApiKey(): string {
 }
 
 export const TEXT_MODEL = 'gemini-2.5-flash';
+export const PRO_MODEL = 'gemini-2.5-pro';
 export const IMAGE_MODEL = 'gemini-3.1-flash-image-preview';
 
 export async function geminiGenerate(model: string, prompt: string, responseModalities?: string[]): Promise<string> {

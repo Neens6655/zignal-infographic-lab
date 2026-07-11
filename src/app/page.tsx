@@ -959,6 +959,49 @@ export default function Home() {
     );
   }
 
+  /* ─── ERROR STATE ─── (dedicated full-page screen, not buried below the fold) */
+  if (state.phase === 'error') {
+    return (
+      <div className="min-h-screen bg-(--z-bg) text-(--z-cream) flex flex-col">
+        <Nav />
+        <main className="flex-1 flex items-center justify-center px-6 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="w-full max-w-xl border-2 border-(--z-brick)/60 bg-(--z-brick)/10 px-6 py-8 space-y-5"
+          >
+            <div className="flex items-start gap-3">
+              <span className="font-mono text-xl text-(--z-brick) leading-none mt-0.5">!</span>
+              <div className="space-y-2 min-w-0">
+                <h1 className="font-mono text-sm font-bold tracking-wider uppercase text-(--z-brick)">
+                  Generation failed
+                </h1>
+                <p className="font-mono text-sm text-(--z-cream) break-words">{state.message}</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button
+                onClick={reset}
+                className="inline-flex items-center gap-2 bg-(--z-brick) px-5 py-2.5 text-xs font-mono font-semibold text-white hover:bg-(--z-brick)/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-brick)"
+              >
+                <ArrowRight className="h-3.5 w-3.5 rotate-180" />
+                Try again
+              </button>
+              <button
+                onClick={() => handleGenerate()}
+                disabled={!hasContent}
+                className="inline-flex items-center gap-2 border border-(--z-cream)/20 px-5 py-2.5 text-xs font-mono text-(--z-cream)/80 hover:bg-(--z-cream)/[0.04] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Retry with same prompt
+              </button>
+            </div>
+          </motion.div>
+        </main>
+      </div>
+    );
+  }
+
   /* ─── COMPLETE STATE ─── */
   if (state.phase === 'complete') {
     return (

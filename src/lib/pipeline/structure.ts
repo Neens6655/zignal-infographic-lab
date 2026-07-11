@@ -2,7 +2,7 @@
  * Content structuring + compliance validation.
  */
 import type { ContentAnalysis, StructuredContent, ComplianceReport, ResearchResult } from './types';
-import { geminiGenerate, TEXT_MODEL } from './gemini';
+import { geminiGenerate, TEXT_MODEL, PRO_MODEL } from './gemini';
 
 // ── Structure content ─────────────────────────────────────────
 
@@ -55,12 +55,12 @@ This is a RANKED LIST infographic. You MUST:
 7. The "title" MUST be a clean ranking title. Do NOT use a narrative headline.
 8. The "subtitle" MUST be a meaningful summary sentence (8-15 words). NOT a single word.
 
-DATA ACCURACY — ABSOLUTE RULES:
-9. Use ONLY the numbers from RESEARCH DATA below. Do NOT use your training knowledge for statistics — it is outdated and WILL be wrong.
-10. If RESEARCH DATA provides a number for an entity, use that EXACT number. Do NOT round, adjust, or "improve" it.
-11. If RESEARCH DATA does not cover an entity, OMIT that entity entirely. Do NOT create a section with "DATA NOT AVAILABLE" — a shorter infographic with real data is better than a full one with empty placeholders.
-12. Labels must show GLOBAL figures only. Never show bilateral exports to a single country (e.g., "28,692 KG TO CHILE" is WRONG — show total global exports instead).
-13. Rankings that fluctuate year-to-year (e.g., Italy vs Greece in olive oil) should note this: "Ranks #2-#3 vary by harvest year".
+DATA ACCURACY RULES:
+9. Prefer numbers from RESEARCH DATA below. Use research data as your primary source.
+10. If RESEARCH DATA provides a number, use that exact number. Do NOT round or adjust it.
+11. If RESEARCH DATA does not cover an entity but the entity is well-known, you MAY include it with general context — do NOT leave sections empty or write "DATA NOT AVAILABLE". A complete ranking with qualitative insights is better than a partial ranking with only numbers.
+12. For subjective rankings (quality of life, best cities, etc.): use research findings as primary data, supplemented by well-known facts. Always create ALL requested sections.
+13. NEVER generate a section about "data unavailability" or "methodology gaps" — that is not content the user asked for.
 `;
   } else if (analysis.intent === 'comparison' && hasEntities) {
     intentInstruction = `
@@ -104,7 +104,11 @@ The user has provided detailed content below. You MUST:
 5. Every heading, bullet point, and label should use words that APPEAR in the original content.
 ` : '';
 
-  const response = await geminiGenerate(TEXT_MODEL, `Structure this content for a ${analysis.layout} infographic in ${analysis.style} style.
+  // Use Gemini Pro for executive-grade structuring, fall back to Flash if Pro fails
+  let response: string;
+  try {
+    response = await geminiGenerate(PRO_MODEL, `Structure this content for a ${analysis.layout} infographic in ${analysis.style} style.
+
 ${intentInstruction}
 ${textPreservation}
 Create ${sectionCount} sections${isEntityBased && hasEntities ? ` (one per entity: ${analysis.entities.join(', ')})` : ' (increase if needed to cover all items)'}. Each section needs: ${isExecutiveStyle ? 'heading (title case, 8-15 words — a narrative insight that states the KEY finding of this section, like a McKinsey slide title. Example: "Spain Commands 45% of Global Olive Oil Production")' : 'heading (CAPS, max 5 words)'}, key_concept (one sentence), content (bullet points), visual_element (what to illustrate), labels (callout text).
@@ -134,10 +138,30 @@ ${research.findings.map(f => `- ${f.slice(0, 800)}`).join('\n')}
 ` : ''}
 CONTENT:
 ${content.slice(0, 8000)}`);
+    console.log(`[Structure] Using ${PRO_MODEL} for executive-grade structuring`);
+  } catch (proError) {
+    console.warn(`[Structure] ${PRO_MODEL} failed, falling back to ${TEXT_MODEL}:`, proError instanceof Error ? proError.message : proError);
+    response = await geminiGenerate(TEXT_MODEL, `Structure this content for a ${analysis.layout} infographic in ${analysis.style} style.
+${intentInstruction}
+${textPreservation}
+Create ${sectionCount} sections${isEntityBased && hasEntities ? ` (one per entity: ${analysis.entities.join(', ')})` : ' (increase if needed to cover all items)'}. Each section needs: heading, key_concept, content (bullet points), visual_element, labels.
+
+Respond in JSON only (no markdown fences):
+{"title":"","subtitle":"","sections":[{"heading":"","key_concept":"","content":[""],"visual_element":"","labels":[""]}],"stats_bar":[{"label":"","value":""}],"source_attribution":"","design_notes":""}
+
+INTENT: ${analysis.intent}
+${research && research.findings.length > 0 ? `RESEARCH DATA:\n${research.findings.map(f => `- ${f.slice(0, 500)}`).join('\n')}` : ''}
+CONTENT:
+${content.slice(0, 6000)}`);
+  }
 
   try {
     const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error(`[Structure] No JSON found in response. First 500 chars: ${response.slice(0, 500)}`);
+    }
     const parsed = JSON.parse(jsonMatch?.[0] || '{}');
+    console.log(`[Structure] Parsed: ${parsed.sections?.length || 0} sections, title="${(parsed.title || '').slice(0, 50)}"`);
     const sections = (parsed.sections || []).map((s: any) => ({
       heading: s.heading || '',
       keyConcept: s.key_concept || '',
@@ -157,14 +181,18 @@ ${content.slice(0, 8000)}`);
     let subtitle = parsed.subtitle || '';
     if (subtitle.split(/\s+/).length < 3) subtitle = '';
 
-    // Filter out empty placeholder sections
+    // Filter out truly empty placeholder sections (only remove explicit "no data" placeholders)
     const validSections = sections.filter((s: any) => {
-      const allEmpty = s.content.every((c: string) =>
-        c.length < 5 || c.toLowerCase().includes('no specific') || c.toLowerCase().includes('data not available') || c.toLowerCase().includes('no data')
+      // A section is valid if it has a heading OR any content OR any labels
+      if (s.heading && s.heading.length > 2) return true;
+      if (s.labels.some((l: string) => l.length > 2)) return true;
+      // Only filter if ALL content items are explicit placeholders
+      const allPlaceholder = s.content.length === 0 || s.content.every((c: string) =>
+        c.toLowerCase().includes('no specific') || c.toLowerCase().includes('data not available') || c.toLowerCase().includes('no data') || c.toLowerCase().includes('n/a')
       );
-      const hasLabels = s.labels.some((l: string) => l.length > 3);
-      return !allEmpty || hasLabels;
+      return !allPlaceholder;
     });
+    console.log(`[Structure] ${sections.length} raw sections -> ${validSections.length} valid sections`);
 
     return {
       title: parsed.title || 'Infographic',
@@ -177,7 +205,9 @@ ${content.slice(0, 8000)}`);
       designNotes: parsed.design_notes || '',
       sourceAttribution: parsed.source_attribution || '',
     };
-  } catch {
+  } catch (err) {
+    console.error(`[Structure] JSON parse failed:`, err instanceof Error ? err.message : err);
+    console.error(`[Structure] Raw response (first 500 chars): ${response.slice(0, 500)}`);
     return {
       title: 'Infographic',
       subtitle: '',

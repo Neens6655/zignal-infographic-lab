@@ -123,6 +123,7 @@ export type ProvenanceData = {
   contentHash: string;
   models: {
     analysis: string;
+    structure?: string;
     image: string;
   };
   pipeline: { stage: string; agent: string; result: string }[];

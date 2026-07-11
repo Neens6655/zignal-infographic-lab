@@ -231,3 +231,45 @@ ${JSON.stringify({ title: '', subtitle: '', sections: [{ heading: '', key_concep
     return existing;
   }
 }
+
+// ── Illustration-only prompt (hybrid renderer) ───────────────
+
+export async function assembleIllustrationPrompt(
+  structured: StructuredContent,
+  analysis: ContentAnalysis,
+  aspectRatio: string,
+  illustrationZones: string,
+): Promise<string> {
+  const [styleDef] = await Promise.all([
+    loadRef(`styles/${analysis.style}.md`),
+  ]);
+
+  const topicSummary = `${structured.title}: ${structured.sections.map(s => s.heading).join(', ')}`;
+
+  return `Generate a BACKGROUND ILLUSTRATION for an executive infographic about: ${topicSummary}
+
+CRITICAL RULES — ILLUSTRATION ONLY:
+1. NO TEXT. NO LABELS. NO WORDS. NO LETTERS. NO NUMBERS. NO CHARACTERS OF ANY KIND.
+2. This is a background illustration. Text will be composited on top by a separate system.
+3. Generate subtle, muted visual elements that enhance the topic without competing with text.
+4. Use a DARK color palette — the text overlay will be white/light colored.
+
+ZONE LAYOUT:
+${illustrationZones}
+
+VISUAL DIRECTION:
+- Topic: ${structured.designNotes || topicSummary}
+- Intent: ${analysis.intent} (${analysis.intent === 'ranking' ? 'ranked progression' : analysis.intent === 'process' ? 'sequential journey' : 'informational overview'})
+- Style: ${analysis.style}
+${styleDef ? `\nSTYLE REFERENCE:\n${styleDef.slice(0, 1000)}` : ''}
+
+- Create ${structured.sections.length} visual zones, each with subtle icons or illustrations related to: ${structured.sections.map(s => s.visualElement || s.heading).join(', ')}
+- Keep illustrations at 30-50% opacity — they must not overpower white text
+- Use geometric shapes, abstract data viz patterns, or muted photographic elements
+- Overall mood: executive, professional, trustworthy
+
+ABSOLUTELY NO TEXT. Not even single letters or numbers. The text layer is handled separately.
+
+Aspect ratio: ${aspectRatio}.
+Dimensions: ${aspectRatio === '1:1' ? '1080x1080' : aspectRatio === '9:16' ? '1080x1920' : '1920x1080'} pixels.`;
+}

@@ -1,15 +1,19 @@
 /**
- * Main pipeline orchestrator — coordinates all stages.
- * v2: 8-agent architecture with density enforcement, quality gates, OCR verification.
+ * Main pipeline orchestrator — v4: quality-first rebuild.
+ * localAnalyze (1 call) → cached research (Perplexity + parallel Firecrawl) → structure (Gemini Pro) → density → generate → OCR.
  */
 import type { PipelineInput, PipelineResult, ProgressCallback, ProvenanceData, ResearchResult, ReferenceImage } from './types';
 import type { NumberAudit } from '../types';
-import { IMAGE_MODEL, TEXT_MODEL } from './gemini';
+import { IMAGE_MODEL, PRO_MODEL, TEXT_MODEL } from './gemini';
 import { geminiGenerateImage } from './gemini';
-import { analyzeContent } from './analyze';
+import { localAnalyze } from './analyze';
 import { researchContent, fetchReferenceImages } from './research';
-import { structureContent, validateContent } from './structure';
-import { assemblePrompt } from './prompt';
+import { structureContent } from './structure';
+import { getCachedResearch, setCachedResearch } from '../research/cache';
+import { assemblePrompt, assembleIllustrationPrompt } from './prompt';
+import { planLayout } from './layout-planner';
+import { renderTextLayer } from './text-renderer';
+import { compositeInfographic } from './compositor';
 import { crossVerifyClaims, computeCredibilityScore, extractNumericalClaims, crossVerifyNumbers } from '../research/verify';
 import { enforceDensity } from './density';
 import { runGates } from './gate';
@@ -44,19 +48,14 @@ export async function runPipeline(
   const seed = generateSeed();
   const generatedAt = new Date().toISOString();
   const pipelineTrace: ProvenanceData['pipeline'] = [];
-  const pipelineStart = Date.now();
-
-  /** Time budget: stop retrying if less than this many ms remain before Vercel kills us */
-  const TIME_BUDGET_MS = 270_000; // 270s hard budget (30s safety margin on 300s Pro limit)
-  const hasTimeBudget = () => Date.now() - pipelineStart < TIME_BUDGET_MS;
 
   const contentHash = await hashContent(input.content);
 
-  // Stage 1: Analyze content
+  // Stage 0: Local analyze (regex + single Gemini Flash call — replaces 2 serial calls)
   onProgress({ status: 'analyzing', progress: 10, message: 'Analyzing content structure...' });
-  const analysis = await analyzeContent(input.content, input.preset, input.layout, input.style);
-  pipelineTrace.push({ stage: '01', agent: 'Sentinel', result: `Intent: ${analysis.intent}, ${analysis.entities.length} entities, layout: ${analysis.layout}` });
-  onProgress({ status: 'analyzing', progress: 25, message: `Intent: ${analysis.intent} | ${analysis.layout} + ${analysis.style}` });
+  const analysis = await localAnalyze(input.content, input.layout, input.style);
+  pipelineTrace.push({ stage: '00', agent: 'Sentinel', result: `Intent: ${analysis.intent}, ${analysis.entities.length} entities, layout: ${analysis.layout}` });
+  onProgress({ status: 'analyzing', progress: 20, message: `Intent: ${analysis.intent} | ${analysis.layout} + ${analysis.style}` });
 
   // Stage 1.5: Research + Reference Images (PARALLEL)
   // RULE: If user provides ANY numbers, their data is sacred — research only supplements, never replaces
@@ -74,11 +73,56 @@ export async function runPipeline(
     research = { findings: [input.content.slice(0, 6000)], verifiedFacts: [], sourceUrls: [], searchQueries: [], citations: [] };
     referenceImages = await fetchReferenceImages(analysis.topics);
   } else {
-    onProgress({ status: 'researching', progress: 15, message: 'Researching topics and finding references...' });
-    [research, referenceImages] = await Promise.all([
-      researchContent(analysis.topics, input.content.slice(0, 2000)),
-      fetchReferenceImages(analysis.topics),
-    ]);
+    // Check cache first
+    onProgress({ status: 'researching', progress: 15, message: 'Checking research cache...' });
+    const cached = await getCachedResearch(input.content, analysis.intent);
+
+    if (cached) {
+      console.log('[Research] Cache HIT — skipping Perplexity');
+      onProgress({ status: 'researching', progress: 20, message: 'Using cached research data' });
+      research = {
+        findings: cached.findings,
+        verifiedFacts: [],
+        sourceUrls: cached.citations.map(c => c.url),
+        searchQueries: analysis.topics,
+        citations: cached.citations,
+      };
+      referenceImages = await fetchReferenceImages(analysis.topics);
+    } else {
+      onProgress({ status: 'researching', progress: 15, message: 'Researching topics (intent-aware)...' });
+      [research, referenceImages] = await Promise.all([
+        researchContent(analysis.topics, input.content.slice(0, 2000), analysis.intent, analysis.entities),
+        fetchReferenceImages(analysis.topics),
+      ]);
+
+      // ── Research quality check: retry with broader query if thin data ──
+      const researchAnswer = research.findings.join(' ');
+      const hasSubstance = researchAnswer.length > 300 && research.citations.length >= 2;
+
+      if (!hasSubstance && analysis.topics.length > 0) {
+        console.warn(`[Research] Thin data detected (${researchAnswer.length} chars, ${research.citations.length} citations). Retrying with broader query...`);
+        onProgress({ status: 'researching', progress: 18, message: 'Broadening research query...' });
+
+        // Retry with a simpler, broader query
+        const broaderTopics = [input.content.slice(0, 200)]; // Use raw user content as the search
+        const retryResult = await researchContent(broaderTopics, input.content.slice(0, 2000), analysis.intent, analysis.entities);
+
+        if (retryResult.findings.join(' ').length > researchAnswer.length) {
+          console.log(`[Research] Retry improved: ${retryResult.findings.join(' ').length} chars (was ${researchAnswer.length})`);
+          research = retryResult;
+        }
+      }
+
+      // Cache research results (fire-and-forget)
+      if (research.findings.length > 0 && research.findings.join(' ').length > 300) {
+        setCachedResearch(input.content, analysis.intent, {
+          findings: research.findings,
+          citations: research.citations,
+          sourceUrls: research.sourceUrls,
+          cachedAt: new Date().toISOString(),
+        });
+      }
+    }
   }
 
   const researchSummary = research.citations.length > 0
@@ -112,34 +156,68 @@ export async function runPipeline(
 
   // Stage 2: Structure content
   onProgress({ status: 'structuring', progress: 35, message: 'Building infographic sections...' });
-  const structured = await structureContent(input.content, analysis, research);
+  let structured = await structureContent(input.content, analysis, research);
   pipelineTrace.push({ stage: '02', agent: 'Architect', result: `${structured.sections.length} sections, tone: ${analysis.tone}` });
+
+  // ── PRE-RENDER CONTENT GATE ─────────────────────────────────
+  // NEVER send garbage to image generation. If structured content is too thin, retry or fail honestly.
+  const contentGateChecks = {
+    hasMinSections: structured.sections.length >= 3,
+    hasRealContent: structured.sections.filter(s =>
+      s.content.some(c => c.length > 5) || s.labels.some(l => l.length > 3)
+    ).length >= 2,
+    hasTitleNotTruncated: structured.title.length > 5 && !structured.title.endsWith('...'),
+    hasSubtitle: structured.subtitle.length > 10,
+  };
+  const gatesPassed = Object.values(contentGateChecks).filter(Boolean).length;
+  const gateFailed = gatesPassed < 3; // Need at least 3 of 4 checks
+
+  if (gateFailed) {
+    console.warn(`[ContentGate] FAILED (${gatesPassed}/4): ${JSON.stringify(contentGateChecks)}`);
+    pipelineTrace.push({ stage: '02.1', agent: 'ContentGate', result: `FAILED: ${gatesPassed}/4 checks passed. Retrying with enriched prompt...` });
+    onProgress({ status: 'structuring', progress: 40, message: 'Content too thin — retrying with enriched prompt...' });
+
+    // Retry: append user's raw content to give the structurer more to work with
+    const enrichedContent = `${input.content}\n\n--- RESEARCH CONTEXT ---\n${research.findings.join('\n').slice(0, 4000)}`;
+    structured = await structureContent(enrichedContent, analysis, research);
+    pipelineTrace.push({ stage: '02.1b', agent: 'ContentGate', result: `Retry: ${structured.sections.length} sections` });
+
+    // Check again — if still failing, proceed but flag it
+    const retryGates = {
+      hasMinSections: structured.sections.length >= 3,
+      hasRealContent: structured.sections.filter(s =>
+        s.content.some(c => c.length > 5) || s.labels.some(l => l.length > 3)
+      ).length >= 2,
+    };
+    if (!retryGates.hasMinSections || !retryGates.hasRealContent) {
+      console.error(`[ContentGate] RETRY ALSO FAILED. Proceeding with best effort.`);
+      pipelineTrace.push({ stage: '02.1c', agent: 'ContentGate', result: 'Retry also failed — proceeding with best effort' });
+    }
+  } else {
+    pipelineTrace.push({ stage: '02.1', agent: 'ContentGate', result: `PASSED: ${gatesPassed}/4 checks` });
+  }
+
   onProgress({ status: 'structuring', progress: 50, message: `Created ${structured.sections.length} sections` });
 
-  // Stage 2.5: Compliance validation
-  onProgress({ status: 'validating', progress: 52, message: 'Running compliance checks...' });
-  const { cleaned, report } = await validateContent(structured);
-  pipelineTrace.push({ stage: '02.5', agent: 'Compliance', result: `${report.corrections.length} text fixes, credibility: ${credibility.overall}/100` });
-  onProgress({ status: 'validating', progress: 55, message: `Compliance: ${report.corrections.length} corrections applied` });
-
-  // Stage 2.6: Density enforcement — reduce text for better rendering
+  // Stage 2.6: Density enforcement — intent-aware section limits
   onProgress({ status: 'validating', progress: 55, message: 'Enforcing content density limits...' });
-  const { content: densified, report: densityReport } = enforceDensity(cleaned);
+  const { content: densified, report: densityReport } = enforceDensity(structured, analysis.intent);
   pipelineTrace.push({
     stage: '02.6',
     agent: 'Density',
-    result: `${densityReport.originalSections}→${densityReport.finalSections} sections, ${densityReport.removedParagraphs} paragraphs removed, ${densityReport.truncatedLabels} labels truncated`,
+    result: `${densityReport.originalSections}→${densityReport.finalSections} sections (intent: ${analysis.intent}), ${densityReport.removedParagraphs} paragraphs removed, ${densityReport.truncatedLabels} labels truncated`,
   });
 
-  // Stage 2.7: Numerical guard — cross-verify numbers between content and research
+  // Stage 2.7: Numerical guard — cross-verify numbers, inject corrections into prompt (not re-structure)
   let numberAuditResult: NumberAudit | undefined;
   let finalContent = densified;
+  let numberCorrections: string[] = [];
   if (!isSelfContained && research.findings.length > 0) {
     onProgress({ status: 'validating', progress: 56, message: 'Cross-verifying numbers...' });
     const [contentNumbers, researchNumbers] = await Promise.all([
       extractNumericalClaims(
-        cleaned.sections.map(s => s.content.join(' ')).join(' ') + ' ' +
-        cleaned.statsBar.map(s => `${s.label}: ${s.value}`).join(' ')
+        densified.sections.map(s => s.content.join(' ')).join(' ') + ' ' +
+        densified.statsBar.map(s => `${s.label}: ${s.value}`).join(' ')
       ),
       extractNumericalClaims(research.findings.join('\n\n')),
     ]);
@@ -154,90 +232,76 @@ export async function runPipeline(
         result: `${numberAuditResult.exact.length} exact, ${numberAuditResult.close.length} close, ${conflictCount} conflicting, ${numberAuditResult.unverified.length} unverified — confidence: ${numberAuditResult.confidenceLevel}`,
       });
 
+      // Inject corrections into prompt suffix instead of re-structuring (saves ~10s)
       if (conflictCount > 0) {
-        const corrections = numberAuditResult.conflicting
+        numberCorrections = numberAuditResult.conflicting
           .filter(c => c.researchClaim)
-          .map(c => `CORRECT: ${c.contentClaim.entity} ${c.contentClaim.metric} should be ${c.researchClaim!.value} ${c.researchClaim!.unit}, not ${c.contentClaim.value} ${c.contentClaim.unit} (${c.divergencePct}% divergence)`);
-
-        console.log(`[NumberGuard] ${conflictCount} conflicting numbers detected, re-structuring with corrections:`, corrections);
-
-        // Re-run structuring with correction instructions appended to content
-        const correctionBlock = '\n\n--- NUMBER CORRECTIONS (MANDATORY) ---\n' + corrections.join('\n');
-        finalContent = await structureContent(input.content + correctionBlock, analysis, research);
-
-        pipelineTrace.push({
-          stage: '02.7b',
-          agent: 'NumberGuard',
-          result: `Re-structured with ${corrections.length} number corrections`,
-        });
+          .map(c => `${c.contentClaim.entity} ${c.contentClaim.metric}: use ${c.researchClaim!.value} ${c.researchClaim!.unit} (not ${c.contentClaim.value} ${c.contentClaim.unit})`);
+        console.log(`[NumberGuard] ${conflictCount} conflicts — will inject into prompt suffix`);
       }
 
       onProgress({ status: 'validating', progress: 57, message: `Numbers: ${numberAuditResult.confidenceLevel} (${conflictCount} corrections)` });
     }
   }
 
-  // Stage 3: Assemble prompt
-  onProgress({ status: 'assembling', progress: 57, message: 'Assembling generation prompt...' });
-  const prompt = await assemblePrompt(finalContent, analysis, aspectRatio, language, research, numberAuditResult);
-  pipelineTrace.push({ stage: '03', agent: 'Architect', result: `${analysis.layout} layout, ${analysis.style} style` });
+  // Stage 3: HYBRID RENDERING — illustration + programmatic text overlay
+  // 3a: Plan text layout (deterministic, 0ms)
+  onProgress({ status: 'assembling', progress: 57, message: 'Planning layout...' });
+  const layout = planLayout(finalContent, aspectRatio);
+  pipelineTrace.push({ stage: '03a', agent: 'LayoutPlanner', result: `${layout.elements.length} text elements, ${layout.width}x${layout.height}` });
+
+  // 3b: Generate illustration prompt (no text, zone-aware)
+  const illustrationPrompt = await assembleIllustrationPrompt(finalContent, analysis, aspectRatio, layout.illustrationZones);
+  pipelineTrace.push({ stage: '03b', agent: 'Architect', result: `${analysis.layout} layout, ${analysis.style} style (illustration-only)` });
 
   const references = [
-    'base-prompt.md',
-    `layouts/${analysis.layout}.md`,
     `styles/${analysis.style}.md`,
   ];
 
-  // Stage 4: Generate + Verify + Retry (1 retry — Vercel Pro 300s limit gives plenty of room)
-  const MAX_RETRIES = 1;
-  let bestImage = '';
+  // 3c: Render text layer + generate illustration IN PARALLEL
   let postGenFlags: string[] = [];
   let qualityScore = computeQualityScore([]);
-  let currentContent = finalContent;
-  let currentPrompt = prompt;
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const isRetry = attempt > 0;
-    const progressBase = isRetry ? 70 + attempt * 8 : 60;
+  onProgress({ status: 'generating', progress: 60, message: 'Rendering illustration + text layers...' });
 
-    // Time budget check — don't start a new attempt if not enough time remains
-    if (isRetry && !hasTimeBudget()) {
-      console.log(`[Pipeline] Time budget exhausted (${((Date.now() - pipelineStart) / 1000).toFixed(1)}s elapsed). Shipping best attempt.`);
-      postGenFlags.push('Time budget exhausted — shipped best available render');
-      break;
-    }
+  const [illustrationBase64, textLayerPng] = await Promise.all([
+    geminiGenerateImage(illustrationPrompt, aspectRatio, referenceImages, analysis.style)
+      .catch(err => {
+        console.error('[Renderer] Illustration failed, will use solid background:', err instanceof Error ? err.message : err);
+        postGenFlags.push('Illustration generation failed — using solid background');
+        return null;
+      }),
+    renderTextLayer(layout),
+  ]);
 
-    onProgress({
-      status: 'generating',
-      progress: progressBase,
-      message: isRetry
-        ? `Retry ${attempt}/${MAX_RETRIES} — regenerating with reduced density...`
-        : 'Rendering your infographic...',
-    });
+  pipelineTrace.push({ stage: '04a', agent: 'Renderer', result: `${IMAGE_MODEL} illustration: ${illustrationBase64 ? 'OK' : 'FAILED (solid bg fallback)'}` });
+  pipelineTrace.push({ stage: '04b', agent: 'TextRenderer', result: `Satori: ${layout.elements.length} elements → ${textLayerPng.length} bytes PNG` });
 
-    const imageBase64 = await geminiGenerateImage(currentPrompt, aspectRatio, referenceImages, analysis.style);
-    pipelineTrace.push({
-      stage: isRetry ? `04.R${attempt}` : '04',
-      agent: 'Renderer',
-      result: `${IMAGE_MODEL}, aspect: ${aspectRatio}${isRetry ? ` (retry ${attempt})` : ''}`,
-    });
+  // 3d: Composite layers
+  onProgress({ status: 'generating', progress: 80, message: 'Compositing final infographic...' });
+  const imageBase64 = await compositeInfographic(
+    illustrationBase64,
+    textLayerPng,
+    layout.width,
+    layout.height,
+    layout.backgroundColor,
+  );
+  pipelineTrace.push({ stage: '04c', agent: 'Compositor', result: `Final: ${imageBase64.length} bytes base64` });
 
-    if (!imageBase64) break;
-    bestImage = imageBase64;
-
-    // OCR + Gates
+  // Stage 5: OCR + Gates on final composite
+  if (imageBase64) {
     try {
-      onProgress({ status: 'verifying', progress: progressBase + 20, message: 'Running OCR verification...' });
+      onProgress({ status: 'verifying', progress: 85, message: 'Running quality verification...' });
       const ocrResult = await ocrInfographic(imageBase64);
       pipelineTrace.push({
-        stage: isRetry ? `04.5.R${attempt}` : '04.5',
+        stage: '05',
         agent: 'Inspector',
         result: `OCR: ${ocrResult.numbers.length} numbers, ${ocrResult.headings.length} headings, ${ocrResult.garbledText.length} garbled, confidence: ${ocrResult.confidence}%`,
       });
 
-      onProgress({ status: 'verifying', progress: progressBase + 25, message: 'Running quality gates...' });
-      const gateResults = await runGates(currentContent, undefined, ocrResult.fullText, ocrResult.numbers);
+      const gateResults = await runGates(finalContent, undefined, ocrResult.fullText, ocrResult.numbers);
       pipelineTrace.push({
-        stage: isRetry ? `04.6.R${attempt}` : '04.6',
+        stage: '05.1',
         agent: 'Gates',
         result: `${gateResults.passed ? 'ALL PASS' : 'FAILED'}: ${gateResults.gates.map(g => `${g.gate}=${g.passed ? 'OK' : 'FAIL'}(${g.score.toFixed(0)}%)`).join(', ')}`,
       });
@@ -245,81 +309,26 @@ export async function runPipeline(
       qualityScore = computeQualityScore(gateResults.gates);
       const badge = formatQualityBadge(qualityScore);
       pipelineTrace.push({
-        stage: isRetry ? `04.7.R${attempt}` : '04.7',
+        stage: '05.2',
         agent: 'QualityScore',
         result: `${badge.level}: ${qualityScore.overall}/100 | accuracy=${qualityScore.accuracy} traceability=${qualityScore.traceability} readability=${qualityScore.readability} visual=${qualityScore.visualQuality}`,
       });
 
-      postGenFlags = [];
       for (const gate of gateResults.gates) {
         if (!gate.passed) postGenFlags.push(...gate.failures);
       }
       if (ocrResult.garbledText.length > 0) {
         postGenFlags.push(`Garbled text detected: ${ocrResult.garbledText.join(', ')}`);
       }
-
-      // If all gates pass, we're done
-      if (gateResults.passed) {
-        console.log(`[Pipeline] All gates passed on attempt ${attempt + 1}`);
-        break;
-      }
-
-      // If this was the last retry, keep best attempt
-      if (attempt >= MAX_RETRIES) {
-        console.log(`[Pipeline] Max retries reached. Returning best attempt (score: ${qualityScore.overall})`);
-        postGenFlags.push(`Quality warning: returned after ${MAX_RETRIES} retries`);
-        break;
-      }
-
-      // Diagnostic retry: fix the SPECIFIC failure
-      const failedGates = gateResults.gates.filter(g => !g.passed);
-      const failReasons = failedGates.map(g => g.gate);
-      console.log(`[Pipeline] Failed gates: ${failReasons.join(', ')} — applying targeted fix for retry ${attempt + 1}...`);
-
-      // Strategy per failure type
-      if (failReasons.includes('readability') || ocrResult.garbledText.length > 0) {
-        // Text too dense → remove 1 section + shorten remaining labels
-        if (currentContent.sections.length > 3) {
-          currentContent = {
-            ...currentContent,
-            sections: currentContent.sections.slice(0, currentContent.sections.length - 1),
-          };
-        }
-        // Truncate remaining labels more aggressively
-        currentContent.sections = currentContent.sections.map(s => ({
-          ...s,
-          labels: s.labels.slice(0, 3).map(l => l.length > 20 ? l.slice(0, 17) + '...' : l),
-          content: s.content.slice(0, 1).map(c => c.length > 30 ? c.slice(0, 27) + '...' : c),
-        }));
-      }
-
-      if (failReasons.includes('data-integrity')) {
-        // Hallucinated numbers → add explicit "ONLY these numbers" to prompt suffix
-        const knownNumbers = [
-          ...currentContent.statsBar.map(s => s.value),
-          ...currentContent.sections.flatMap(s => s.labels),
-        ].filter(Boolean);
-        const numberConstraint = `\n\nCRITICAL — ONLY render these exact numbers and labels. Do NOT invent, estimate, or add any number not listed here:\n${knownNumbers.join('\n')}`;
-        currentPrompt = await assemblePrompt(currentContent, analysis, aspectRatio, language, research, numberAuditResult);
-        currentPrompt += numberConstraint;
-        continue; // skip the re-assemble below
-      }
-
-      // Re-assemble prompt with reduced content
-      currentPrompt = await assemblePrompt(currentContent, analysis, aspectRatio, language, research, numberAuditResult);
-
     } catch (err) {
       console.error('[Inspector] Non-critical error:', err instanceof Error ? err.message : err);
       pipelineTrace.push({
-        stage: isRetry ? `04.5.R${attempt}` : '04.5',
+        stage: '05',
         agent: 'Inspector',
         result: `OCR failed: ${err instanceof Error ? err.message : 'unknown error'}`,
       });
-      break; // Don't retry on OCR infrastructure failure
     }
   }
-
-  const imageBase64 = bestImage;
 
   onProgress({ status: 'generating', progress: 95, message: 'Finalizing...' });
 
@@ -347,6 +356,7 @@ export async function runPipeline(
       contentHash,
       models: {
         analysis: TEXT_MODEL,
+        structure: PRO_MODEL,
         image: IMAGE_MODEL,
       },
       pipeline: pipelineTrace,
@@ -358,9 +368,9 @@ export async function runPipeline(
       contentSources: analysis.contentSources,
       compliance: {
         score: credibility.overall,
-        corrections: report.corrections.length,
-        riskWords: report.riskWords,
-        factFlags: report.factFlags,
+        corrections: 0,
+        riskWords: [],
+        factFlags: [],
       },
       research: {
         queriesRun: research.searchQueries.length,

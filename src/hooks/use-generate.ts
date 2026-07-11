@@ -75,7 +75,8 @@ export function useGenerate() {
 
       if (!res.ok || !res.body) {
         const errBody = await res.json().catch(() => ({ error: 'Generation failed' }));
-        throw new Error(errBody.error || `HTTP ${res.status}`);
+        const detail = errBody.error || errBody.message || res.statusText || 'Unknown';
+        throw new Error(`HTTP ${res.status} — ${detail}`);
       }
 
       setState({

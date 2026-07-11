@@ -72,7 +72,7 @@ Required on Vercel AND locally:
 
 Optional:
 - `EXA_API_KEY` — Web search for research stage
-- `APIFY_TOKEN` — Reference image fetching
+- `PEXELS_API_KEY` — Reference image fetching (free tier: 200 req/hr, 20k req/mo)
 
 ## Conventions
 

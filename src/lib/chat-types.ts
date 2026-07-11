@@ -68,7 +68,7 @@ export type ProvenanceData = {
   seed: string;
   generatedAt: string;
   contentHash: string;
-  models: { analysis: string; image: string };
+  models: { analysis: string; structure?: string; image: string };
   pipeline: { stage: string; agent: string; result: string }[];
   references: string[];
   topics: string[];

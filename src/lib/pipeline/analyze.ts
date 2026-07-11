@@ -314,3 +314,97 @@ ${content.slice(0, 4000)}`);
     contentSources,
   };
 }
+
+// ── Lightweight analysis (v4 pipeline) ──────────────────────
+// Regex for intent + domain, single Gemini Flash call for entity/topic extraction.
+// Replaces 2 serial Gemini calls with 1.
+
+export async function localAnalyze(
+  content: string,
+  userLayout?: string,
+  userStyle?: string,
+): Promise<ContentAnalysis> {
+  // Step 0: Regex intent detection (0s)
+  const regexIntent = detectIntentByRegex(content);
+  const detectedDomain = detectContentDomain(content);
+
+  // Step 1: Single Gemini Flash call — intent confirmation + entity/topic extraction
+  let intent = regexIntent || 'overview';
+  let entities: string[] = [];
+  let topics: string[] = [];
+  let metrics: string[] = [];
+  let contentSources: string[] = [];
+  let sectionCount = INTENT_DEFAULTS[intent]?.minSections || 4;
+  let tone = 'professional';
+
+  try {
+    const response = await geminiGenerate(TEXT_MODEL, `You are an intent classifier and research planner for an infographic engine. Analyze this query and respond in JSON only (no markdown fences).
+
+INTENTS: "ranking" (top N lists), "comparison" (side-by-side), "metrics" (data/KPIs), "process" (how it works, timelines), "overview" (general)
+
+{
+  "intent": "${regexIntent || '???'}",
+  "entities": ["Entity1", "Entity2"],
+  "topics": ["Entity1 key metrics 2024", "Entity2 key metrics 2024"],
+  "metrics": ["primary metric", "secondary metric"],
+  "count": 10,
+  "tone": "professional|academic|technical|editorial",
+  "sources": []
+}
+
+RULES:
+- "intent": Confirm or correct the pre-classified intent "${regexIntent || 'unknown'}". If uncertain, use your best judgment.
+- "entities": Named items (countries, companies, people, products). For rankings, list the actual top N.
+- "topics": Search-optimized queries combining entity + metrics. ONE topic per entity.
+- "count": For "top N" → use N. For comparisons → count items. Default 5.
+- "metrics": ALL metrics the user wants. Be specific (include units).
+
+QUERY:
+${content.slice(0, 4000)}`);
+
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(jsonMatch?.[0] || '{}');
+
+    // Use LLM intent if regex didn't match, or if LLM disagrees and regex was null
+    if (!regexIntent && parsed.intent && INTENT_DEFAULTS[parsed.intent]) {
+      intent = parsed.intent;
+    }
+    entities = parsed.entities || [];
+    topics = parsed.topics || [];
+    metrics = Array.isArray(parsed.metrics) ? parsed.metrics : [];
+    contentSources = parsed.sources || [];
+    tone = parsed.tone || 'professional';
+    if (parsed.count > 0) sectionCount = parsed.count;
+  } catch {
+    // Fallback: extract basic topics from content
+    topics = content
+      .split(/[,\n]/)
+      .map(s => s.trim())
+      .filter(s => s.length > 3 && s.length < 100)
+      .slice(0, 6);
+  }
+
+  const defaults = INTENT_DEFAULTS[intent] || INTENT_DEFAULTS.overview;
+  const layout = userLayout || defaults.layout;
+  const style = userStyle || getStyleForDomainIntent(detectedDomain, intent);
+
+  const contentTypeMap: Record<string, string> = {
+    ranking: 'comparison', comparison: 'comparison',
+    metrics: 'metrics', process: 'process', overview: 'overview',
+  };
+
+  console.log(`[localAnalyze] intent=${intent} | entities=${entities.length} | topics=${topics.length} | domain=${detectedDomain} | layout=${layout} | style=${style}`);
+
+  return {
+    contentType: contentTypeMap[intent] || 'overview',
+    intent,
+    layout,
+    style,
+    tone,
+    sectionCount,
+    topics,
+    entities,
+    metrics,
+    contentSources,
+  };
+}

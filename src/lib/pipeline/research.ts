@@ -67,11 +67,17 @@ export function classifySourceTier(url: string): 1 | 2 | 3 {
 export async function researchContent(
   topics: string[],
   contentSnippet: string,
+  intent?: string,
+  entities?: string[],
 ): Promise<ResearchResult> {
   const empty: ResearchResult = { findings: [], verifiedFacts: [], sourceUrls: [], searchQueries: [], citations: [] };
   if (topics.length === 0) return empty;
 
-  const perplexityResult = await searchPerplexity(topics, contentSnippet);
+  // ── Perplexity search (intent-aware) + Firecrawl enrichment IN PARALLEL ──
+  const perplexityPromise = searchPerplexity(topics, contentSnippet, intent, entities);
+
+  // Start Perplexity first, then decide on Firecrawl based on results
+  const perplexityResult = await perplexityPromise;
   console.log('[Research] Perplexity answer:', perplexityResult.answer.slice(0, 200));
 
   const citations: SourceCitation[] = perplexityResult.citations
@@ -79,20 +85,35 @@ export async function researchContent(
 
   const tier1Count = citations.filter(c => c.tier === 1).length;
   const tier2Count = citations.filter(c => c.tier === 2).length;
-  console.log(`[Research] ${citations.length} citations | ${tier1Count} tier-1 (institutional), ${tier2Count} tier-2 (quality news), ${citations.length - tier1Count - tier2Count} tier-3`);
+  console.log(`[Research] ${citations.length} citations | ${tier1Count} tier-1, ${tier2Count} tier-2, ${citations.length - tier1Count - tier2Count} tier-3`);
 
   const findings: string[] = [];
   if (perplexityResult.answer) {
     findings.push(perplexityResult.answer.replace(/\*\*/g, '').slice(0, 6000));
   }
 
-  // ── Firecrawl enrichment: scrape top citations for full content ──
-  const { enriched, enhancedCitations } = await enrichCitations(citations, 3);
+  // ── Firecrawl enrichment: parallel, non-blocking, best-effort ──
+  // Fire-and-forget: start enrichment but don't block the pipeline.
+  // If it completes before structuring starts, great. If not, we proceed without it.
+  const firecrawlPromise = enrichCitations(citations, 3).catch(err => {
+    console.warn('[Research] Firecrawl enrichment failed (non-blocking):', err instanceof Error ? err.message : err);
+    return { enriched: [] as any[], enhancedCitations: citations };
+  });
 
-  if (enriched.length > 0) {
-    console.log(`[Research] Firecrawl enriched ${enriched.length} citations with deep content`);
-    // Add extracted facts from scraped pages to findings
-    const firecrawlFacts = enriched.flatMap(r => r.facts);
+  // Give Firecrawl 8s to complete — if it doesn't, proceed without it
+  const firecrawlResult = await Promise.race([
+    firecrawlPromise,
+    new Promise<{ enriched: any[]; enhancedCitations: SourceCitation[] }>(resolve =>
+      setTimeout(() => {
+        console.log('[Research] Firecrawl timed out (8s) — proceeding without enrichment');
+        resolve({ enriched: [], enhancedCitations: citations });
+      }, 8000)
+    ),
+  ]);
+
+  if (firecrawlResult.enriched.length > 0) {
+    console.log(`[Research] Firecrawl enriched ${firecrawlResult.enriched.length} citations with deep content`);
+    const firecrawlFacts = firecrawlResult.enriched.flatMap((r: any) => r.facts || []);
     if (firecrawlFacts.length > 0) {
       findings.push(`\n--- Deep-sourced facts (Firecrawl) ---\n${firecrawlFacts.join('\n')}`);
     }
@@ -101,58 +122,45 @@ export async function researchContent(
   return {
     findings,
     verifiedFacts: [],
-    sourceUrls: enhancedCitations.map(c => c.url),
+    sourceUrls: firecrawlResult.enhancedCitations.map(c => c.url),
     searchQueries: topics,
-    citations: enhancedCitations,
+    citations: firecrawlResult.enhancedCitations,
   };
 }
 
-// ── Reference images (Apify Google Images) ────────────────────
+// ── Reference images (Pexels) ─────────────────────────────────
+// Replaces the previous Apify `hooli/google-images-scraper` call.
+// Pexels free tier: 200 req/hr, 20,000 req/mo — more than enough.
 
 export async function fetchReferenceImages(
   topics: string[],
 ): Promise<ReferenceImage[]> {
-  const apifyToken = process.env.APIFY_TOKEN;
-  if (!apifyToken || topics.length === 0) return [];
+  const pexelsKey = process.env.PEXELS_API_KEY;
+  if (!pexelsKey || topics.length === 0) return [];
 
   try {
-    const primaryQuery = topics.slice(0, 3).join(' ');
-    const queries = [primaryQuery];
-    if (topics.length > 2) {
-      queries.push(`${topics[0]} ${topics[1]} photo`);
-    }
+    const query = topics.slice(0, 3).join(' ');
+    const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=3&orientation=landscape`;
 
-    const actorUrl = 'https://api.apify.com/v2/acts/hooli~google-images-scraper/run-sync-get-dataset-items';
-
-    const res = await fetch(`${actorUrl}?token=${apifyToken}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        queries,
-        maxItems: 5,
-        countryCode: 'us',
-      }),
-      signal: AbortSignal.timeout(30000),
+    const res = await fetch(url, {
+      headers: { Authorization: pexelsKey },
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!res.ok) {
-      console.error(`[RefImages] Apify returned ${res.status}`);
+      console.error(`[RefImages] Pexels returned ${res.status}`);
       return [];
     }
 
-    const items: any[] = await res.json();
-    if (!Array.isArray(items) || items.length === 0) return [];
-
-    const imageItems = items
-      .filter((item: any) => item.imageUrl && item.imageUrl.startsWith('http'))
-      .slice(0, 3);
+    const data = await res.json() as { photos?: Array<{ src: { large: string; medium: string }; alt?: string; url: string }> };
+    const photos = (data.photos ?? []).slice(0, 3);
+    if (photos.length === 0) return [];
 
     const images = await Promise.all(
-      imageItems.map(async (item: any): Promise<ReferenceImage | null> => {
+      photos.map(async (p): Promise<ReferenceImage | null> => {
         try {
-          const imgRes = await fetch(item.imageUrl, {
-            signal: AbortSignal.timeout(8000),
-          });
+          const imgUrl = p.src.large || p.src.medium;
+          const imgRes = await fetch(imgUrl, { signal: AbortSignal.timeout(8000) });
           if (!imgRes.ok) return null;
 
           const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
@@ -169,8 +177,8 @@ export async function fetchReferenceImages(
           return {
             base64,
             mimeType,
-            sourceUrl: item.imageUrl,
-            description: item.title || item.description || '',
+            sourceUrl: p.url,
+            description: p.alt ?? '',
           };
         } catch {
           return null;
@@ -180,7 +188,7 @@ export async function fetchReferenceImages(
 
     return images.filter((img): img is ReferenceImage => img !== null);
   } catch (err) {
-    console.error('[RefImages] Apify fetch failed:', err instanceof Error ? err.message : err);
+    console.error('[RefImages] Pexels fetch failed:', err instanceof Error ? err.message : err);
     return [];
   }
 }
