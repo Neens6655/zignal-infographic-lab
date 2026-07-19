@@ -105,16 +105,6 @@ const POPULAR_PRESETS = [
     desc: "Board-ready bento grid",
   },
   { id: "deconstruct", label: "Deconstruct", desc: "NYT-style exploded view" },
-  {
-    id: "process-flow",
-    label: "Process Flow",
-    desc: "Step-by-step IKEA manual",
-  },
-  {
-    id: "institutional-brief",
-    label: "Institutional",
-    desc: "McKinsey / JP Morgan brief",
-  },
 ];
 
 const ALL_STYLES = [
@@ -529,7 +519,7 @@ export default function Home() {
     <MotionConfig reducedMotion="user">
       <main
         id="main-content"
-        className="min-h-screen bg-(--z-bg) text-(--z-cream)"
+        className="min-h-screen bg-(--z-bg) text-(--z-cream) overflow-x-clip"
       >
         <Nav />
 
@@ -683,15 +673,17 @@ export default function Home() {
             </svg>
           </div>
 
-          {/* Hero content — 12-col grid: message+generator left, OUTPUT right */}
+          {/* Hero content — interlocking layers: monumental headline (z-20)
+              over the elevated artifact (z-10), command console riding the
+              artifact's bottom-left corner (z-30). Not a grid of boxes. */}
           <motion.div
-            className="relative flex-1 w-full max-w-[1480px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-x-10 xl:gap-x-14 gap-y-6 content-center px-4 sm:px-6 pt-24 sm:pt-28 pb-12 lg:pb-16"
+            className="relative flex-1 w-full max-w-[1480px] mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-10"
             style={
               reduce ? undefined : { y: heroContentY, opacity: heroOpacity }
             }
           >
-            {/* Headline block */}
-            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-1 lg:self-end">
+            {/* Headline band — overlaps the artifact's top-left */}
+            <div className="relative z-20 max-w-4xl lg:-mb-12">
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -708,7 +700,7 @@ export default function Home() {
                   duration: 0.8,
                   ease: [0.25, 0.1, 0.25, 1],
                 }}
-                className="font-mono font-medium heading-editorial text-4xl sm:text-5xl xl:text-6xl"
+                className="font-mono font-medium heading-editorial text-[42px] sm:text-6xl xl:text-[76px] [text-shadow:0_2px_40px_rgba(10,10,11,0.9)]"
               >
                 <span className="block">Turn complexity</span>
                 <span className="block text-gradient-gold">into clarity</span>
@@ -717,21 +709,21 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.6 }}
-                className="mt-4 text-[13px] text-(--z-muted) leading-relaxed max-w-sm"
+                className="mt-4 text-[13px] text-(--z-muted) leading-relaxed max-w-md"
               >
                 Paste anything. Seven AI agents research it across 22 trusted
-                sources and render a publication-grade infographic — like the
-                one on the right — in about a minute.
+                sources and render a publication-grade infographic in about a
+                minute. Like this one —
               </motion.p>
             </div>
 
-            {/* THE OUTPUT — visual star, first thing after the headline on mobile */}
-            <div className="lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 lg:self-center">
+            {/* THE ARTIFACT — elevated, pushed right, tucked under the headline */}
+            <div className="relative z-10 mt-6 lg:mt-0 lg:ml-[35%] lg:mr-16">
               <HeroOutputShowcase />
             </div>
 
-            {/* Generator — full functionality, compressed to column width */}
-            <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2 lg:self-start">
+            {/* Command console — rides over the artifact's bottom-left corner */}
+            <div className="relative z-30 mt-6 lg:mt-0 lg:absolute lg:bottom-6 lg:left-4 sm:lg:left-6 lg:w-[34%]">
               <motion.div
                 ref={generatorRef}
                 initial={{ opacity: 0, y: 30 }}
@@ -740,7 +732,7 @@ export default function Home() {
                 className="w-full"
               >
                 <div
-                  className="metallic-frame relative overflow-hidden flex flex-col max-h-[80vh]"
+                  className="metallic-frame relative overflow-hidden flex flex-col max-h-[70vh]"
                   style={{
                     boxShadow:
                       "0 0 0 1px rgba(255,255,255,0.06), 0 0 0 2px rgba(212,168,75,0.08), 0 8px 40px rgba(0,0,0,0.5), 0 2px 12px rgba(212,168,75,0.06)",
@@ -843,9 +835,9 @@ export default function Home() {
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             placeholder={
-                              "e.g. How Coffee Goes From Farm to Cup: 70% grown in Brazil, Vietnam, Colombia. A single bean travels 3 continents before reaching your mug. Fair trade covers only 5% of global supply. The industry is worth $450B and employs 125 million people worldwide."
+                              "Paste text, a URL transcript, or your notes — the engine researches, verifies, and renders. 50+ characters."
                             }
-                            className="w-full min-h-[90px] sm:min-h-[110px] max-h-[300px] resize-none bg-transparent text-[14px] sm:text-[15px] text-white placeholder:text-white/35 focus:outline-none leading-relaxed font-sans pr-16 sm:pr-24 z-scroll"
+                            className="w-full min-h-[72px] sm:min-h-[84px] max-h-[220px] resize-none bg-transparent text-[14px] sm:text-[15px] text-white placeholder:text-white/35 focus:outline-none leading-relaxed font-sans pr-16 sm:pr-24 z-scroll"
                             disabled={isGenerating || isImproving}
                           />
                           {/* Voice + Improve buttons */}
@@ -1127,8 +1119,8 @@ export default function Home() {
                           onClick={() => setSimplify(!simplify)}
                           className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 text-[10px] sm:text-[11px] font-mono font-medium transition-all border ${
                             simplify
-                              ? "bg-(--z-gold)/10 text-(--z-gold) border-(--z-gold)/20"
-                              : "text-white/50 border-transparent hover:text-white/70"
+                              ? "bg-(--z-gold)/10 text-(--z-gold) border-(--z-gold)/50"
+                              : "text-white/50 border-white/20 hover:text-white/70 hover:border-white/35"
                           }`}
                         >
                           <div
@@ -1148,7 +1140,7 @@ export default function Home() {
                         <button
                           onClick={() => handleGenerate()}
                           disabled={!hasContent || isGenerating}
-                          className="flex items-center gap-2 bg-(--z-gold) px-4 sm:px-6 py-2 sm:py-2.5 text-[11px] sm:text-xs font-mono font-bold text-(--z-bg) hover:bg-(--z-gold-dim) active:scale-[0.97] transition-all disabled:opacity-20 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
+                          className="flex items-center gap-2 bg-(--z-gold) px-4 sm:px-6 py-2 sm:py-2.5 text-[11px] sm:text-xs font-mono font-bold text-(--z-bg) hover:bg-(--z-gold-dim) active:scale-[0.97] transition-all disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
                         >
                           <Sparkles className="h-3.5 w-3.5" />
                           Generate
