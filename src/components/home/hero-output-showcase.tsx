@@ -84,13 +84,18 @@ export function HeroOutputShowcase() {
       </div>
 
       {/* Provenance chips — the old stat bar, contextualized */}
-      <figcaption className="flex gap-2 mt-3 overflow-x-auto z-scroll-x pb-1 lg:flex-wrap lg:overflow-visible">
+      <div
+        tabIndex={0}
+        role="group"
+        aria-label="Generation provenance"
+        className="flex gap-2 mt-3 overflow-x-auto z-scroll-x pb-1 lg:flex-wrap lg:overflow-visible focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
+      >
         <Chip>generated in ~60s</Chip>
         <Chip>research: 22 trusted sources</Chip>
         <Chip>style: {specimen.style}</Chip>
         <Chip>400+ layout×style combos</Chip>
         <Chip>2K+ print resolution</Chip>
-      </figcaption>
+      </div>
     </motion.figure>
   );
 }

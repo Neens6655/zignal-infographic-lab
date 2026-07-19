@@ -35,13 +35,13 @@ export function LouvreCaseStudy({
       id="case-study"
       className="relative py-20 sm:py-32 bg-[#0B0B0D] overflow-hidden"
     >
-      {/* Giant ghost watermark */}
-      <p
+      {/* Giant ghost watermark — text lives in a pseudo-element so it stays
+          out of the a11y tree and axe contrast checks (pure decoration) */}
+      <div
         aria-hidden="true"
-        className="absolute -top-4 left-0 right-0 text-[90px] sm:text-[180px] font-mono font-bold text-white/[0.02] leading-none tracking-tighter select-none whitespace-nowrap overflow-hidden"
-      >
-        CASE STUDY — LOUVRE
-      </p>
+        style={{ "--wm": "'CASE STUDY — LOUVRE'" } as React.CSSProperties}
+        className="absolute -top-4 left-0 right-0 text-[90px] sm:text-[180px] font-mono font-bold text-white/[0.02] leading-none tracking-tighter select-none whitespace-nowrap overflow-hidden before:content-(--wm)"
+      />
 
       <div className="relative mx-auto max-w-7xl px-6">
         <div className="grid lg:grid-cols-12 gap-10 items-center">

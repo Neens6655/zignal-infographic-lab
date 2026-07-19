@@ -118,7 +118,12 @@ export function OutputGallery() {
           </ScrollReveal>
         </div>
         {/* Full-bleed horizontal strip, snap-scrolled — captions live ON the image */}
-        <div className="overflow-x-auto z-scroll-x scroll-snap-x">
+        <div
+          tabIndex={0}
+          role="region"
+          aria-label="Style examples"
+          className="overflow-x-auto z-scroll-x scroll-snap-x focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
+        >
           <div className="flex gap-4 px-6 pb-4 w-max">
             {STYLES_SHOWCASE.map((item) => (
               <figure

@@ -798,6 +798,7 @@ export default function Home() {
                           <button
                             key={mode.id}
                             onClick={() => setInputMode(mode.id)}
+                            aria-label={mode.label}
                             className={`group flex items-center gap-1.5 py-2 px-3 sm:px-4 transition-all text-[10px] sm:text-[11px] font-mono tracking-wide border-b-2 flex-1 justify-center ${
                               isActive
                                 ? "bg-white/[0.05] border-b-(--z-gold) text-white"
@@ -1270,10 +1271,10 @@ export default function Home() {
                     <ZignalLogo size={22} className="text-(--z-bg)" />
                   </div>
                   <span className="font-mono text-lg font-bold tracking-tight text-white">
-                    ZGNAL<span className="text-white/30">.AI</span>
+                    ZGNAL<span className="text-white/50">.AI</span>
                   </span>
                 </div>
-                <p className="text-sm text-white/40 leading-relaxed max-w-md">
+                <p className="text-sm text-white/55 leading-relaxed max-w-md">
                   Research-backed infographics powered by a seven-stage AI
                   pipeline. 20 layouts. 20 styles. 22 trusted sources. Three
                   aspect ratios.
@@ -1283,7 +1284,7 @@ export default function Home() {
               {/* Links grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-8 sm:gap-10 mb-16 sm:mb-20">
                 <div>
-                  <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/40 mb-5">
+                  <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/55 mb-5">
                     Product
                   </p>
                   <div className="space-y-3">
@@ -1303,7 +1304,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/40 mb-5">
+                  <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/55 mb-5">
                     Resources
                   </p>
                   <div className="space-y-3">
@@ -1323,7 +1324,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/40 mb-5">
+                  <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/55 mb-5">
                     Company
                   </p>
                   <div className="space-y-3">
@@ -1343,7 +1344,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/40 mb-5">
+                  <p className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] text-white/55 mb-5">
                     Legal
                   </p>
                   <div className="space-y-3">
@@ -1365,18 +1366,20 @@ export default function Home() {
 
               {/* Large ZIGNAL text */}
               <div className="mb-12 overflow-hidden">
-                <p className="text-[52px] sm:text-[120px] lg:text-[180px] font-mono font-bold text-white/[0.03] leading-none tracking-tighter select-none heading-editorial">
-                  ZGNAL.AI
-                </p>
+                <div
+                  aria-hidden="true"
+                  style={{ "--wm": "'ZGNAL.AI'" } as React.CSSProperties}
+                  className="text-[52px] sm:text-[120px] lg:text-[180px] font-mono font-bold text-white/[0.03] leading-none tracking-tighter select-none heading-editorial before:content-(--wm)"
+                />
               </div>
 
               {/* Bottom bar */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/[0.06]">
-                <span className="text-[11px] text-white/40 font-mono">
+                <span className="text-[11px] text-white/55 font-mono">
                   &copy; {new Date().getFullYear()} ZGNAL.AI — All rights
                   reserved.
                 </span>
-                <div className="flex items-center gap-5 text-[11px] text-white/40 font-mono">
+                <div className="flex items-center gap-5 text-[11px] text-white/55 font-mono">
                   <a
                     href="/privacy"
                     className="hover:text-white/50 transition-colors"

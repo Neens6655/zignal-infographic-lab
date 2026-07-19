@@ -221,7 +221,7 @@ export function PipelineStory({
                     <div className="text-lg font-mono font-bold text-(--z-gold)">
                       {stat.value}
                     </div>
-                    <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-white/40 mt-0.5">
+                    <div className="text-[10px] font-mono uppercase tracking-[0.15em] text-white/55 mt-0.5">
                       {stat.label}
                     </div>
                   </div>
