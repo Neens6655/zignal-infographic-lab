@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { SHOWCASE, STYLES_SHOWCASE } from "./landing-content";
 import { ScrollReveal } from "./scroll-reveal-v2";
 
@@ -9,7 +9,11 @@ import { ScrollReveal } from "./scroll-reveal-v2";
    Replaces the random-width marquee: uniform 16:9 tiles, two featured
    pieces at double size, provenance on every tile. The honesty claim
    ("real research, real data") is promoted to the section's subheading. */
-export function OutputGallery() {
+export function OutputGallery({
+  scrollToGenerator,
+}: {
+  scrollToGenerator: () => void;
+}) {
   const featured = SHOWCASE.slice(0, 2);
   const grid = SHOWCASE.slice(2);
 
@@ -97,8 +101,19 @@ export function OutputGallery() {
           ))}
         </div>
 
-        {/* Provenance line */}
+        {/* Provenance line + action path */}
         <ScrollReveal delay={0.15}>
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+            <button
+              onClick={scrollToGenerator}
+              className="inline-flex items-center gap-2 text-[11px] font-mono font-bold text-(--z-gold) hover:text-(--z-gold-dim) transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
+            >
+              Generate yours — free
+              <ArrowRight className="h-3 w-3" />
+            </button>
+          </div>
+        </ScrollReveal>
+        <ScrollReveal delay={0.2}>
           <p className="flex items-center gap-2 mt-8 text-[11px] font-mono text-(--z-light-muted)">
             <CheckCircle2 className="h-3.5 w-3.5 text-(--z-gold)" />
             Every output ships with a provenance certificate — sources, dates,

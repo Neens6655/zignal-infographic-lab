@@ -73,10 +73,13 @@ export function PipelineStory({
             <br />
             <span className="text-(--z-muted)">Zero guesswork.</span>
           </h2>
-          <p className="text-sm text-(--z-muted) leading-relaxed max-w-lg mb-10 sm:mb-20">
+          <p className="text-sm text-(--z-muted) leading-relaxed max-w-lg mb-4">
             Every infographic flows through an agentic pipeline — seven
             specialized AI agents, from raw content to publication-ready output
             in approximately 60 seconds.
+          </p>
+          <p className="hidden lg:block text-[10px] font-mono uppercase tracking-[0.2em] text-(--z-gold)/50 mb-10 sm:mb-20">
+            — hover any agent to inspect its role —
           </p>
         </ScrollReveal>
 
@@ -114,7 +117,7 @@ export function PipelineStory({
                     transition={{ delay: i * 0.08, duration: 0.6 }}
                   >
                     <div
-                      className="relative group px-2 cursor-pointer"
+                      className="relative group px-2 py-2 -my-2 cursor-pointer transition-colors duration-300 hover:bg-(--z-gold)/[0.03]"
                       onMouseEnter={() => setActiveStep(i)}
                       onMouseLeave={() => setActiveStep(null)}
                     >

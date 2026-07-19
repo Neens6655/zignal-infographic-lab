@@ -60,24 +60,27 @@ export function HeroOutputShowcase() {
           ))}
         </div>
 
-        {/* Specimen switcher */}
-        <div className="flex items-center gap-1 border-t border-white/[0.06] bg-white/[0.02] px-3 py-2">
+        {/* Specimen switcher — tab affordance: label + underline indicator */}
+        <div className="flex items-center border-t border-white/[0.06] bg-white/[0.02] px-3">
+          <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-white/45 mr-3 shrink-0">
+            View
+          </span>
           {HERO_SPECIMENS.map((s, i) => (
             <button
               key={s.id}
               onClick={() => setActive(i)}
               aria-pressed={i === active}
               aria-label={`Show ${s.title}`}
-              className={`px-2.5 py-1 text-[9px] font-mono uppercase tracking-[0.12em] transition-colors border ${
+              className={`px-3 py-2.5 text-[9px] font-mono uppercase tracking-[0.12em] transition-all border-b-2 cursor-pointer ${
                 i === active
-                  ? "bg-(--z-gold)/10 text-(--z-gold) border-(--z-gold)/25"
-                  : "text-white/40 border-transparent hover:text-white/60 hover:bg-white/[0.03]"
+                  ? "border-b-(--z-gold) bg-(--z-gold)/[0.07] text-(--z-gold)"
+                  : "border-b-transparent text-white/45 hover:text-(--z-gold)/80 hover:bg-white/[0.04] hover:border-b-(--z-gold)/30"
               }`}
             >
               {s.style.split(" ")[0]}
             </button>
           ))}
-          <span className="ml-auto hidden sm:inline text-[9px] font-mono text-white/25">
+          <span className="ml-auto hidden sm:inline text-[9px] font-mono text-white/35 py-2.5">
             from {specimen.prompt}
           </span>
         </div>

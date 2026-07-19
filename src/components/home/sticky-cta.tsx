@@ -16,16 +16,18 @@ export function StickyCta({
   const [offerVisible, setOfferVisible] = useState(false);
 
   useEffect(() => {
-    const gallery = document.getElementById("gallery");
+    // Trigger: past the hero (value promise + specimen seen). This bar carries a
+    // free action, not a price — no anchoring risk in appearing this early.
+    const hero = document.getElementById("hero");
     const offer = document.getElementById("offer");
-    if (!gallery) return;
+    if (!hero) return;
 
     const galleryIO = new IntersectionObserver(([entry]) => {
       setPastGallery(
         !entry.isIntersecting && entry.boundingClientRect.bottom < 0,
       );
     });
-    galleryIO.observe(gallery);
+    galleryIO.observe(hero);
 
     let offerIO: IntersectionObserver | undefined;
     if (offer) {

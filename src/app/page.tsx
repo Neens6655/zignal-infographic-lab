@@ -537,7 +537,10 @@ export default function Home() {
             HERO — output-first: a real generated infographic is the star;
             the generator is the path to make your own
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-        <section className="relative lg:min-h-screen flex flex-col overflow-hidden bg-(--z-bg)">
+        <section
+          id="hero"
+          className="relative lg:min-h-screen flex flex-col overflow-hidden bg-(--z-bg)"
+        >
           {/* Animated gradient orbs — slow, living background */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="hero-orb hero-orb-gold" />
@@ -1205,7 +1208,7 @@ export default function Home() {
         </section>
 
         {/* ━━━━ GALLERY — curated real outputs + styles band (#gallery, #examples) ━━━━ */}
-        <OutputGallery />
+        <OutputGallery scrollToGenerator={scrollToGenerator} />
 
         {/* ━━━━ CASE STUDY — the Louvre render, promoted from footer ghost to scene ━━━━ */}
         <LouvreCaseStudy scrollToGenerator={scrollToGenerator} />
