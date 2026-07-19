@@ -529,7 +529,7 @@ export default function Home() {
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <section
           id="hero"
-          className="relative lg:min-h-screen flex flex-col overflow-hidden bg-(--z-bg)"
+          className="relative lg:min-h-[720px] flex flex-col overflow-hidden bg-(--z-bg)"
         >
           {/* Animated gradient orbs — slow, living background */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -717,13 +717,19 @@ export default function Home() {
               </motion.p>
             </div>
 
-            {/* THE ARTIFACT — elevated, pushed right, tucked under the headline */}
-            <div className="relative z-10 mt-6 lg:mt-0 lg:ml-[35%] lg:mr-16">
+            {/* THE ARTIFACT — elevated, right-aligned, tucked under the headline.
+                Width is capped by VIEWPORT HEIGHT so the full frame (bezel +
+                image + footer tabs) fits above the fold on 768px laptops as
+                well as 1080px monitors. mr-16 keeps it clear of the ChatFAB. */}
+            <div className="relative z-10 mt-6 lg:mt-0 lg:ml-auto lg:mr-16 lg:w-[min(64%,calc((100vh-440px)*16/9))] lg:min-w-[560px]">
               <HeroOutputShowcase />
             </div>
 
-            {/* Command console — rides over the artifact's bottom-left corner */}
-            <div className="relative z-30 mt-6 lg:mt-0 lg:absolute lg:bottom-6 lg:left-4 sm:lg:left-6 lg:w-[34%]">
+            {/* Command console — bottom-anchored. Safe now: the artifact is
+                viewport-sized, so the section's height tracks the viewport and
+                the console always lands fully above the fold. At narrow widths
+                it rides over the artifact's bottom-left corner (z-30). */}
+            <div className="relative z-30 mt-6 lg:mt-0 lg:absolute lg:bottom-6 lg:left-4 sm:lg:left-6 lg:w-[38%] lg:max-w-[460px] lg:min-w-[400px]">
               <motion.div
                 ref={generatorRef}
                 initial={{ opacity: 0, y: 30 }}
