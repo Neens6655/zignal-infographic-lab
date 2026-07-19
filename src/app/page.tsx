@@ -519,7 +519,7 @@ export default function Home() {
     <MotionConfig reducedMotion="user">
       <main
         id="main-content"
-        className="min-h-screen bg-(--z-bg) text-(--z-cream) overflow-x-clip"
+        className="relative min-h-screen bg-(--z-bg) text-(--z-cream) overflow-x-clip"
       >
         <Nav />
 
@@ -529,7 +529,7 @@ export default function Home() {
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <section
           id="hero"
-          className="relative lg:min-h-[720px] flex flex-col overflow-hidden bg-(--z-bg)"
+          className="relative lg:h-svh lg:min-h-[560px] lg:max-h-[1100px] flex flex-col overflow-hidden bg-(--z-bg)"
         >
           {/* Animated gradient orbs — slow, living background */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -677,7 +677,7 @@ export default function Home() {
               over the elevated artifact (z-10), command console riding the
               artifact's bottom-left corner (z-30). Not a grid of boxes. */}
           <motion.div
-            className="relative flex-1 w-full max-w-[1480px] mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-10"
+            className="relative flex-1 w-full max-w-[min(1480px,calc(640px+(100svh-440px)*16/9))] mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-10"
             style={
               reduce ? undefined : { y: heroContentY, opacity: heroOpacity }
             }
@@ -700,28 +700,18 @@ export default function Home() {
                   duration: 0.8,
                   ease: [0.25, 0.1, 0.25, 1],
                 }}
-                className="font-mono font-medium heading-editorial text-[42px] sm:text-6xl xl:text-[76px] [text-shadow:0_2px_40px_rgba(10,10,11,0.9)]"
+                className="font-mono font-medium heading-editorial text-[42px] sm:text-6xl xl:text-[clamp(44px,8svh,76px)] [text-shadow:0_2px_40px_rgba(10,10,11,0.9)]"
               >
                 <span className="block">Turn complexity</span>
                 <span className="block text-gradient-gold">into clarity</span>
               </motion.h1>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.6 }}
-                className="mt-4 text-[13px] text-(--z-muted) leading-relaxed max-w-md"
-              >
-                Paste anything. Seven AI agents research it across 22 trusted
-                sources and render a publication-grade infographic in about a
-                minute. Like this one —
-              </motion.p>
             </div>
 
             {/* THE ARTIFACT — elevated, right-aligned, tucked under the headline.
                 Width is capped by VIEWPORT HEIGHT so the full frame (bezel +
                 image + footer tabs) fits above the fold on 768px laptops as
                 well as 1080px monitors. mr-16 keeps it clear of the ChatFAB. */}
-            <div className="relative z-10 mt-6 lg:mt-0 lg:ml-auto lg:mr-16 lg:w-[min(64%,calc((100vh-440px)*16/9))] lg:min-w-[560px]">
+            <div className="relative z-10 mt-6 lg:mt-0 lg:ml-auto lg:mr-16 lg:w-[min(64%,calc((100svh-440px)*16/9))]">
               <HeroOutputShowcase />
             </div>
 
@@ -729,7 +719,18 @@ export default function Home() {
                 viewport-sized, so the section's height tracks the viewport and
                 the console always lands fully above the fold. At narrow widths
                 it rides over the artifact's bottom-left corner (z-30). */}
-            <div className="relative z-30 mt-6 lg:mt-0 lg:absolute lg:bottom-6 lg:left-4 sm:lg:left-6 lg:w-[38%] lg:max-w-[460px] lg:min-w-[400px]">
+            <div className="relative z-30 mt-6 lg:mt-0 lg:absolute lg:bottom-6 lg:left-6 lg:w-[38%] lg:max-w-[460px] lg:min-w-[400px]">
+              {/* Sub-copy lives WITH the console so it can never be overlapped by it */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                className="mb-3 text-[12px] text-(--z-muted) leading-relaxed"
+              >
+                Paste anything. Seven AI agents research it across 22 trusted
+                sources and render a publication-grade infographic in about a
+                minute. Like this one —
+              </motion.p>
               <motion.div
                 ref={generatorRef}
                 initial={{ opacity: 0, y: 30 }}
@@ -843,7 +844,7 @@ export default function Home() {
                             placeholder={
                               "Paste text, a URL transcript, or your notes — the engine researches, verifies, and renders. 50+ characters."
                             }
-                            className="w-full min-h-[72px] sm:min-h-[84px] max-h-[220px] resize-none bg-transparent text-[14px] sm:text-[15px] text-white placeholder:text-white/35 focus:outline-none leading-relaxed font-sans pr-16 sm:pr-24 z-scroll"
+                            className="w-full min-h-[72px] sm:min-h-[84px] lg:[@media(max-height:719px)]:min-h-[52px] max-h-[220px] resize-none bg-transparent text-[14px] sm:text-[15px] text-white placeholder:text-white/35 focus:outline-none leading-relaxed font-sans pr-16 sm:pr-24 z-scroll"
                             disabled={isGenerating || isImproving}
                           />
                           {/* Voice + Improve buttons */}
@@ -1015,8 +1016,9 @@ export default function Home() {
                     </div>
                     {/* end scrollable input zone */}
 
-                    {/* Style preset bar */}
-                    <div className="flex items-center gap-2 border-t border-white/[0.06] px-3 sm:px-4 py-2.5 overflow-x-auto shrink-0 z-scroll-x">
+                    {/* Style preset bar — hides on short desktop viewports so the
+                        bottom-anchored console keeps clearance from the headline */}
+                    <div className="flex items-center gap-2 border-t border-white/[0.06] px-3 sm:px-4 py-2.5 overflow-x-auto shrink-0 z-scroll-x lg:[@media(max-height:719px)]:hidden">
                       {POPULAR_PRESETS.map((p) => (
                         <button
                           key={p.id}
