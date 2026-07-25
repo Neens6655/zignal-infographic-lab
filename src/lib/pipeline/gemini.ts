@@ -1,34 +1,38 @@
 /**
  * Gemini API helpers — text generation and image generation.
  */
-import type { ReferenceImage } from './types';
+import type { ReferenceImage } from "./types";
 
-const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
 function getApiKey(): string {
   const key = process.env.GOOGLE_API_KEY;
-  if (!key) throw new Error('GOOGLE_API_KEY is not configured');
+  if (!key) throw new Error("GOOGLE_API_KEY is not configured");
   return key;
 }
 
-export const TEXT_MODEL = 'gemini-2.5-flash';
-export const PRO_MODEL = 'gemini-2.5-pro';
-export const IMAGE_MODEL = 'gemini-3.1-flash-image-preview';
+export const TEXT_MODEL = "gemini-2.5-flash";
+export const PRO_MODEL = "gemini-2.5-pro";
+export const IMAGE_MODEL = "gemini-3.1-flash-image-preview";
 
-export async function geminiGenerate(model: string, prompt: string, responseModalities?: string[]): Promise<string> {
+export async function geminiGenerate(
+  model: string,
+  prompt: string,
+  responseModalities?: string[],
+): Promise<string> {
   const url = `${GEMINI_BASE}/models/${model}:generateContent`;
   const body: Record<string, unknown> = {
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
     generationConfig: responseModalities
       ? { responseModalities }
       : { maxOutputTokens: 8192 },
   };
 
   const res = await fetch(url, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': getApiKey(),
+      "Content-Type": "application/json",
+      "x-goog-api-key": getApiKey(),
     },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(120_000),
@@ -42,25 +46,39 @@ export async function geminiGenerate(model: string, prompt: string, responseModa
   const data = await res.json();
   // Skip thinking/thought parts — gemini-2.5-flash returns thought parts before the actual output
   const parts = data.candidates?.[0]?.content?.parts || [];
-  const textPart = parts.find((p: any) => p.text && !p.thought) || parts.find((p: any) => p.text);
-  return textPart?.text || '';
+  const textPart =
+    parts.find((p: any) => p.text && !p.thought) ||
+    parts.find((p: any) => p.text);
+  return textPart?.text || "";
 }
 
 // Style enforcement map — key visual rules repeated at the end of prompt
 // (models pay most attention to the beginning and end of prompts)
 const STYLE_ENFORCEMENT: Record<string, string> = {
-  'executive-institutional': 'STYLE ENFORCEMENT: This MUST be a clean, white-background, McKinsey/JP Morgan-style research brief. Background is WHITE (#FFFFFF). Navy header/footer bars. Clean sans-serif typography. NO colorful illustrations, NO cartoon characters, NO playful elements. Think: printed boardroom handout.',
-  'corporate-memphis': 'STYLE ENFORCEMENT: Use flat geometric characters with bold solid colors. Corporate Memphis / tech illustration style. NO photorealistic elements.',
-  'bold-graphic': 'STYLE ENFORCEMENT: Swiss poster aesthetic. Bold typography, maximum impact, limited color palette. Strong geometric shapes.',
-  'technical-schematic': 'STYLE ENFORCEMENT: Blueprint grid aesthetic. Technical diagram style with process flows and connection lines. Dark background with light lines.',
-  'aerial-explainer': 'STYLE ENFORCEMENT: Isometric 3D drone-view perspective. Cutaway architectural style showing systems from above.',
-  'ui-wireframe': 'STYLE ENFORCEMENT: Clean data dashboard wireframe. Dark background, neon accent colors, chart-heavy. No illustrations.',
-  'knolling': 'STYLE ENFORCEMENT: Top-down flat-lay photography style. Objects arranged at perfect right angles on neutral background.',
-  'subway-map': 'STYLE ENFORCEMENT: Transit map style with colored lines connecting nodes. Clean geometric paths like a metro map.',
-  'chalkboard': 'STYLE ENFORCEMENT: White chalk sketches on dark green chalkboard background. Hand-drawn sketch-note style.',
-  'aged-academia': 'STYLE ENFORCEMENT: Sepia tones, classical engraving style. Aged paper texture, Victorian-era scientific illustration aesthetic.',
-  'ikea-manual': 'STYLE ENFORCEMENT: Minimal black line drawings on white. Numbered step-by-step instructions like an IKEA assembly manual.',
-  'deconstruct': 'STYLE ENFORCEMENT: Exploded view with callout lines and labels. NYT-style editorial infographic with annotated cross-sections.',
+  "executive-institutional":
+    "STYLE ENFORCEMENT: This MUST be a clean, white-background, McKinsey/JP Morgan-style research brief. Background is WHITE (#FFFFFF). Navy header/footer bars. Clean sans-serif typography. NO colorful illustrations, NO cartoon characters, NO playful elements. Think: printed boardroom handout.",
+  "corporate-memphis":
+    "STYLE ENFORCEMENT: Use flat geometric characters with bold solid colors. Corporate Memphis / tech illustration style. NO photorealistic elements.",
+  "bold-graphic":
+    "STYLE ENFORCEMENT: Swiss poster aesthetic. Bold typography, maximum impact, limited color palette. Strong geometric shapes.",
+  "technical-schematic":
+    "STYLE ENFORCEMENT: Blueprint grid aesthetic. Technical diagram style with process flows and connection lines. Dark background with light lines.",
+  "aerial-explainer":
+    "STYLE ENFORCEMENT: Isometric 3D drone-view perspective. Cutaway architectural style showing systems from above.",
+  "ui-wireframe":
+    "STYLE ENFORCEMENT: Clean data dashboard wireframe. Dark background, neon accent colors, chart-heavy. No illustrations.",
+  knolling:
+    "STYLE ENFORCEMENT: Top-down flat-lay photography style. Objects arranged at perfect right angles on neutral background.",
+  "subway-map":
+    "STYLE ENFORCEMENT: Transit map style with colored lines connecting nodes. Clean geometric paths like a metro map.",
+  chalkboard:
+    "STYLE ENFORCEMENT: White chalk sketches on dark green chalkboard background. Hand-drawn sketch-note style.",
+  "aged-academia":
+    "STYLE ENFORCEMENT: Sepia tones, classical engraving style. Aged paper texture, Victorian-era scientific illustration aesthetic.",
+  "ikea-manual":
+    "STYLE ENFORCEMENT: Minimal black line drawings on white. Numbered step-by-step instructions like an IKEA assembly manual.",
+  deconstruct:
+    "STYLE ENFORCEMENT: Exploded view with callout lines and labels. NYT-style editorial infographic with annotated cross-sections.",
 };
 
 export async function geminiGenerateImage(
@@ -68,10 +86,14 @@ export async function geminiGenerateImage(
   aspectRatio: string,
   referenceImages?: ReferenceImage[],
   styleId?: string,
+  enforcementOverride?: string,
 ): Promise<string> {
   const url = `${GEMINI_BASE}/models/${IMAGE_MODEL}:generateContent`;
 
-  const styleEnforcement = styleId && STYLE_ENFORCEMENT[styleId] ? `\n\n${STYLE_ENFORCEMENT[styleId]}` : '';
+  const enforcementText =
+    enforcementOverride ??
+    (styleId && STYLE_ENFORCEMENT[styleId] ? STYLE_ENFORCEMENT[styleId] : "");
+  const styleEnforcement = enforcementText ? `\n\n${enforcementText}` : "";
 
   // Append mandatory text-quality enforcement as the final instruction
   const textEnforcement = `
@@ -91,7 +113,9 @@ FINAL INSTRUCTION — TEXT QUALITY IS THE #1 PRIORITY:
   const parts: any[] = [];
 
   if (referenceImages && referenceImages.length > 0) {
-    parts.push({ text: 'REFERENCE IMAGES — Use these for visual context about what the topic looks like. Do NOT copy these images. Use them only as visual reference for accuracy of real-world objects, landmarks, and subjects:' });
+    parts.push({
+      text: "REFERENCE IMAGES — Use these for visual context about what the topic looks like. Do NOT copy these images. Use them only as visual reference for accuracy of real-world objects, landmarks, and subjects:",
+    });
     for (const img of referenceImages) {
       parts.push({
         inlineData: {
@@ -103,23 +127,25 @@ FINAL INSTRUCTION — TEXT QUALITY IS THE #1 PRIORITY:
         parts.push({ text: `(Reference: ${img.description})` });
       }
     }
-    parts.push({ text: '---\nNow generate the infographic based on the following prompt:\n' });
+    parts.push({
+      text: "---\nNow generate the infographic based on the following prompt:\n",
+    });
   }
 
   parts.push({ text: fullPrompt });
 
   const body = {
-    contents: [{ role: 'user', parts }],
+    contents: [{ role: "user", parts }],
     generationConfig: {
-      responseModalities: ['IMAGE', 'TEXT'],
+      responseModalities: ["IMAGE", "TEXT"],
     },
   };
 
   const res = await fetch(url, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': getApiKey(),
+      "Content-Type": "application/json",
+      "x-goog-api-key": getApiKey(),
     },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(120_000),
@@ -138,5 +164,69 @@ FINAL INSTRUCTION — TEXT QUALITY IS THE #1 PRIORITY:
       }
     }
   }
-  throw new Error('No image data in Gemini response');
+  throw new Error("No image data in Gemini response");
+}
+
+/**
+ * Image-to-image edit — the "fix the same image on the fly" primitive.
+ * Passes the CURRENT render as inlineData plus an imperative instruction, so the
+ * model edits THIS image rather than generating a new one from scratch.
+ */
+export async function geminiEditImage(
+  imageBase64: string,
+  instruction: string,
+  aspectRatio: string,
+  styleEnforcement?: string,
+): Promise<string> {
+  const url = `${GEMINI_BASE}/models/${IMAGE_MODEL}:generateContent`;
+  const base64Data = imageBase64.replace(/^data:image\/[a-z]+;base64,/, "");
+
+  const editPrompt = `Edit the infographic image provided above. Apply ONLY this change and keep everything else identical:
+
+"${instruction.trim().slice(0, 800)}"
+
+RULES:
+- Preserve the existing layout, style, palette, and all other text/data exactly as-is.
+- Change ONLY what the instruction asks for.
+- Every character of text must remain PERFECTLY LEGIBLE and correctly spelled — do not garble or invent text.
+- Return the full edited infographic at the same aspect ratio (${aspectRatio}).${styleEnforcement ? `\n\n${styleEnforcement}` : ""}`;
+
+  const body = {
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { text: "CURRENT INFOGRAPHIC (edit this exact image):" },
+          { inlineData: { mimeType: "image/png", data: base64Data } },
+          { text: editPrompt },
+        ],
+      },
+    ],
+    generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+  };
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": getApiKey(),
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(120_000),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Gemini image edit error (${res.status}): ${err}`);
+  }
+
+  const data = await res.json();
+  for (const candidate of data.candidates || []) {
+    for (const part of candidate.content?.parts || []) {
+      if (part.inlineData?.data) {
+        return part.inlineData.data;
+      }
+    }
+  }
+  throw new Error("No image data in Gemini edit response");
 }
