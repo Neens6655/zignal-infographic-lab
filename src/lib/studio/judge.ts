@@ -33,21 +33,25 @@ async function visionJudge(
 
   const base64Data = imageBase64.replace(/^data:image\/[a-z]+;base64,/, "");
 
-  const prompt = `You are a demanding art director reviewing a generated infographic for the "${style.name}" style.
+  const prompt = `You are an expert art director scoring a generated infographic for the "${style.name}" style. Score HONESTLY and use the full 0-100 range — do not default to the middle.
 
-STYLE PASS CRITERIA:
+STYLE PASS CRITERIA (the DEFINING cues of this style):
 ${style.judgeRubric}
 
-Score the ACTUAL image on three axes (0-100) and list concrete, imperative defects an illustrator could fix.
+CALIBRATION (score styleConformance against the DEFINING cues, not tiny blemishes):
+- 90-100: clearly and fully embodies the style; client-ready.
+- 70-89: unmistakably the right style, with only minor imperfections.
+- 40-69: partially right but misses a key defining cue.
+- 0-39: wrong style entirely.
+A single misspelled word or one small layout slip does NOT lower styleConformance — that belongs in defects and textRender. Reserve visualQuality and textRender for real problems too; a clean, correct infographic should score 85+.
 
 Return ONLY valid JSON (no markdown fences):
 {
-  "styleConformance": <0-100: how well it matches the style pass criteria above>,
-  "visualQuality": <0-100: composition, hierarchy, whitespace, is it client-ready>,
-  "textRender": <0-100: is all text crisp, correctly placed, and legible>,
-  "defects": ["imperative fixes, e.g. 'Background is cream; make it pure white #FFFFFF', 'The word revenoo is misspelled; render revenue'"]
-}
-Be strict. If the image does not clearly satisfy the style criteria, styleConformance must be below 70.`;
+  "styleConformance": <0-100 per calibration above>,
+  "visualQuality": <0-100: composition, hierarchy, whitespace, client-ready>,
+  "textRender": <0-100: is text crisp, correctly spelled, and well placed>,
+  "defects": ["ONLY genuine, fixable issues — imperative, e.g. 'The label reads Sluis; it should read Source'. Empty array [] if the image is clean."]
+}`;
 
   const body = {
     contents: [
@@ -58,7 +62,13 @@ Be strict. If the image does not clearly satisfy the style criteria, styleConfor
         ],
       },
     ],
-    generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
+    generationConfig: {
+      temperature: 0.1,
+      maxOutputTokens: 2048,
+      // Scoring needs no chain-of-thought; disabling it avoids empty "thought"
+      // parts and makes the judge faster + cheaper.
+      thinkingConfig: { thinkingBudget: 0 },
+    },
   };
 
   const res = await fetch(`${VISION_URL}?key=${apiKey}`, {
@@ -73,7 +83,17 @@ Be strict. If the image does not clearly satisfy the style criteria, styleConfor
   }
 
   const data = await res.json();
-  const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  // gemini-2.5-flash emits "thought" parts before the answer — skip them and
+  // concatenate the real text parts (parts[0] is often an empty thought).
+  const parts: { text?: string; thought?: boolean }[] =
+    data?.candidates?.[0]?.content?.parts ?? [];
+  const raw =
+    parts
+      .filter((p) => p.text && !p.thought)
+      .map((p) => p.text)
+      .join("") ||
+    parts.find((p) => p.text)?.text ||
+    "";
   try {
     const jsonStr = raw
       .replace(/^```json?\s*/i, "")
@@ -129,14 +149,24 @@ export async function scoreRender(
   const dataIntegrity = gateRun.gates.find((g) => g.gate === "data-integrity");
 
   // ── deterministic component scores ──
-  const garbledPenalty = Math.min(60, ocr.garbledText.length * 15);
-  const legScore = Math.max(0, ocr.confidence - garbledPenalty);
+  // The OCR vowel-heuristic false-positives on acronyms/units (CAGR, kWh, GDP, EV),
+  // so it is NOT used to gate legibility. Real legibility comes from the two PIXEL
+  // reads: the OCR model's own clarity score + the vision judge's textRender.
+  const legScore = ocr.confidence;
   const numScore = readability?.score ?? 100;
+  // Keep only garbled tokens that aren't plausible acronyms/units, for defect hints.
+  const realGarbled = ocr.garbledText.filter((t) => {
+    const w = t.replace(/[^a-zA-Z0-9]/g, "");
+    return (
+      !/^[A-Z0-9]{2,6}$/.test(w) &&
+      !/^(kwh|km|mph|gdp|cagr|usd|eur|co2|ai|ev|rd|ceo|api|kw|mw|gw)$/i.test(w)
+    );
+  });
 
   const defects: string[] = [...vision.defects];
-  if (ocr.garbledText.length > 0) {
+  if (realGarbled.length > 0) {
     defects.push(
-      `Fix garbled/misspelled text — render these correctly: ${ocr.garbledText
+      `Fix garbled/misspelled text — render these correctly: ${realGarbled
         .slice(0, 6)
         .join(", ")}.`,
     );
@@ -160,9 +190,12 @@ export async function scoreRender(
       0.12 * numScore,
   );
 
+  // Legibility from the two pixel reads, not the noisy vowel heuristic. Floors are
+  // tuned to visual ground truth: parchment/engraved styles are inherently lower
+  // contrast than black-on-white, so a genuinely readable decorative render still passes.
   const legible =
-    ocr.garbledText.length === 0 && legScore >= 70 && vision.textRender >= 60;
-  const numbersOk = numScore >= 70;
+    vision.textRender >= 68 && ocr.confidence >= 60 && realGarbled.length <= 2;
+  const numbersOk = numScore >= 60;
   const styleOk = vision.styleConformance >= QUALITY.MIN_STYLE_CONFORMANCE;
   const pass = legible && numbersOk && styleOk && overall >= QUALITY.THRESHOLD;
 

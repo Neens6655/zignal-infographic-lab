@@ -14,6 +14,8 @@ import type {
 export interface StudioRunOptions {
   aspectRatio?: string;
   language?: string;
+  /** Override the per-style quality-loop attempt cap (smoke tests use a low value). */
+  maxAttempts?: number;
   onEvent?: StudioProgressCallback;
 }
 
@@ -40,6 +42,7 @@ export async function runStudio(
   const variants: VariantResult[] = await Promise.all(
     STUDIO_STYLE_LIST.map((style) =>
       renderStyleGated(brief, style, {
+        maxAttempts: opts.maxAttempts,
         onProgress: (progress, message) =>
           onEvent({
             type: "variant_progress",

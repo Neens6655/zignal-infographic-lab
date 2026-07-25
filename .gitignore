@@ -51,3 +51,6 @@ sdk/
 *.db
 dist/
 .next/
+
+# QA smoke-test output (generated images)
+.smoke-out*/
