@@ -183,7 +183,8 @@ You are a world-renowned editorial illustrator creating a single masterpiece inf
 
 ### TEXT RULES
 - ONLY render text that appears in the content below. Do NOT invent, rephrase, or add any text.
-- Do NOT render these instruction words: "SECTION", "Key Concept", "Visual:", "Labels:", "Narrative", "Design Notes".
+- Do NOT render these instruction/label words anywhere in the image: "SECTION", "Key Concept", "keyConcept", "Visual:", "Labels:", "Narrative", "Design Notes", "Hero Insight", "Lead Exhibit", "Exhibit", "KPI", "So What", "Museum didactic", "Placeholder". Render only the real content text.
+- Do NOT render any text ending in "..." — every heading and label must be a COMPLETE phrase. If a label would be truncated, shorten the wording instead of showing an ellipsis.
 - MINIMUM font: 20pt body, 28pt headings, 40pt+ hero statistics.
 - If content doesn't fit legibly, REMOVE content — never shrink text.
 - Title at top, stats bar at bottom, story flows between them.

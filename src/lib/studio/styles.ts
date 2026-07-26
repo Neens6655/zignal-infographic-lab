@@ -20,7 +20,9 @@ DESIGN PHILOSOPHY
 The best page from a JP Morgan outlook or a McKinsey brief. It does NOT try to show everything — it establishes ONE headline insight and supports it. Every element answers "so what — for the decision?"
 
 EXECUTIVE READING FLOW (the most important rule)
-- Establish a clear visual HIERARCHY, top to bottom: (1) title, (2) ONE hero insight — the single most important number/takeaway, rendered LARGE, (3) three to four supporting points in a clean left-to-right / Z-pattern progression, (4) a clean close.
+- ANSWER FIRST (Pyramid Principle): the TITLE states the single most important takeaway as a complete sentence (e.g. "Global EV market reaches $784B by 2025"), not a generic topic label.
+- Establish a clear visual HIERARCHY, top to bottom: (1) the answer-first title, (2) the single biggest supporting number rendered LARGE with one clean chart, (3) three to four supporting points in a clean left-to-right / Z-pattern progression, (4) a clean close.
+- Do NOT print structural or label words on the image ("Hero Insight", "KPI", "Section", "So What"). Show only the real headings, numbers, and captions. Every heading is a COMPLETE phrase — never ends in "...".
 - Do NOT render every section as an equal box in a dense grid. Consolidate. One dominant element; supporting elements clearly subordinate. The eye should FLOW along a path, not scan a wall of identical tiles.
 - Fewer, bigger, better: at most 4–5 content elements total. If the content is dense, SELECT the executive-relevant few and cut the rest. Whitespace between elements is generous and intentional.
 
@@ -32,7 +34,7 @@ COLOR PALETTE
 
 STRUCTURE
 - Slim navy title bar (top ~10%): white title (title case) + one-line "so what" subtitle. Thin gold hairline beneath.
-- Hero insight (~25%): the single biggest number/takeaway, LARGE in institutional blue or charcoal, with ONE clean supporting visual (one chart — not five) and one line on why it matters.
+- Just below the title (~25%): the single biggest number sits top-left, rendered VERY LARGE in institutional blue or charcoal, beside ONE clean chart (one — not five) and one short line on why it matters. Show ONLY the number and its short caption — never a label like "Lead Exhibit", "Hero", "KPI", or "Exhibit".
 - Supporting points (~50%): 3–4 points in a clean horizontal flow, each = a small chart or number + one line of insight. Generous gutters; clearly subordinate to the hero.
 - Close: END CLEANLY with whitespace. NO footer bar. NO bottom stats strip. If sources are needed, one small line, bottom-left.
 
