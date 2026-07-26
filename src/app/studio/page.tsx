@@ -8,7 +8,7 @@
  */
 import { useState, useCallback, useRef } from "react";
 
-type StyleId = "mckinsey" | "academic" | "deconstruct" | "museum";
+type StyleId = "mckinsey" | "academic" | "deconstruct" | "aerial";
 
 const STYLES: { id: StyleId; name: string; tagline: string }[] = [
   {
@@ -22,7 +22,11 @@ const STYLES: { id: StyleId; name: string; tagline: string }[] = [
     tagline: "Victorian scientific plate",
   },
   { id: "deconstruct", name: "Deconstruct", tagline: "NYT exploded view" },
-  { id: "museum", name: "Museum", tagline: "Exhibition plaque" },
+  {
+    id: "aerial",
+    name: "Aerial Deconstruct",
+    tagline: "Isometric exploded systems",
+  },
 ];
 
 const EXAMPLE =
@@ -54,7 +58,7 @@ const blankTiles = (): Record<StyleId, Tile> => ({
   mckinsey: { status: "idle", message: "", attempt: 0 },
   academic: { status: "idle", message: "", attempt: 0 },
   deconstruct: { status: "idle", message: "", attempt: 0 },
-  museum: { status: "idle", message: "", attempt: 0 },
+  aerial: { status: "idle", message: "", attempt: 0 },
 });
 
 const ASPECTS = ["16:9", "9:16", "1:1"] as const;

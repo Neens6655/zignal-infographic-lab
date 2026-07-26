@@ -10,13 +10,13 @@ import type {
   NumberAudit,
 } from "../pipeline/types";
 
-export type StudioStyleId = "mckinsey" | "academic" | "deconstruct" | "museum";
+export type StudioStyleId = "mckinsey" | "academic" | "deconstruct" | "aerial";
 
 export const STUDIO_STYLE_IDS: StudioStyleId[] = [
   "mckinsey",
   "academic",
   "deconstruct",
-  "museum",
+  "aerial",
 ];
 
 export interface StudioStyle {

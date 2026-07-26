@@ -14,36 +14,37 @@ const MCKINSEY: StudioStyle = {
   name: "Corporate Deck",
   tagline: "Boardroom research brief — McKinsey / JP Morgan clarity",
   background: "light",
-  guidelines: `Clean, authoritative, LIGHT. McKinsey clarity meets scientific precision. A one-page research brief that communicates depth through simplicity. White space is a feature, not waste.
+  guidelines: `Clean, authoritative, LIGHT — a single-focus EXECUTIVE one-pager. McKinsey clarity: ONE dominant insight, a clear top-down reading path, and ruthless restraint. Built to be understood by a busy executive in 5 seconds. White space is the primary design element.
 
 DESIGN PHILOSOPHY
-Feels like the best page from a JP Morgan annual outlook or a McKinsey Global Institute report, printed on quality paper. Light, airy, precise. Every section answers: "So what — what does this mean for the decision?"
+The best page from a JP Morgan outlook or a McKinsey brief. It does NOT try to show everything — it establishes ONE headline insight and supports it. Every element answers "so what — for the decision?"
+
+EXECUTIVE READING FLOW (the most important rule)
+- Establish a clear visual HIERARCHY, top to bottom: (1) title, (2) ONE hero insight — the single most important number/takeaway, rendered LARGE, (3) three to four supporting points in a clean left-to-right / Z-pattern progression, (4) a clean close.
+- Do NOT render every section as an equal box in a dense grid. Consolidate. One dominant element; supporting elements clearly subordinate. The eye should FLOW along a path, not scan a wall of identical tiles.
+- Fewer, bigger, better: at most 4–5 content elements total. If the content is dense, SELECT the executive-relevant few and cut the rest. Whitespace between elements is generous and intentional.
 
 COLOR PALETTE
-- Background: clean WHITE (#FFFFFF) or the softest warm gray (#F8F9FA). The canvas is LIGHT — never a dark dashboard. White space dominates.
-- Primary text: charcoal (#1A1A2E) for headlines, dark slate (#334155) for body. Strong contrast on white.
-- Navy accent (#0F2B5B): header bar, footer bar, divider rules, chart axis labels. Structural accent — not the background.
-- Data blue (#2563EB): the signature primary data color in charts and callouts.
-- Supporting data: muted teal (#0891B2), warm gray (#6B7280), soft coral (#E8735A) for negative/risk. Max 3 data colors per chart.
-- Gold-bronze (#B8860B): a single hairline rule under the header and over the footer. Nowhere else.
+- Background: clean WHITE (#FFFFFF). Light and airy. Never dark, never cream.
+- Charcoal (#1A1A2E) headlines, dark slate (#334155) body.
+- Navy (#0F2B5B): a SLIM title bar only. Institutional blue (#2563EB): the signature data color and the ONE hero number.
+- Maximum 3 colors in the content area. A single thin gold hairline (#B8860B) under the title — nowhere else.
 
 STRUCTURE
-- Navy header bar (~8%): white title (title case, not shouting) + one-sentence "so what" subtitle + date/classification. Thin gold hairline under it.
-- Hero insight panel (~15%): one sentence + one large number + one clean visualization.
-- Content grid (~60%): strict 3–4 column grid, generous gutters. Each panel = one chart/diagram + one insight + one "so what".
-- Key metrics row (~10%): 4–6 large numbers in a clean horizontal strip.
-- Navy footer bar (~7%): sources + summary metrics, thin gold hairline over it.
+- Slim navy title bar (top ~10%): white title (title case) + one-line "so what" subtitle. Thin gold hairline beneath.
+- Hero insight (~25%): the single biggest number/takeaway, LARGE in institutional blue or charcoal, with ONE clean supporting visual (one chart — not five) and one line on why it matters.
+- Supporting points (~50%): 3–4 points in a clean horizontal flow, each = a small chart or number + one line of insight. Generous gutters; clearly subordinate to the hero.
+- Close: END CLEANLY with whitespace. NO footer bar. NO bottom stats strip. If sources are needed, one small line, bottom-left.
 
-ILLUSTRATIONS & CHARTS
-- Clean single-color line illustrations (navy/charcoal/institutional blue) — scientific-diagram quality, thin precise linework. Every drawing carries information; no decoration.
-- Charts: minimal, thin gray axes, direct value labels, no 3D, no gradients. Horizontal bars, line+area, thin donut rings, slope charts.
-- KPI callouts: large blue/charcoal numbers over a small gray label + subtle trend arrow, in a clean row.
+CHARTS & TYPE
+- Minimal charts: thin gray axes, direct value labels, no 3D, no gradients. One dominant chart; small supporting ones.
+- Clean sans-serif. Title large; hero number very large; supporting text small and quiet. Strong weight gradient — not everything bold.
 
 WHAT IT IS NOT
-Not dark or moody (background is WHITE). Not cluttered (whitespace is generous). Not textured or ornamental. Not more than 4 colors in the content area. Not cartoon, hand-drawn, or playful.`,
+NOT a dense grid of six equal numbered boxes. NOT a footer / bottom stats-bar report. NOT dark or cream. NOT more than ~5 content elements. NOT cluttered — restraint IS the point.`,
   enforcement:
-    "STYLE ENFORCEMENT: Clean, WHITE-background (#FFFFFF) McKinsey/JP Morgan research brief. Navy (#0F2B5B) header/footer bars, single gold hairline rules, institutional blue (#2563EB) data. Clean sans-serif. NO colorful illustrations, NO cartoon characters, NO playful elements, NO dark background. Think: a printed boardroom handout.",
-  judgeRubric: `PASS requires: background is genuinely WHITE or near-white (not cream, not dark); a navy header bar and footer bar are present; typography is clean sans-serif; charts/illustrations are restrained single/low-color line work; overall reads as a premium consulting slide. FAIL if the background is dark, parchment, or busy; if there are cartoon characters; or if more than ~4 colors dominate the content area.`,
+    "STYLE ENFORCEMENT: Clean WHITE-background McKinsey executive one-pager with ONE dominant hero insight and a clear top-down reading FLOW — NOT a dense grid of equal boxes. Slim navy title bar + single gold hairline, institutional blue (#2563EB) data, generous whitespace. DO NOT render a footer bar or bottom stats strip — end cleanly. Max ~5 content elements. NOT dark, NOT cream, NOT cluttered.",
+  judgeRubric: `PASS requires: a genuinely WHITE ground; a clear visual HIERARCHY with ONE dominant hero insight (not six equal boxes); a slim navy title bar; institutional-blue data; generous whitespace; and NO bottom footer/stats bar. FAIL if the background is dark or cream, if it reads as a dense uniform grid with no focal point, if it is cluttered, or if it has a footer stats strip.`,
 };
 
 // ── 2. Aged Academic ─────────────────────────────────────────────
@@ -110,47 +111,48 @@ Not monochrome/gray. Not white or dark background — warm parchment ALWAYS. Not
   judgeRubric: `PASS requires: a warm parchment ground; a central exploded/cutaway illustration with 4–8 clearly distinct rich pigment colors; those SAME colors reused on callout lines and matching section headers (the color-coding link is visible); scholarly serif title. FAIL if it is monochrome, if the background is white or dark, if colors are neon/pastel/flat, or if there is no visible color-to-label coding.`,
 };
 
-// ── 4. Museum (NEW in v3) ────────────────────────────────────────
-const MUSEUM: StudioStyle = {
-  id: "museum",
-  name: "Museum",
-  tagline: "Exhibition plaque under gallery light",
-  background: "gallery",
-  guidelines: `The infographic presented as a MUSEUM EXHIBIT on a gallery wall, lit by a soft directional spotlight, with an engraved brass placard. Hushed, reverent, curatorial. Distinct from "Aged Academic" (that is aged PAPER; this is a GALLERY WALL) and from "Corporate Deck" (that is a white boardroom page; this is a lit exhibition).
+// ── 4. Aerial Deconstruct (NEW in v3) ────────────────────────────
+const AERIAL: StudioStyle = {
+  id: "aerial",
+  name: "Aerial Deconstruct",
+  tagline: "Isometric drone-view exploded systems",
+  background: "light",
+  guidelines: `A modern ISOMETRIC EXPLODED-SYSTEMS view — the subject deconstructed into its components, floating APART in 3D isometric space, seen from a drone's-eye angle. This LAYERS two ideas: AERIAL (bird's-eye isometric) + DECONSTRUCT (exploded, color-coded parts). Clean, dimensional, premium-technical — a high-end "how it works" isometric explainer / exploded axonometric. Distinct from "Deconstruct" (that is a FLAT frontal scientific plate on parchment) and "Corporate Deck" (flat white charts).
 
-THE GALLERY WALL — the defining cue
-- Background: a soft museum wall — warm limestone / gallery off-white (#EDEAE3 → #E4DFD5) with a faint plaster/matte texture. NOT parchment, NOT pure white, NOT dark.
-- LIGHTING is essential: a gentle top-down spotlight — brighter at the center, softly falling to a subtle vignette at the edges. Exhibits cast soft, realistic drop shadows on the wall. This directional gallery light is the single strongest "museum" signal.
+THE HERO — ISOMETRIC EXPLODED VIEW (55–65% of canvas)
+- Perspective: isometric / axonometric at a ~30–45° drone angle, looking DOWN and across the subject. Real depth, cast shadows, stacked planes.
+- DECONSTRUCTED: the subject's components / segments / layers are pulled APART along vertical or diagonal axes, floating in 3D space, with thin dashed connector lines showing how they reassemble — an exploded axonometric.
+- Components sit on subtle isometric platforms or float as layered slabs. Each has volume and soft ambient shadow.
+- Rendering: clean, precise 3D illustration — crisp geometry, accurate proportions. Modern editorial-technical (premium isometric explainer). NOT cartoon, NOT sketch, NOT aged/parchment, NOT flat.
 
-THE HERO EXHIBIT
-- The main subject/visual sits like a curated ARTIFACT under the spotlight — mounted, framed with a thin museum mat/frame, or raised on a simple plinth/pedestal casting a soft shadow. It commands quiet attention at the center (45–60% of the canvas).
-- Rendering: dignified and precise — a clean specimen study or a single restrained illustration. Not busy; reverent.
+COLOR = COMPONENT CODING (semantic — color IS information)
+- Ground: clean, cool light neutral — off-white / soft blue-gray (#F4F6F8 → #E9EDF1). The system FLOATS on it. NOT a white boardroom page, NOT parchment, NOT dark.
+- Each exploded component gets ONE semantic color, reused on its 3D part, its numbered marker, and its label: structural blue (#2D6CDF), teal (#0E9AA3), amber (#E8913A), coral (#E05B5B), violet (#7A5AF0), slate-green (#3F9B6E). Rich but MODERN — not neon, not flat pastel — with tonal shading WITHIN each color to model the 3D form. Base platforms in cool steel-grays.
 
-THE BRASS PLACARD (the title)
-- The title lives on a museum WALL LABEL: a rectangular brushed-brass / matte-bronze plaque with ENGRAVED (debossed) classical serif lettering (Trajan/Didot feel). A hairline rule; a small "cataloguing" line in small caps (e.g. a subtitle or one-line provenance). The placard reads like something screwed to a gallery wall beside the exhibit.
+NUMBERED ANNOTATION SYSTEM
+- Small numbered markers (1..N) in each component's color placed ON its exploded part; matching numbered text blocks in clean margin columns. Connection by NUMBER (subtle thin leader lines only when far apart).
+- Each point: NUMBER (component color) + BOLD header (3–5 words) + 1–2 short lines + one hero number. Under ~30 words each. Anti-squeeze — whitespace is sacred; the illustration carries the load.
 
-SECTIONS AS SPECIMENS
-- Each content section is a small curated exhibit: a quiet visual + a museum didactic label. Each gets a small brass ACCESSION TAG / number (e.g. a little bronze numeral or "No. 03"). Labels are gallery wall text — left-aligned, generous margins, calm.
+DATA EMBEDDED IN 3D
+- Render key metrics as dimensional elements where natural: an isometric bar rising off a platform, a segmented ring, a stacked layer whose height encodes a value — each labelled with the exact figure.
 
-COLOR & TYPOGRAPHY
-- Restrained, archival: brushed brass/bronze (#8C6D3F), charcoal ink (#2B2A28), gallery off-white, plus ONE sparing accent — deep oxblood (#6E2B2B) or museum teal (#2E5D5A) — used like a single exhibit accent, never everywhere.
-- Title: engraved classical serif on brass. Didactic text: quiet exhibition-label sans-serif (gallery wall text), never shouting. Everything calm, spaced, curatorial.
-
-MOOD
-Walking up to an exhibit and reading its plaque — timeless, reverent, expensive-quiet.
+TYPOGRAPHY & LAYOUT
+- Title: large, bold, modern sans-serif (Inter/Helvetica feel), dark charcoal (#1A2233) — editorial and confident, top zone. Subtitle: one line, medium, cool gray.
+- Weight gradient: bold title → bold numbered headers → light descriptions. Generous whitespace around all text.
+- Zones: header (~10%) · isometric exploded hero (center 55–65%) with markers ON the parts · ONE set of numbered descriptions in a single margin band (top OR bottom — NOT both). Never repeat a point's text or place the same annotation twice.
 
 WHAT IT IS NOT
-Not parchment/aged-paper (that is Aged Academic). Not a white boardroom slide (that is Corporate Deck). Not an exploded pigment plate (that is Deconstruct). Not dark. Not busy. The differentiators are the LIT gallery wall, the engraved brass placard, the soft artifact shadows, and the accession tags.`,
+NOT a flat frontal scientific plate on parchment (that is Deconstruct). NOT flat white charts (Corporate Deck). NOT hand-drawn / aged (Aged Academic). NOT a dark scene, NOT cartoon clip-art. If the subject is abstract (a market, a strategy), deconstruct the CONCEPT into isometric layered components — do not force a literal building.`,
   enforcement:
-    "STYLE ENFORCEMENT: A MUSEUM EXHIBIT on a lit gallery wall (warm limestone off-white #EDEAE3) with a soft top-down SPOTLIGHT + vignette, the subject as a curated artifact casting a soft shadow, and the title ENGRAVED on a brushed-BRASS wall placard. Restrained brass/charcoal palette, brass accession tags. NOT parchment, NOT a white slide, NOT dark, NOT busy.",
-  judgeRubric: `PASS requires: a warm gallery-wall ground (limestone off-white, not parchment, not pure white, not dark); visible soft directional spotlight / vignette lighting with the exhibit casting a gentle shadow; an engraved brass/bronze placard carrying the title; a restrained archival palette. FAIL if it looks like aged parchment, a plain white corporate slide, a dark scene, or a busy multi-color plate — or if there is no gallery lighting / no brass placard.`,
+    "STYLE ENFORCEMENT: ISOMETRIC / axonometric ~30–45° drone-view EXPLODED diagram — the subject's components pulled APART in 3D space with dashed reassembly lines, each part in its own semantic color + numbered marker, on a clean cool off-white ground (#F4F6F8). Modern premium-technical 3D illustration with soft shadows and real depth. NOT parchment, NOT flat charts, NOT a dark scene, NOT cartoon.",
+  judgeRubric: `PASS requires: a clearly ISOMETRIC / axonometric 3D view with real depth and cast shadows (not flat, not a frontal plate); the content shown as SEPARATED, color-coded 3D components — floating slabs, isometric platforms, stacked layers, OR exploded parts (any of these count; it need not be one literal object blown apart); a clean cool light-neutral ground (not parchment, not a pure-white slide, not dark). Color-coded numbered markers are a plus. FAIL only if it is genuinely FLAT (no isometric depth), a frontal parchment plate, a dark scene, a literal photo, or a plain 2D chart deck.`,
 };
 
 export const STUDIO_STYLES: Record<StudioStyleId, StudioStyle> = {
   mckinsey: MCKINSEY,
   academic: ACADEMIC,
   deconstruct: DECONSTRUCT,
-  museum: MUSEUM,
+  aerial: AERIAL,
 };
 
 /** The four styles, in fixed display order. */

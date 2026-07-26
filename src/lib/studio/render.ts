@@ -26,7 +26,7 @@ const LEGACY_STYLE_MAP: Record<string, string> = {
   mckinsey: "executive-institutional",
   academic: "aged-academia",
   deconstruct: "deconstruct",
-  museum: "museum",
+  aerial: "aerial-explainer",
 };
 
 function analysisForStyle(
@@ -56,15 +56,17 @@ export async function renderStyleGated(
   let prevImage: string | null = null;
   let correction = "";
 
-  const basePrompt = await assemblePrompt(
-    brief.structured,
-    analysis,
-    brief.aspectRatio,
-    brief.language,
-    brief.research,
-    brief.numberAudit,
-    style.guidelines, // inlined — no fs read
-  );
+  const basePrompt =
+    (await assemblePrompt(
+      brief.structured,
+      analysis,
+      brief.aspectRatio,
+      brief.language,
+      brief.research,
+      brief.numberAudit,
+      style.guidelines, // inlined — no fs read
+    )) +
+    `\n\n## NO DUPLICATION (critical)\nRender every section, chart, number, and text block EXACTLY ONCE. Do NOT repeat, mirror, restate, or stack a second copy of any panel, statistic, or heading anywhere in the image. Each of the ${brief.structured.sections.length} sections appears in exactly one place.`;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     emit(

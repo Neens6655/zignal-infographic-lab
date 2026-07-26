@@ -18,7 +18,7 @@ const FIXTURE =
   'China holds 58% of global sales, battery pack costs fell to $89/kWh, average range now 480 km, ' +
   'public charging points reached 4.2 million worldwide.';
 
-const EXPECTED = ['mckinsey', 'academic', 'deconstruct', 'museum'];
+const EXPECTED = ['mckinsey', 'academic', 'deconstruct', 'aerial'];
 
 async function main() {
   fs.mkdirSync(OUT, { recursive: true });
