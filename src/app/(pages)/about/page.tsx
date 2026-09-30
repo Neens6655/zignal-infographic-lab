@@ -2283,7 +2283,7 @@ export default function AboutPage() {
           ═══════════════════════════════════════════════════════════ */}
       <motion.section
         ref={heroRef}
-        style={{ opacity: heroOpacity, y: heroY }}
+        style={{ y: heroY }}
         className="relative z-10 min-h-screen flex items-center"
       >
         <div className="mx-auto max-w-7xl px-6 w-full py-20">

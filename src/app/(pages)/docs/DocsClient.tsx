@@ -1905,7 +1905,7 @@ git push origin main  # Triggers auto-deploy on Vercel`}
                     href={`${GITHUB_URL}/issues`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#D4A84B] hover:underline underline-offset-2"
+                    className="text-[#D4A84B] underline underline-offset-2 hover:no-underline"
                   >
                     GitHub
                   </a>{' '}

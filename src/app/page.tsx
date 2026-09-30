@@ -193,7 +193,12 @@ export default function Home() {
   /* Hero parallax — gated: scroll-bound style values are not covered by MotionConfig */
   const { scrollY } = useScroll();
   const heroContentY = useTransform(scrollY, [0, 800], [0, 100]);
-  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
+  // The hero used to fade to fully transparent on scroll. Framer's scroll value lags
+  // a programmatic scrollTo, so the whole console could still be at opacity 0 when
+  // anything measured the page — axe read 21 nodes of ~1.45:1 text that was in fact
+  // invisible. A parallax RISE reads the same and cannot make text unreadable, which
+  // is the rule applied to every other reveal in this app.
+  const heroContentOpacity = 1;
 
   /* Sync voice transcript → content */
   useEffect(() => {
@@ -439,7 +444,7 @@ export default function Home() {
                 <button
                   onClick={() => handleGenerate()}
                   disabled={!hasContent}
-                  className="inline-flex items-center gap-2 border border-(--z-cream)/20 px-5 py-2.5 text-xs font-mono text-(--z-cream)/80 hover:bg-(--z-cream)/[0.04] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 border border-(--z-cream)/20 px-5 py-2.5 text-xs font-mono text-(--z-cream)/80 hover:bg-(--z-cream)/[0.04] transition-colors disabled:bg-white/[0.08] disabled:text-white/60 disabled:cursor-not-allowed"
                 >
                   Retry with same prompt
                 </button>
@@ -673,7 +678,7 @@ export default function Home() {
           <motion.div
             className="relative flex-1 w-full max-w-[min(1480px,calc(640px+(100svh-440px)*16/9))] mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-10"
             style={
-              reduce ? undefined : { y: heroContentY, opacity: heroOpacity }
+              reduce ? undefined : { y: heroContentY, opacity: heroContentOpacity }
             }
           >
             {/* Headline band — overlaps the artifact's top-left */}
@@ -923,7 +928,7 @@ export default function Home() {
                             <button
                               onClick={handleExtractUrl}
                               disabled={!extractUrl.trim() || isExtracting}
-                              className="flex items-center gap-2 bg-(--z-gold) px-5 py-3 text-xs font-mono font-bold text-(--z-bg) hover:bg-(--z-gold-dim) active:scale-[0.97] transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                              className="flex items-center gap-2 bg-(--z-gold) px-5 py-3 text-xs font-mono font-bold text-(--z-bg) hover:bg-(--z-gold-dim) active:scale-[0.97] transition-all disabled:bg-white/[0.08] disabled:text-white/60 disabled:cursor-not-allowed shrink-0"
                             >
                               {isExtracting ? (
                                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1139,7 +1144,7 @@ export default function Home() {
                         <button
                           onClick={() => handleGenerate()}
                           disabled={!hasContent || isGenerating}
-                          className="flex items-center gap-2 bg-(--z-gold) px-4 sm:px-6 py-2 sm:py-2.5 text-[11px] sm:text-xs font-mono font-bold text-(--z-bg) hover:bg-(--z-gold-dim) active:scale-[0.97] transition-all disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
+                          className="flex items-center gap-2 bg-(--z-gold) px-4 sm:px-6 py-2 sm:py-2.5 text-[11px] sm:text-xs font-mono font-bold text-(--z-bg) hover:bg-(--z-gold-dim) active:scale-[0.97] transition-all disabled:bg-white/[0.08] disabled:text-white/60 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
                         >
                           <Sparkles className="h-3.5 w-3.5" />
                           Generate

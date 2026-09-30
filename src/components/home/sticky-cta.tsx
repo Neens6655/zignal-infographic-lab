@@ -51,14 +51,14 @@ export function StickyCta({
       {show && (
         <motion.aside
           aria-label="Start generating"
-          initial={{ y: 64, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 64, opacity: 0 }}
+          initial={{ y: 64 }}
+          animate={{ y: 0 }}
+          exit={{ y: 64 }}
           transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
           className="fixed bottom-0 inset-x-0 z-40 border-t border-(--z-gold)/20 bg-[#0A0A0B]/90 backdrop-blur-xl"
         >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 h-12 sm:h-14 flex items-center justify-between gap-3 md:pr-24">
-            <p className="text-[10px] sm:text-[11px] font-mono text-(--z-cream)/60 truncate">
+            <p className="text-[10px] sm:text-[11px] font-mono text-(--z-cream)/80 truncate">
               Free during public preview — no credit card
             </p>
             <button
