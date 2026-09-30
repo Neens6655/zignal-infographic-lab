@@ -17,7 +17,7 @@ Rules:
 - Start directly with the topic statement`;
 
 export async function POST(request: Request) {
-  const rateLimited = enforceRateLimit(request);
+  const rateLimited = await enforceRateLimit(request);
   if (rateLimited) return rateLimited;
 
   const apiKey = process.env.GOOGLE_API_KEY;

@@ -146,7 +146,7 @@ async function fetchGenericVideoPage(url: string): Promise<{ title: string; text
 }
 
 export async function POST(request: Request) {
-  const rateLimited = enforceRateLimit(request);
+  const rateLimited = await enforceRateLimit(request);
   if (rateLimited) return rateLimited;
 
   try {

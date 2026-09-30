@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { enforceRateLimit } from '@/lib/request-utils';
 
 export async function POST(request: Request) {
-  const rateLimited = enforceRateLimit(request);
+  const rateLimited = await enforceRateLimit(request);
   if (rateLimited) return rateLimited;
 
   try {

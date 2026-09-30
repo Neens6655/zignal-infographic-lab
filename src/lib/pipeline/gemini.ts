@@ -1,7 +1,18 @@
 /**
- * Gemini API helpers — text generation and image generation.
+ * Gemini API helpers — text generation.
+ *
+ * IMAGE generation no longer lives here. It moved to `image-model.ts`, which calls
+ * OpenRouter with `google/gemini-3-pro-image` and asserts the served model. The old
+ * path hardcoded `gemini-3.1-flash-image-preview` — a budget tier that this estate's
+ * render policy explicitly refuses. The image functions below are thin back-compat
+ * wrappers so callers did not have to change.
  */
 import type { ReferenceImage } from "./types";
+import {
+  renderImage,
+  editImage,
+  IMAGE_MODEL as TOP_TIER_IMAGE_MODEL,
+} from "./image-model";
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
@@ -13,7 +24,7 @@ function getApiKey(): string {
 
 export const TEXT_MODEL = "gemini-2.5-flash";
 export const PRO_MODEL = "gemini-2.5-pro";
-export const IMAGE_MODEL = "gemini-3.1-flash-image-preview";
+export const IMAGE_MODEL = TOP_TIER_IMAGE_MODEL;
 
 export async function geminiGenerate(
   model: string,
@@ -81,22 +92,36 @@ const STYLE_ENFORCEMENT: Record<string, string> = {
     "STYLE ENFORCEMENT: Exploded view with callout lines and labels. NYT-style editorial infographic with annotated cross-sections.",
 };
 
+/**
+ * Generate an image. Delegates to the top-tier OpenRouter client.
+ *
+ * `textFree` MUST be true for the hybrid renderer's background plate. Without it we
+ * used to append a "copy all text EXACTLY / minimum 14pt / spell every word correctly"
+ * block to a prompt that says "ABSOLUTELY NO TEXT" seven times — the wrapper argued
+ * with the prompt and pushed text into a plate that is supposed to have none.
+ */
 export async function geminiGenerateImage(
   prompt: string,
   aspectRatio: string,
   referenceImages?: ReferenceImage[],
   styleId?: string,
   enforcementOverride?: string,
+  textFree = false,
 ): Promise<string> {
-  const url = `${GEMINI_BASE}/models/${IMAGE_MODEL}:generateContent`;
-
   const enforcementText =
     enforcementOverride ??
     (styleId && STYLE_ENFORCEMENT[styleId] ? STYLE_ENFORCEMENT[styleId] : "");
   const styleEnforcement = enforcementText ? `\n\n${enforcementText}` : "";
 
-  // Append mandatory text-quality enforcement as the final instruction
-  const textEnforcement = `
+  // Only meaningful when the model is the one drawing the glyphs. On the hybrid
+  // path Satori owns every character, so this block is actively harmful.
+  const textEnforcement = textFree
+    ? `
+
+FINAL INSTRUCTION — THIS IS A BACKGROUND PLATE:
+- Render NO text, NO letters, NO numbers, NO glyphs of any kind.
+- A separate typesetting system composites all text on top of this image.`
+    : `
 
 FINAL INSTRUCTION — TEXT QUALITY IS THE #1 PRIORITY:
 - Every character must be PERFECTLY LEGIBLE — no garbled, distorted, or made-up text
@@ -107,70 +132,26 @@ FINAL INSTRUCTION — TEXT QUALITY IS THE #1 PRIORITY:
 - All text must have high contrast against its background
 - Every word must be a real, correctly-spelled English word`;
 
-  const fullPrompt = `${prompt}\n${textEnforcement}${styleEnforcement}\n\nAspect ratio: ${aspectRatio}.`;
+  const fullPrompt = `${prompt}\n${textEnforcement}${styleEnforcement}`;
 
-  // Build multimodal parts array — reference images + text prompt
-  const parts: any[] = [];
-
-  if (referenceImages && referenceImages.length > 0) {
-    parts.push({
-      text: "REFERENCE IMAGES — Use these for visual context about what the topic looks like. Do NOT copy these images. Use them only as visual reference for accuracy of real-world objects, landmarks, and subjects:",
-    });
-    for (const img of referenceImages) {
-      parts.push({
-        inlineData: {
-          mimeType: img.mimeType,
-          data: img.base64,
-        },
-      });
-      if (img.description) {
-        parts.push({ text: `(Reference: ${img.description})` });
-      }
-    }
-    parts.push({
-      text: "---\nNow generate the infographic based on the following prompt:\n",
-    });
-  }
-
-  parts.push({ text: fullPrompt });
-
-  const body = {
-    contents: [{ role: "user", parts }],
-    generationConfig: {
-      responseModalities: ["IMAGE", "TEXT"],
-    },
-  };
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": getApiKey(),
-    },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(120_000),
+  const result = await renderImage(fullPrompt, {
+    aspectRatio,
+    references: referenceImages?.map((img) => ({
+      base64: img.base64,
+      mimeType: img.mimeType,
+      description: img.description,
+    })),
   });
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini image generation error (${res.status}): ${err}`);
-  }
-
-  const data = await res.json();
-  for (const candidate of data.candidates || []) {
-    for (const part of candidate.content?.parts || []) {
-      if (part.inlineData?.data) {
-        return part.inlineData.data;
-      }
-    }
-  }
-  throw new Error("No image data in Gemini response");
+  return result.imageBase64;
 }
 
 /**
- * Image-to-image edit — the "fix the same image on the fly" primitive.
- * Passes the CURRENT render as inlineData plus an imperative instruction, so the
- * model edits THIS image rather than generating a new one from scratch.
+ * Image-to-image edit of the plate.
+ *
+ * SCOPE: on the hybrid path this must not be used to correct text. Text lives in the
+ * Satori layer — fix the data and re-composite, which is exact and free. Round-tripping
+ * text through an image model is what produces the misspellings in the first place.
  */
 export async function geminiEditImage(
   imageBase64: string,
@@ -178,55 +159,9 @@ export async function geminiEditImage(
   aspectRatio: string,
   styleEnforcement?: string,
 ): Promise<string> {
-  const url = `${GEMINI_BASE}/models/${IMAGE_MODEL}:generateContent`;
-  const base64Data = imageBase64.replace(/^data:image\/[a-z]+;base64,/, "");
-
-  const editPrompt = `Edit the infographic image provided above. Apply ONLY this change and keep everything else identical:
-
-"${instruction.trim().slice(0, 800)}"
-
-RULES:
-- Preserve the existing layout, style, palette, and all other text/data exactly as-is.
-- Change ONLY what the instruction asks for.
-- Every character of text must remain PERFECTLY LEGIBLE and correctly spelled — do not garble or invent text.
-- Return the full edited infographic at the same aspect ratio (${aspectRatio}).${styleEnforcement ? `\n\n${styleEnforcement}` : ""}`;
-
-  const body = {
-    contents: [
-      {
-        role: "user",
-        parts: [
-          { text: "CURRENT INFOGRAPHIC (edit this exact image):" },
-          { inlineData: { mimeType: "image/png", data: base64Data } },
-          { text: editPrompt },
-        ],
-      },
-    ],
-    generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
-  };
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": getApiKey(),
-    },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(120_000),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini image edit error (${res.status}): ${err}`);
-  }
-
-  const data = await res.json();
-  for (const candidate of data.candidates || []) {
-    for (const part of candidate.content?.parts || []) {
-      if (part.inlineData?.data) {
-        return part.inlineData.data;
-      }
-    }
-  }
-  throw new Error("No image data in Gemini edit response");
+  const scoped = styleEnforcement
+    ? `${instruction}\n\n${styleEnforcement}`
+    : instruction;
+  const result = await editImage(imageBase64, scoped, { aspectRatio });
+  return result.imageBase64;
 }

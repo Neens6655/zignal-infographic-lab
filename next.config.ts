@@ -27,17 +27,23 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // `ignoreBuildErrors: true` was removed 2026-09-30. It is why a broken test suite
+  // (vitest uninstalled, 4 unresolved imports) never surfaced in a build.
   outputFileTracingIncludes: {
-    '/api/generate': [
-      './src/lib/fonts/**/*',
-      './node_modules/@resvg/resvg-wasm/index_bg.wasm',
+    // Satori fonts + resvg WASM must be traced into every function that typesets text.
+    // `/api/jobs/**` used to be listed here and was a dead stub; `/api/studio/**` runs
+    // the real renderer and was missing.
+    "/api/generate": [
+      "./src/lib/fonts/**/*",
+      "./node_modules/@resvg/resvg-wasm/index_bg.wasm",
     ],
-    '/api/jobs/**': [
-      './src/lib/fonts/**/*',
-      './node_modules/@resvg/resvg-wasm/index_bg.wasm',
+    "/api/studio/**": [
+      "./src/lib/fonts/**/*",
+      "./node_modules/@resvg/resvg-wasm/index_bg.wasm",
+    ],
+    "/api/regenerate": [
+      "./src/lib/fonts/**/*",
+      "./node_modules/@resvg/resvg-wasm/index_bg.wasm",
     ],
   },
   async headers() {

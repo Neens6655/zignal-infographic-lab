@@ -1,4 +1,11 @@
-export type JobStatus = 'queued' | 'processing' | 'researching' | 'analyzing' | 'generating' | 'complete' | 'failed';
+export type JobStatus =
+  | "queued"
+  | "processing"
+  | "researching"
+  | "analyzing"
+  | "generating"
+  | "complete"
+  | "failed";
 
 export type Job = {
   job_id: string;
@@ -38,7 +45,7 @@ export type GenerateResponse = {
   status: string;
   estimated_seconds: number;
   status_url: string;
-  mode: 'async' | 'sync';
+  mode: "async" | "sync";
 };
 
 export type Preset = {
@@ -52,7 +59,7 @@ export type Preset = {
 };
 
 export type SSEEvent = {
-  type: 'progress' | 'complete' | 'error';
+  type: "progress" | "complete" | "error";
   data: {
     status?: string;
     progress?: number;
@@ -86,7 +93,7 @@ export type CredibilityScore = {
   overall: number;
   claimsTotal: number;
   claimsCrossVerified: number;
-  confidence: 'high' | 'medium' | 'low';
+  confidence: "high" | "medium" | "low";
 };
 
 export type NumericalClaim = {
@@ -97,7 +104,8 @@ export type NumericalClaim = {
   raw: string;
 };
 
-export type NumberClassification = 'exact' | 'close' | 'conflicting' | 'unverified';
+export type NumberClassification =
+  "exact" | "close" | "conflicting" | "unverified";
 
 export type NumberVerification = {
   contentClaim: NumericalClaim;
@@ -112,7 +120,7 @@ export type NumberAudit = {
   close: NumberVerification[];
   conflicting: NumberVerification[];
   unverified: NumberVerification[];
-  confidenceLevel: 'verified' | 'partially_verified' | 'estimates';
+  confidenceLevel: "verified" | "partially_verified" | "estimates";
 };
 
 // ── Provenance Types ───────────────────────────────────────────
@@ -154,7 +162,11 @@ export type ProvenanceData = {
     conflicting: number;
     unverified: number;
     confidenceLevel: string;
+    /** Corrections that actually changed the rendered text — not merely detected. */
     corrections: string[];
+    correctionsApplied?: number;
+    /** Conflicts whose value could not be located in the rendered text. */
+    correctionsUnmatched?: number;
   };
   qualityScore?: {
     overall: number;
@@ -163,7 +175,11 @@ export type ProvenanceData = {
     readability: number;
     visualQuality: number;
     clientReady: boolean;
-    badge: { level: 'green' | 'yellow' | 'red'; label: string; description: string };
+    badge: {
+      level: "green" | "yellow" | "red";
+      label: string;
+      description: string;
+    };
   };
   densityReport?: {
     originalSections: number;
@@ -184,7 +200,7 @@ export type VerifiedFact = {
   dataYear: string;
   sourceUrl: string;
   sourceSnippet: string;
-  confidence: 'verified' | 'corroborated' | 'single-source' | 'unverified';
+  confidence: "verified" | "corroborated" | "single-source" | "unverified";
   confidenceScore: number;
 };
 
@@ -197,7 +213,7 @@ export type VerifiedFactSet = {
 };
 
 export type GateResult = {
-  gate: 'hallucination' | 'traceability' | 'readability' | 'data-integrity';
+  gate: "hallucination" | "traceability" | "readability" | "data-integrity";
   passed: boolean;
   score: number;
   details: string;

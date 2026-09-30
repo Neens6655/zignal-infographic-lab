@@ -4,7 +4,7 @@ import { isPrivateUrl } from '@/lib/url-validator';
 import { enforceRateLimit } from '@/lib/request-utils';
 
 export async function POST(request: Request) {
-  const rateLimited = enforceRateLimit(request);
+  const rateLimited = await enforceRateLimit(request);
   if (rateLimited) return rateLimited;
 
   try {

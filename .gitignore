@@ -54,3 +54,11 @@ dist/
 
 # QA smoke-test output (generated images)
 .smoke-out*/
+
+# Local smoke-test output (Playwright / render probes)
+.smoke-*/
+.playwright-cli/
+.playwright-mcp/
+test-results/
+playwright-report/
+blob-report/
