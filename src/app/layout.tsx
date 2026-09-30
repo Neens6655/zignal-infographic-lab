@@ -159,8 +159,18 @@ export default function RootLayout({
         </a>
         <div className="noise" />
         {children}
-        <Analytics />
-        <SpeedInsights />
+        {/* Vercel's analytics scripts are served by the Vercel edge and exist
+            nowhere else. Mounted unconditionally they request
+            /_vercel/insights/script.js in every other environment, get the HTML
+            404 page back, and fail strict MIME checking — 138 console errors in
+            one local inspection run, repeated on every click, burying the real
+            findings. Rendered only where the endpoint actually exists. */}
+        {process.env.NEXT_PUBLIC_VERCEL_ENV ? (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        ) : null}
       </body>
     </html>
   );
