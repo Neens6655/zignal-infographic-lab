@@ -463,9 +463,7 @@ export default function Home() {
         <div className="min-h-screen bg-(--z-bg) text-(--z-cream) flex flex-col">
           <Nav />
           <main className="flex-1 px-6 pt-24 pb-16">
-            <motion.div
-                            className="mx-auto max-w-3xl space-y-8"
-            >
+            <motion.div className="mx-auto max-w-3xl space-y-8">
               <ResultViewer
                 imageUrl={state.imageUrl}
                 downloadUrl={state.downloadUrl}
@@ -493,9 +491,7 @@ export default function Home() {
                   simplify,
                 }}
               />
-              <motion.div
-                                className="text-center"
-              >
+              <motion.div className="text-center">
                 <button
                   onClick={reset}
                   className="inline-flex items-center gap-2 text-sm text-(--z-cream)/60 hover:text-(--z-cream) font-mono transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
@@ -516,9 +512,14 @@ export default function Home() {
      ═══════════════════════════════════════════════════════════════ */
   return (
     <MotionConfig reducedMotion="user">
+      {/* tabIndex={-1}: without it the skip link changes the hash but focus never
+          moves, so a keyboard or screen-reader user is left exactly where they were —
+          the one thing the link exists to prevent. Confirmed by driving Tab+Enter,
+          not by reading the markup. */}
       <main
         id="main-content"
-        className="relative min-h-screen bg-(--z-bg) text-(--z-cream) overflow-x-clip"
+        tabIndex={-1}
+        className="relative min-h-screen bg-(--z-bg) text-(--z-cream) overflow-x-clip focus:outline-none"
       >
         <Nav />
 
@@ -678,7 +679,9 @@ export default function Home() {
           <motion.div
             className="relative flex-1 w-full max-w-[min(1480px,calc(640px+(100svh-440px)*16/9))] mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-10"
             style={
-              reduce ? undefined : { y: heroContentY, opacity: heroContentOpacity }
+              reduce
+                ? undefined
+                : { y: heroContentY, opacity: heroContentOpacity }
             }
           >
             {/* Headline band — overlaps the artifact's top-left */}
@@ -720,9 +723,7 @@ export default function Home() {
                 it rides over the artifact's bottom-left corner (z-30). */}
             <div className="relative z-30 mt-6 lg:mt-0 lg:absolute lg:bottom-6 lg:left-6 lg:w-[38%] lg:max-w-[460px] lg:min-w-[400px]">
               {/* Sub-copy lives WITH the console so it can never be overlapped by it */}
-              <motion.p
-                                className="mb-3 text-[12px] text-(--z-muted) leading-relaxed"
-              >
+              <motion.p className="mb-3 text-[12px] text-(--z-muted) leading-relaxed">
                 Paste anything. Seven AI agents research it across 22 trusted
                 sources and render a publication-grade infographic in about a
                 minute. Like this one —
@@ -1193,9 +1194,7 @@ export default function Home() {
           </motion.div>
 
           {/* Scroll indicator */}
-          <motion.div
-                        className="hidden lg:block absolute bottom-6 left-1/2 -translate-x-1/2"
-          >
+          <motion.div className="hidden lg:block absolute bottom-6 left-1/2 -translate-x-1/2">
             <ChevronDown className="h-5 w-5 text-white/50 animate-scroll-bounce" />
           </motion.div>
         </section>
