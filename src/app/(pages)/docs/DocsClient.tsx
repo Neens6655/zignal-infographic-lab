@@ -835,7 +835,7 @@ function HeroPipelineFlow() {
             {i < stages.length - 1 && (
               <motion.div
                 className="flex items-center mx-0.5 sm:mx-1.5"
-                initial={{ opacity: 0 }}
+                initial={false}
                 animate={inView ? { opacity: 1 } : {}}
                 transition={{ delay: 0.3 + i * 0.1 }}
               >

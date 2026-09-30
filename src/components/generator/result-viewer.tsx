@@ -292,9 +292,7 @@ export function ResultViewer({
       <AnimatePresence>
         {zoomed && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+                        exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out"
             onClick={() => setZoomed(false)}
@@ -340,7 +338,7 @@ export function ResultViewer({
       <div className="relative group">
         <CelebrationParticles />
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: [0, 0.5, 0] }}
           transition={{ duration: 1.8, delay: 0.4 }}
           className="absolute inset-0 pointer-events-none z-10"
@@ -579,10 +577,7 @@ export function ResultViewer({
 
       {/* ── Share bar ── */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.0 }}
-      >
+              >
         <div className="flex items-center gap-3">
           <span className="text-[9px] font-mono tracking-widest uppercase text-(--z-muted)/50">Share</span>
           <div className="flex-1 h-px bg-(--border)" />
@@ -628,10 +623,7 @@ export function ResultViewer({
       {/* ── Style Gallery ── */}
       {onRegenerateWithStyle && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.1 }}
-          className="space-y-4"
+                    className="space-y-4"
         >
           <div className="flex items-center gap-3">
             <span className="text-[9px] font-mono tracking-widest uppercase text-(--z-muted)/50">Regenerate in a new style</span>
@@ -694,10 +686,7 @@ export function ResultViewer({
       {/* ── Generation context ── */}
       {generationContext && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-        >
+                  >
           <button
             onClick={() => setShowContext(!showContext)}
             className="w-full flex items-center justify-between px-4 py-2.5 border border-(--border) text-xs font-mono text-(--z-muted) hover:text-(--z-cream) hover:border-(--z-gold)/30 transition-colors"

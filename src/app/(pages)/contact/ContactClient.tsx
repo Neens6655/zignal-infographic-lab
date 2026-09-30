@@ -200,7 +200,7 @@ function HeroIllustration() {
             cy={cy}
             r="1.5"
             fill="#D4A84B"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 0.3 }}
             transition={{ delay: 1.2 + i * 0.05 }}
           />
@@ -685,10 +685,7 @@ export default function ContactClient() {
 
                   {/* Reset */}
                   <motion.button
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1 }}
-                    onClick={() => {
+                                        onClick={() => {
                       setSubmitted(false);
                       setForm({ name: "", email: "", subject: SUBJECTS[0], message: "" });
                     }}

@@ -290,10 +290,7 @@ function GrowthIllustration() {
         d="M164 22L170 12L176 22"
         stroke="#D4A84B"
         strokeWidth="2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.8 }}
-      />
+              />
 
       {/* Connecting dots on top of bars */}
       {[
@@ -372,7 +369,7 @@ function Hero() {
               </motion.span>
             ))}
             <motion.span
-              initial={{ opacity: 0 }}
+              initial={false}
               animate={{ opacity: [0, 1, 1, 0] }}
               transition={{
                 duration: 1,
@@ -385,7 +382,7 @@ function Hero() {
           </h1>
 
           <motion.p
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={inView ? { opacity: 1 } : {}}
             transition={{ duration: 0.6, delay: 0.7 }}
             className="text-base sm:text-lg text-white/50 max-w-md font-sans"

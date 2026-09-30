@@ -126,10 +126,7 @@ function HeroInfographicSVG() {
           fillOpacity="0.4"
           fontSize="10"
           fontFamily="'IBM Plex Mono', monospace"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: label.delay }}
-        >
+                  >
           {label.text}
         </motion.text>
       ))}
@@ -225,10 +222,7 @@ function HeroInfographicSVG() {
         fontFamily="'IBM Plex Mono', monospace"
         fontWeight="bold"
         letterSpacing="0.08em"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 3.0 }}
-      >
+              >
         GLOBAL AI MARKET OVERVIEW
       </motion.text>
 
@@ -284,10 +278,7 @@ function HeroInfographicSVG() {
         fillOpacity="0.2"
         fontSize="7"
         fontFamily="'IBM Plex Sans', sans-serif"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 3.6 }}
-      >
+              >
         Sources: Statista, Grand View Research, Bloomberg
       </motion.text>
 
@@ -2412,10 +2403,7 @@ export default function AboutPage() {
           {/* Scroll indicator */}
           <motion.div
             className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 4.0, duration: 0.8 }}
-          >
+                      >
             <p className="font-mono text-[9px] text-white/50 tracking-[0.2em] uppercase">
               Scroll
             </p>
@@ -2454,7 +2442,7 @@ export default function AboutPage() {
       <section ref={galleryRef} className="relative z-10 py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-6 mb-8">
           <motion.p
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={galleryInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.6 }}
             className="text-[9px] font-mono font-semibold tracking-[0.3em] uppercase text-[#D4A84B] mb-3"

@@ -11,7 +11,7 @@ import { motion, useInView, useReducedMotion } from "motion/react";
  * 1. NO REDUCED-MOTION GUARD. Every animation in this estate must be gated on
  *    prefers-reduced-motion, zero exceptions; this one was not.
  *
- * 2. `initial={{ opacity: 0 }}` WITH JS AS THE ONLY PATH BACK. The server rendered
+ * 2. AN OPACITY-ZERO INITIAL WITH JS AS THE ONLY PATH BACK. The server rendered
  *    the content invisible and relied on an IntersectionObserver to bring it back.
  *    When that did not fire the section stayed blank while every static check passed,
  *    because the markup was all present — that is how a band roughly 40% of the

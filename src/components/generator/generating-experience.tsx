@@ -121,7 +121,7 @@ function OracleScene({ mini }: { mini?: boolean }) {
             {!mini && (
               <motion.circle
                 cx="0" cy="0" r="2" fill={s.color}
-                initial={{ opacity: 0 }}
+                initial={false}
                 animate={{ cx: [0, tx], cy: [0, ty], opacity: [0, 0.8, 0] }}
                 transition={{ delay: 1.5 + i * 0.3, duration: 1.2, repeat: Infinity, repeatDelay: 2 }}
               />
@@ -313,7 +313,7 @@ function RendererScene({ progress, mini }: { progress: number; mini?: boolean })
             fill={isFilled ? palette[colorIdx] : 'transparent'}
             stroke={isFilled ? palette[colorIdx] : 'rgba(232, 229, 224, 0.06)'}
             strokeWidth="0.5"
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: isFilled ? 0.7 : 0.3 }}
             transition={mini ? { duration: 0 } : { delay: isFilled ? (i * 0.02) : 0, duration: 0.3 }}
           />
@@ -421,9 +421,7 @@ function StageVisualization({ stageId, progress }: { stageId: string; progress: 
       <AnimatePresence mode="wait">
         <motion.g
           key={stageId}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+                    exit={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
         >
           <SceneContent stageId={stageId} progress={progress} />

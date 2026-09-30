@@ -459,10 +459,7 @@ export default function Home() {
           <Nav />
           <main className="flex-1 px-6 pt-24 pb-16">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              className="mx-auto max-w-3xl space-y-8"
+                            className="mx-auto max-w-3xl space-y-8"
             >
               <ResultViewer
                 imageUrl={state.imageUrl}
@@ -492,10 +489,7 @@ export default function Home() {
                 }}
               />
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.3 }}
-                className="text-center"
+                                className="text-center"
               >
                 <button
                   onClick={reset}
@@ -722,10 +716,7 @@ export default function Home() {
             <div className="relative z-30 mt-6 lg:mt-0 lg:absolute lg:bottom-6 lg:left-6 lg:w-[38%] lg:max-w-[460px] lg:min-w-[400px]">
               {/* Sub-copy lives WITH the console so it can never be overlapped by it */}
               <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.6 }}
-                className="mb-3 text-[12px] text-(--z-muted) leading-relaxed"
+                                className="mb-3 text-[12px] text-(--z-muted) leading-relaxed"
               >
                 Paste anything. Seven AI agents research it across 22 trusted
                 sources and render a publication-grade infographic in about a
@@ -1198,10 +1189,7 @@ export default function Home() {
 
           {/* Scroll indicator */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5 }}
-            className="hidden lg:block absolute bottom-6 left-1/2 -translate-x-1/2"
+                        className="hidden lg:block absolute bottom-6 left-1/2 -translate-x-1/2"
           >
             <ChevronDown className="h-5 w-5 text-white/50 animate-scroll-bounce" />
           </motion.div>
