@@ -78,7 +78,7 @@ export function PipelineStory({
             specialized AI agents, from raw content to publication-ready output
             in approximately 60 seconds.
           </p>
-          <p className="hidden lg:block text-[10px] font-mono uppercase tracking-[0.2em] text-(--z-gold)/50 mb-10 sm:mb-20">
+          <p className="hidden lg:block text-[10px] font-mono uppercase tracking-[0.2em] text-(--z-gold)/70 mb-10 sm:mb-20">
             — hover any agent to inspect its role —
           </p>
         </ScrollReveal>
@@ -111,7 +111,7 @@ export function PipelineStory({
                 return (
                   <motion.div
                     key={stage.num}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={false}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-50px" }}
                     transition={{ delay: i * 0.08, duration: 0.6 }}
@@ -150,7 +150,7 @@ export function PipelineStory({
                             ? "text-(--z-gold)"
                             : isActive
                               ? "text-(--z-gold)/80"
-                              : "text-white/[0.06] group-hover:text-white/15"
+                              : "text-white/[0.06] group-hover:text-white/50"
                         }`}
                       >
                         {stage.num}
@@ -173,9 +173,9 @@ export function PipelineStory({
                       <div
                         className={`text-[9px] font-mono font-medium tracking-[0.15em] uppercase mb-2 transition-colors duration-300 ${
                           stage.highlight
-                            ? "text-(--z-gold)/60"
+                            ? "text-(--z-gold)/70"
                             : isActive
-                              ? "text-(--z-gold)/50"
+                              ? "text-(--z-gold)/70"
                               : "text-(--z-muted)/60"
                         }`}
                       >
@@ -197,7 +197,7 @@ export function PipelineStory({
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                           >
-                            <p className="text-[10px] text-(--z-cream)/50 leading-relaxed mt-3 pt-3 border-t border-white/[0.06]">
+                            <p className="text-[10px] text-(--z-cream)/60 leading-relaxed mt-3 pt-3 border-t border-white/[0.06]">
                               {stage.detail}
                             </p>
                           </motion.div>
@@ -258,12 +258,12 @@ export function PipelineStory({
                   >
                     <div className="flex items-center gap-2 mb-1.5">
                       <span
-                        className={`text-[10px] font-mono font-bold ${stage.highlight ? "text-(--z-gold)" : "text-white/30"}`}
+                        className={`text-[10px] font-mono font-bold ${stage.highlight ? "text-(--z-gold)" : "text-white/50"}`}
                       >
                         {stage.num}
                       </span>
                       <Icon
-                        className={`h-3.5 w-3.5 ${stage.highlight ? "text-(--z-gold)" : "text-white/40"}`}
+                        className={`h-3.5 w-3.5 ${stage.highlight ? "text-(--z-gold)" : "text-white/50"}`}
                       />
                     </div>
                     <p

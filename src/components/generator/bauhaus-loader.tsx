@@ -12,7 +12,7 @@ import { motion } from 'motion/react';
 const PALETTE = [
   '#D4A84B', // gold
   '#5B8DEF', // blue
-  '#C04B3C', // brick
+  '#D9604F', // brick
   '#8BC34A', // olive
   '#E8E5E0', // cream
   '#A78BFA', // violet

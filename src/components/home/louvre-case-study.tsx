@@ -63,7 +63,7 @@ export function LouvreCaseStudy({
                     className="flex gap-5"
                     style={{ marginLeft: `${i * 12}px` }}
                   >
-                    <span className="text-3xl sm:text-4xl font-mono font-bold text-(--z-gold)/25 leading-none shrink-0">
+                    <span className="text-3xl sm:text-4xl font-mono font-bold text-(--z-gold)/70 leading-none shrink-0">
                       {beat.num}
                     </span>
                     <div className="pt-1">
@@ -92,7 +92,7 @@ export function LouvreCaseStudy({
 
           {/* The output — star of the scene */}
           <motion.figure
-            initial={{ opacity: 0, y: 32 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.9, ease: [0.25, 0.1, 0.25, 1] }}
@@ -100,10 +100,10 @@ export function LouvreCaseStudy({
           >
             <div className="relative border border-white/[0.08] terminal-shadow overflow-hidden">
               <div className="flex items-center justify-between px-4 py-2 border-b border-white/[0.06] bg-white/[0.02]">
-                <span className="text-[9px] font-mono tracking-[0.2em] text-white/30 uppercase">
+                <span className="text-[9px] font-mono tracking-[0.2em] text-white/50 uppercase">
                   Output — Louvre Abu Dhabi: How It Was Built
                 </span>
-                <span className="text-[9px] font-mono text-(--z-gold)/60">
+                <span className="text-[9px] font-mono text-(--z-gold)/70">
                   Aerial Explainer · 16:9
                 </span>
               </div>

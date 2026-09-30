@@ -290,7 +290,7 @@ function RendererScene({ progress, mini }: { progress: number; mini?: boolean })
   const rows = 7;
   const cellSize = 20;
   const gap = 3;
-  const palette = ['#D4A84B', '#5B8DEF', '#C04B3C', '#8BC34A', '#A78BFA', '#E8E5E0'];
+  const palette = ['#D4A84B', '#5B8DEF', '#D9604F', '#8BC34A', '#A78BFA', '#E8E5E0'];
   const totalCells = cols * rows;
   const filledCount = mini ? totalCells : Math.floor((progress / 100) * totalCells);
   const offsetX = -((cols * (cellSize + gap) - gap) / 2);
@@ -488,7 +488,7 @@ function StepFlow({ currentStageId }: { currentStageId: string }) {
                   <MiniIllustration stageId={stage.id} />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <stage.icon className="h-5 w-5 text-white/20" />
+                    <stage.icon className="h-5 w-5 text-white/50" />
                   </div>
                 )}
               </div>
@@ -499,7 +499,7 @@ function StepFlow({ currentStageId }: { currentStageId: string }) {
                   ? 'text-(--z-gold)'
                   : isComplete
                     ? 'text-(--z-olive)'
-                    : 'text-white/20'
+                    : 'text-white/50'
               }`}>
                 {stage.agent}
               </span>
@@ -507,10 +507,10 @@ function StepFlow({ currentStageId }: { currentStageId: string }) {
               {/* Function label */}
               <span className={`text-[8px] font-mono tracking-widest uppercase mt-0.5 transition-colors duration-500 ${
                 isCurrent
-                  ? 'text-(--z-gold)/50'
+                  ? 'text-(--z-gold)/70'
                   : isComplete
                     ? 'text-(--z-olive)/40'
-                    : 'text-white/10'
+                    : 'text-white/50'
               }`}>
                 {stage.name}
               </span>
@@ -581,7 +581,7 @@ export function GeneratingExperience({ progress, message }: Props) {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-4"
       >
-        <span className="text-[10px] font-mono tracking-[0.3em] text-(--z-gold)/60 uppercase">
+        <span className="text-[10px] font-mono tracking-[0.3em] text-(--z-gold)/70 uppercase">
           Agent {currentStage.num} — {currentStage.agent}
         </span>
         <h2 className="text-2xl sm:text-3xl font-mono font-medium heading-editorial mt-1">

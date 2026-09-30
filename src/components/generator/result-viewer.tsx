@@ -39,7 +39,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
 
 const STYLE_CATALOG = [
   { id: 'executive-institutional', label: 'Executive Institutional', desc: 'McKinsey-grade multi-panel dashboard. Bento grids, KPI tiles, corporate palette.', accent: '#D4A84B', icon: '▦' },
-  { id: 'deconstruct', label: 'Deconstruct', desc: 'NYT-style exploded view with callout lines and numbered annotations.', accent: '#C04B3C', icon: '◎' },
+  { id: 'deconstruct', label: 'Deconstruct', desc: 'NYT-style exploded view with callout lines and numbered annotations.', accent: '#D9604F', icon: '◎' },
   { id: 'aerial-explainer', label: 'Aerial Explainer', desc: 'Drone-view isometric cutaway with numbered architectural callouts.', accent: '#5B8DEF', icon: '◇' },
   { id: 'technical-schematic', label: 'Technical Schematic', desc: 'Blueprint grid with precise linework and step-by-step process flows.', accent: '#8BC34A', icon: '⬡' },
   { id: 'craft-handmade', label: 'Craft Handmade', desc: 'Watercolor textures, hand-drawn illustrations, winding narrative paths.', accent: '#A78BFA', icon: '✦' },
@@ -420,12 +420,12 @@ export function ResultViewer({
           className="w-full max-w-md mx-auto space-y-1.5"
         >
           <div className="flex items-center gap-3">
-            <span className="text-[9px] font-mono tracking-widest uppercase text-white/30">Sources</span>
+            <span className="text-[9px] font-mono tracking-widest uppercase text-white/50">Sources</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
           <div className="space-y-1">
             {provenance.contentSources.map((source, i) => (
-              <p key={i} className="text-[10px] font-mono text-white/40 pl-3 border-l border-[#5B8DEF]/20">
+              <p key={i} className="text-[10px] font-mono text-white/50 pl-3 border-l border-[#5B8DEF]/20">
                 {source}
               </p>
             ))}
@@ -464,7 +464,7 @@ export function ResultViewer({
         >
           <button
             onClick={() => setShowCertificate(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-mono font-semibold text-[#D4A84B]/80 bg-[#D4A84B]/[0.06] border border-[#D4A84B]/20 hover:bg-[#D4A84B]/10 hover:text-[#D4A84B] transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-mono font-semibold text-[#D4A84B] bg-[#D4A84B]/[0.06] border border-[#D4A84B]/20 hover:bg-[#D4A84B]/10 hover:text-[#D4A84B] transition-all"
           >
             <Shield className="h-3.5 w-3.5" />
             Certificate {provenance.seed}
@@ -525,7 +525,7 @@ export function ResultViewer({
                   disabled={!!exporting}
                   className="w-full flex items-center gap-3 px-4 py-3 text-xs font-mono text-(--z-cream)/80 hover:bg-white/[0.04] transition-colors disabled:opacity-50"
                 >
-                  {exporting === 'jpeg' ? <Loader2 className="h-4 w-4 text-(--z-gold)/60 animate-spin" /> : <FileImage className="h-4 w-4 text-(--z-gold)/60" />}
+                  {exporting === 'jpeg' ? <Loader2 className="h-4 w-4 text-(--z-gold)/70 animate-spin" /> : <FileImage className="h-4 w-4 text-(--z-gold)/70" />}
                   <div className="text-left">
                     <div className="font-medium">JPEG — Compressed</div>
                     <div className="text-[10px] text-(--z-muted)">Smaller file, great for web & social</div>
@@ -601,7 +601,7 @@ export function ResultViewer({
               target="_blank"
               rel="noopener noreferrer"
               title="Share on LinkedIn"
-              className="flex items-center justify-center h-9 w-9 border border-(--border) text-(--z-muted) hover:text-[#0A66C2] hover:border-[#0A66C2]/30 hover:bg-[#0A66C2]/[0.04] transition-all"
+              className="flex items-center justify-center h-9 w-9 border border-(--border) text-(--z-muted) hover:text-[#4A9EE8] hover:border-[#0A66C2]/30 hover:bg-[#0A66C2]/[0.04] transition-all"
             >
               <LinkedInIcon className="h-3.5 w-3.5" />
             </a>
@@ -671,7 +671,7 @@ export function ResultViewer({
                           {s.label}
                         </span>
                         {isActive && (
-                          <span className="text-[8px] font-mono tracking-widest uppercase text-(--z-gold)/60 bg-(--z-gold)/10 px-1.5 py-0.5">current</span>
+                          <span className="text-[8px] font-mono tracking-widest uppercase text-(--z-gold)/70 bg-(--z-gold)/10 px-1.5 py-0.5">current</span>
                         )}
                       </div>
                       <p className="text-[10px] leading-relaxed text-(--z-muted)/70 mt-0.5 line-clamp-2">

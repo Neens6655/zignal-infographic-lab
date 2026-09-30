@@ -237,7 +237,7 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 z-10 h-7 w-7 flex items-center justify-center text-white/40 hover:text-white/80 transition-colors"
+              className="absolute top-3 right-3 z-10 h-7 w-7 flex items-center justify-center text-white/50 hover:text-white/80 transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -258,7 +258,7 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
                   Certificate of Infographic Lineage
                 </p>
                 <p className="text-2xl font-mono font-bold text-white tracking-tight">{provenance.seed}</p>
-                <p className="text-[10px] font-mono text-white/30">
+                <p className="text-[10px] font-mono text-white/50">
                   {new Date(provenance.generatedAt).toLocaleString()}
                 </p>
               </div>
@@ -282,7 +282,7 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
                     <div key={step.stage} className="flex items-start gap-3 text-xs font-mono">
                       <span className="text-[#D4A84B] font-bold shrink-0">{step.stage}</span>
                       <span className="text-white/70 font-medium shrink-0 w-20">{step.agent}</span>
-                      <span className="text-white/40">{step.result}</span>
+                      <span className="text-white/50">{step.result}</span>
                     </div>
                   ))}
                 </div>
@@ -293,7 +293,7 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
                 <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-2">References Used</p>
                 <div className="space-y-1">
                   {provenance.references.map((ref) => (
-                    <p key={ref} className="text-[11px] font-mono text-white/40 pl-3 border-l border-white/[0.06]">
+                    <p key={ref} className="text-[11px] font-mono text-white/50 pl-3 border-l border-white/[0.06]">
                       {ref}
                     </p>
                   ))}
@@ -334,26 +334,26 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
                   <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-2">Compliance</p>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2">
-                      <p className="text-[9px] font-mono text-white/30 mb-0.5">Score</p>
+                      <p className="text-[9px] font-mono text-white/50 mb-0.5">Score</p>
                       <p className={`text-[14px] font-mono font-bold ${
                         provenance.compliance.score >= 80 ? 'text-[#8BC34A]'
                           : provenance.compliance.score >= 50 ? 'text-[#D4A84B]'
-                          : 'text-[#C04B3C]'
+                          : 'text-[#D9604F]'
                       }`}>
                         {provenance.compliance.score}/100
                       </p>
                     </div>
                     <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2">
-                      <p className="text-[9px] font-mono text-white/30 mb-0.5">Corrections</p>
+                      <p className="text-[9px] font-mono text-white/50 mb-0.5">Corrections</p>
                       <p className="text-[14px] font-mono font-bold text-white/60">{provenance.compliance.corrections}</p>
                     </div>
                   </div>
                   {provenance.compliance.riskWords.length > 0 && (
                     <div className="mt-2">
-                      <p className="text-[9px] font-mono text-white/30 mb-1">Risk Words</p>
+                      <p className="text-[9px] font-mono text-white/50 mb-1">Risk Words</p>
                       <div className="flex flex-wrap gap-1">
                         {provenance.compliance.riskWords.map((word, i) => (
-                          <span key={i} className="text-[9px] font-mono text-[#D4A84B]/60 bg-[#D4A84B]/[0.06] border border-[#D4A84B]/10 px-1.5 py-0.5">
+                          <span key={i} className="text-[9px] font-mono text-[#D4A84B] bg-[#D4A84B]/[0.06] border border-[#D4A84B]/10 px-1.5 py-0.5">
                             {word}
                           </span>
                         ))}
@@ -362,9 +362,9 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
                   )}
                   {provenance.compliance.factFlags.length > 0 && (
                     <div className="mt-2">
-                      <p className="text-[9px] font-mono text-white/30 mb-1">Fact Warnings</p>
+                      <p className="text-[9px] font-mono text-white/50 mb-1">Fact Warnings</p>
                       {provenance.compliance.factFlags.map((flag, i) => (
-                        <p key={i} className="text-[10px] font-mono text-[#C04B3C]/70 pl-2 border-l border-[#C04B3C]/20">
+                        <p key={i} className="text-[10px] font-mono text-[#D9604F]/70 pl-2 border-l border-[#D9604F]/20">
                           {flag}
                         </p>
                       ))}
@@ -378,11 +378,11 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
                 <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-2">Models</p>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2">
-                    <p className="text-[9px] font-mono text-white/30 mb-0.5">Analysis</p>
+                    <p className="text-[9px] font-mono text-white/50 mb-0.5">Analysis</p>
                     <p className="text-[11px] font-mono text-white/60">{provenance.models.analysis}</p>
                   </div>
                   <div className="bg-white/[0.03] border border-white/[0.06] px-3 py-2">
-                    <p className="text-[9px] font-mono text-white/30 mb-0.5">Rendering</p>
+                    <p className="text-[9px] font-mono text-white/50 mb-0.5">Rendering</p>
                     <p className="text-[11px] font-mono text-white/60">{provenance.models.image}</p>
                   </div>
                 </div>
@@ -391,10 +391,10 @@ export function ProvenanceCertificate({ provenance, open, onClose }: Props) {
               {/* Footer */}
               <div className="h-px bg-gradient-to-r from-transparent via-[#D4A84B]/30 to-transparent" />
               <div className="text-center space-y-1">
-                <p className="text-[10px] font-mono font-semibold text-[#D4A84B]/60">
+                <p className="text-[10px] font-mono font-semibold text-[#D4A84B]">
                   ZGNAL.AI — Algorithmic Art
                 </p>
-                <p className="text-[9px] font-mono text-white/25">
+                <p className="text-[9px] font-mono text-white/50">
                   Responsible AI &bull; Transparent Pipeline &bull; Verifiable Provenance
                 </p>
               </div>

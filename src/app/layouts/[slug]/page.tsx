@@ -81,7 +81,7 @@ export default async function LayoutPage({ params }: { params: Promise<{ slug: s
           {layout.keywords.map((kw) => (
             <span
               key={kw}
-              className="text-[10px] font-mono text-white/30 bg-white/[0.03] border border-white/[0.06] px-3 py-1"
+              className="text-[10px] font-mono text-white/50 bg-white/[0.03] border border-white/[0.06] px-3 py-1"
             >
               {kw}
             </span>

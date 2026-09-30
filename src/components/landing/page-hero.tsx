@@ -20,7 +20,7 @@ export function PageHero({ label, title, category, accent, answerBlock }: PageHe
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-mono font-bold text-white leading-tight mb-3">
         {title}
       </h1>
-      <p className="text-xs font-mono tracking-widest uppercase text-white/30 mb-6">
+      <p className="text-xs font-mono tracking-widest uppercase text-white/50 mb-6">
         {category}
       </p>
       <AnswerBlock text={answerBlock} />

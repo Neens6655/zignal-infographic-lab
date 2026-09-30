@@ -65,7 +65,7 @@ export function HeroOutputShowcase() {
               <div className="h-2 w-2 rounded-full bg-(--z-gold)/60" />
               <div className="h-2 w-2 rounded-full bg-(--z-olive)/60" />
             </div>
-            <span className="text-[9px] font-mono tracking-[0.2em] text-white/35 uppercase truncate">
+            <span className="text-[9px] font-mono tracking-[0.2em] text-white/50 uppercase truncate">
               Output — {specimen.title}
             </span>
           </div>
@@ -93,9 +93,9 @@ export function HeroOutputShowcase() {
         {/* Frame footer — provenance line left, specimen tabs right. ONE row. */}
         <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] bg-white/[0.02] pl-4 pr-1">
           <p className="hidden sm:block text-[9px] font-mono uppercase tracking-[0.14em] text-(--z-cream)/60 truncate py-2.5">
-            ~60s <span className="text-(--z-gold)/50">·</span> 22 trusted
-            sources <span className="text-(--z-gold)/50">·</span>{" "}
-            {specimen.style} <span className="text-(--z-gold)/50">·</span> from{" "}
+            ~60s <span className="text-(--z-gold)/70">·</span> 22 trusted
+            sources <span className="text-(--z-gold)/70">·</span>{" "}
+            {specimen.style} <span className="text-(--z-gold)/70">·</span> from{" "}
             {specimen.prompt}
           </p>
           <div
@@ -103,7 +103,7 @@ export function HeroOutputShowcase() {
             aria-label="Switch example output"
             className="flex items-center shrink-0"
           >
-            <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-white/45 mr-2">
+            <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-white/50 mr-2">
               View
             </span>
             {HERO_SPECIMENS.map((s, i) => (
@@ -115,7 +115,7 @@ export function HeroOutputShowcase() {
                 className={`px-3 py-2.5 text-[9px] font-mono uppercase tracking-[0.12em] transition-all border-b-2 cursor-pointer ${
                   i === active
                     ? "border-b-(--z-gold) bg-(--z-gold)/[0.07] text-(--z-gold)"
-                    : "border-b-transparent text-white/45 hover:text-(--z-gold)/80 hover:bg-white/[0.04] hover:border-b-(--z-gold)/30"
+                    : "border-b-transparent text-white/50 hover:text-(--z-gold)/80 hover:bg-white/[0.04] hover:border-b-(--z-gold)/30"
                 }`}
               >
                 {s.style.split(" ")[0]}

@@ -127,7 +127,7 @@ export const STYLES_SHOWCASE = [
     technique: "Exploded View",
     desc: "NYT-style structural breakdown with callout lines, numbered annotations, and isometric dissection.",
     image: "/showcase/style-deconstruct.png",
-    accent: "#C04B3C",
+    accent: "#D9604F",
   },
   {
     style: "Aerial Explainer",

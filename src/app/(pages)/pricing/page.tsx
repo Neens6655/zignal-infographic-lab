@@ -2,11 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import {
-  motion,
-  AnimatePresence,
-  useInView,
-} from "motion/react";
+import { motion, AnimatePresence, useInView } from "motion/react";
 
 /* ─── Constants ─── */
 
@@ -57,9 +53,24 @@ const FAQS = [
 ] as const;
 
 const COMPARISON_ROWS = [
-  { label: "Monthly generations", free: "50", pro: "500", enterprise: "Unlimited" },
-  { label: "Styles & layouts", free: "20 + 20", pro: "40 + 40", enterprise: "Custom" },
-  { label: "Export formats", free: "PNG, JPEG, PDF, PPTX", pro: "All + SVG", enterprise: "All + API" },
+  {
+    label: "Monthly generations",
+    free: "50",
+    pro: "500",
+    enterprise: "Unlimited",
+  },
+  {
+    label: "Styles & layouts",
+    free: "20 + 20",
+    pro: "40 + 40",
+    enterprise: "Custom",
+  },
+  {
+    label: "Export formats",
+    free: "PNG, JPEG, PDF, PPTX",
+    pro: "All + SVG",
+    enterprise: "All + API",
+  },
   { label: "API access", free: false, pro: true, enterprise: true },
   { label: "Custom branding", free: false, pro: true, enterprise: true },
   { label: "Priority rendering", free: false, pro: true, enterprise: true },
@@ -101,13 +112,38 @@ function GoldGeometry() {
     <svg viewBox="0 0 320 80" className="w-full h-20" aria-hidden="true">
       <rect x="20" y="10" width="50" height="50" fill={GOLD} opacity="0.15" />
       <rect x="55" y="25" width="35" height="35" fill={GOLD} opacity="0.25" />
-      <circle cx="140" cy="40" r="28" fill="none" stroke={GOLD} strokeWidth="2" opacity="0.3" />
+      <circle
+        cx="140"
+        cy="40"
+        r="28"
+        fill="none"
+        stroke={GOLD}
+        strokeWidth="2"
+        opacity="0.3"
+      />
       <circle cx="155" cy="35" r="16" fill={GOLD} opacity="0.12" />
       <rect x="200" y="15" width="60" height="4" fill={GOLD} opacity="0.35" />
       <rect x="210" y="28" width="40" height="4" fill={GOLD} opacity="0.2" />
       <rect x="220" y="41" width="25" height="4" fill={GOLD} opacity="0.15" />
-      <rect x="270" y="8" width="30" height="64" fill="none" stroke={GOLD} strokeWidth="1.5" opacity="0.2" />
-      <line x1="275" y1="8" x2="295" y2="72" stroke={GOLD} strokeWidth="1" opacity="0.15" />
+      <rect
+        x="270"
+        y="8"
+        width="30"
+        height="64"
+        fill="none"
+        stroke={GOLD}
+        strokeWidth="1.5"
+        opacity="0.2"
+      />
+      <line
+        x1="275"
+        y1="8"
+        x2="295"
+        y2="72"
+        stroke={GOLD}
+        strokeWidth="1"
+        opacity="0.15"
+      />
     </svg>
   );
 }
@@ -115,15 +151,74 @@ function GoldGeometry() {
 function BlueGeometry() {
   return (
     <svg viewBox="0 0 320 80" className="w-full h-20" aria-hidden="true">
-      <circle cx="45" cy="40" r="30" fill="none" stroke={BLUE} strokeWidth="2" opacity="0.25" strokeDasharray="4 4" />
+      <circle
+        cx="45"
+        cy="40"
+        r="30"
+        fill="none"
+        stroke={BLUE}
+        strokeWidth="2"
+        opacity="0.25"
+        strokeDasharray="4 4"
+      />
       <circle cx="45" cy="40" r="15" fill={BLUE} opacity="0.1" />
-      <rect x="100" y="12" width="55" height="55" fill="none" stroke={BLUE} strokeWidth="1.5" opacity="0.2" transform="rotate(15 127 40)" />
-      <rect x="115" y="22" width="30" height="30" fill={BLUE} opacity="0.1" transform="rotate(15 130 37)" />
-      <line x1="190" y1="10" x2="190" y2="70" stroke={BLUE} strokeWidth="1.5" opacity="0.2" />
-      <line x1="200" y1="20" x2="200" y2="60" stroke={BLUE} strokeWidth="1.5" opacity="0.15" />
-      <line x1="210" y1="30" x2="210" y2="50" stroke={BLUE} strokeWidth="1.5" opacity="0.1" />
+      <rect
+        x="100"
+        y="12"
+        width="55"
+        height="55"
+        fill="none"
+        stroke={BLUE}
+        strokeWidth="1.5"
+        opacity="0.2"
+        transform="rotate(15 127 40)"
+      />
+      <rect
+        x="115"
+        y="22"
+        width="30"
+        height="30"
+        fill={BLUE}
+        opacity="0.1"
+        transform="rotate(15 130 37)"
+      />
+      <line
+        x1="190"
+        y1="10"
+        x2="190"
+        y2="70"
+        stroke={BLUE}
+        strokeWidth="1.5"
+        opacity="0.2"
+      />
+      <line
+        x1="200"
+        y1="20"
+        x2="200"
+        y2="60"
+        stroke={BLUE}
+        strokeWidth="1.5"
+        opacity="0.15"
+      />
+      <line
+        x1="210"
+        y1="30"
+        x2="210"
+        y2="50"
+        stroke={BLUE}
+        strokeWidth="1.5"
+        opacity="0.1"
+      />
       <circle cx="270" cy="25" r="20" fill={BLUE} opacity="0.08" />
-      <circle cx="285" cy="55" r="14" fill="none" stroke={BLUE} strokeWidth="1.5" opacity="0.2" />
+      <circle
+        cx="285"
+        cy="55"
+        r="14"
+        fill="none"
+        stroke={BLUE}
+        strokeWidth="1.5"
+        opacity="0.2"
+      />
     </svg>
   );
 }
@@ -131,16 +226,79 @@ function BlueGeometry() {
 function PurpleGeometry() {
   return (
     <svg viewBox="0 0 320 80" className="w-full h-20" aria-hidden="true">
-      <polygon points="40,10 70,60 10,60" fill="none" stroke={PURPLE} strokeWidth="1.5" opacity="0.25" />
+      <polygon
+        points="40,10 70,60 10,60"
+        fill="none"
+        stroke={PURPLE}
+        strokeWidth="1.5"
+        opacity="0.25"
+      />
       <polygon points="50,20 68,52 32,52" fill={PURPLE} opacity="0.1" />
-      <rect x="100" y="15" width="45" height="45" fill={PURPLE} opacity="0.08" />
-      <rect x="110" y="25" width="25" height="25" fill="none" stroke={PURPLE} strokeWidth="1.5" opacity="0.25" />
-      <circle cx="200" cy="40" r="25" fill="none" stroke={PURPLE} strokeWidth="1" opacity="0.15" strokeDasharray="2 6" />
+      <rect
+        x="100"
+        y="15"
+        width="45"
+        height="45"
+        fill={PURPLE}
+        opacity="0.08"
+      />
+      <rect
+        x="110"
+        y="25"
+        width="25"
+        height="25"
+        fill="none"
+        stroke={PURPLE}
+        strokeWidth="1.5"
+        opacity="0.25"
+      />
+      <circle
+        cx="200"
+        cy="40"
+        r="25"
+        fill="none"
+        stroke={PURPLE}
+        strokeWidth="1"
+        opacity="0.15"
+        strokeDasharray="2 6"
+      />
       <circle cx="200" cy="40" r="10" fill={PURPLE} opacity="0.12" />
-      <line x1="250" y1="15" x2="300" y2="15" stroke={PURPLE} strokeWidth="2" opacity="0.2" />
-      <line x1="260" y1="30" x2="300" y2="30" stroke={PURPLE} strokeWidth="2" opacity="0.15" />
-      <line x1="270" y1="45" x2="300" y2="45" stroke={PURPLE} strokeWidth="2" opacity="0.1" />
-      <line x1="280" y1="60" x2="300" y2="60" stroke={PURPLE} strokeWidth="2" opacity="0.08" />
+      <line
+        x1="250"
+        y1="15"
+        x2="300"
+        y2="15"
+        stroke={PURPLE}
+        strokeWidth="2"
+        opacity="0.2"
+      />
+      <line
+        x1="260"
+        y1="30"
+        x2="300"
+        y2="30"
+        stroke={PURPLE}
+        strokeWidth="2"
+        opacity="0.15"
+      />
+      <line
+        x1="270"
+        y1="45"
+        x2="300"
+        y2="45"
+        stroke={PURPLE}
+        strokeWidth="2"
+        opacity="0.1"
+      />
+      <line
+        x1="280"
+        y1="60"
+        x2="300"
+        y2="60"
+        stroke={PURPLE}
+        strokeWidth="2"
+        opacity="0.08"
+      />
     </svg>
   );
 }
@@ -149,7 +307,10 @@ function PurpleGeometry() {
 
 function FloatingShapes() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+    <div
+      className="absolute inset-0 overflow-hidden pointer-events-none"
+      aria-hidden="true"
+    >
       <motion.div
         className="absolute w-16 h-16 border-2 opacity-[0.06]"
         style={{ borderColor: GOLD, top: "12%", left: "8%" }}
@@ -164,13 +325,23 @@ function FloatingShapes() {
       />
       <motion.div
         className="absolute w-10 h-10 border-2 opacity-[0.05]"
-        style={{ borderColor: BLUE, bottom: "30%", left: "15%", borderRadius: "50%" }}
+        style={{
+          borderColor: BLUE,
+          bottom: "30%",
+          left: "15%",
+          borderRadius: "50%",
+        }}
         animate={{ y: [0, -12, 0], scale: [1, 1.1, 1] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
         className="absolute w-4 h-4 opacity-[0.07]"
-        style={{ backgroundColor: PURPLE, top: "18%", right: "30%", borderRadius: "50%" }}
+        style={{
+          backgroundColor: PURPLE,
+          top: "18%",
+          right: "30%",
+          borderRadius: "50%",
+        }}
         animate={{ y: [0, 10, 0], x: [0, 5, 0] }}
         transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -215,22 +386,44 @@ function AnimatedCounter({ target }: { target: number }) {
 /* ─── Scrolling thumbnail strip ─── */
 
 const THUMBNAIL_COLORS = [
-  GOLD, BLUE, PURPLE, "#E85D75", "#4ECDC4", "#F4A261",
-  GOLD, BLUE, PURPLE, "#E85D75", "#4ECDC4", "#F4A261",
-  GOLD, BLUE, PURPLE, "#E85D75", "#4ECDC4", "#F4A261",
+  GOLD,
+  BLUE,
+  PURPLE,
+  "#E85D75",
+  "#4ECDC4",
+  "#F4A261",
+  GOLD,
+  BLUE,
+  PURPLE,
+  "#E85D75",
+  "#4ECDC4",
+  "#F4A261",
+  GOLD,
+  BLUE,
+  PURPLE,
+  "#E85D75",
+  "#4ECDC4",
+  "#F4A261",
 ];
 
 function ScrollingThumbnails() {
   return (
-    <div className="relative w-full overflow-hidden mt-6" style={{ height: 72 }}>
+    <div
+      className="relative w-full overflow-hidden mt-6"
+      style={{ height: 72 }}
+    >
       {/* Fade masks */}
       <div
         className="absolute left-0 top-0 bottom-0 w-20 z-10"
-        style={{ background: `linear-gradient(to right, ${CHARCOAL}, transparent)` }}
+        style={{
+          background: `linear-gradient(to right, ${CHARCOAL}, transparent)`,
+        }}
       />
       <div
         className="absolute right-0 top-0 bottom-0 w-20 z-10"
-        style={{ background: `linear-gradient(to left, ${CHARCOAL}, transparent)` }}
+        style={{
+          background: `linear-gradient(to left, ${CHARCOAL}, transparent)`,
+        }}
       />
       <div className="flex gap-3 animate-scroll-strip">
         {THUMBNAIL_COLORS.map((color, i) => (
@@ -312,7 +505,10 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as const }}
+            transition={{
+              duration: 0.3,
+              ease: [0.25, 0.46, 0.45, 0.94] as const,
+            }}
             className="overflow-hidden"
           >
             <p className="text-sm text-white/50 font-sans leading-relaxed pb-6">
@@ -346,7 +542,9 @@ function Section({
       animate={isInView ? "visible" : "hidden"}
       variants={{
         hidden: {},
-        visible: { transition: { staggerChildren: 0.08, delayChildren: delay } },
+        visible: {
+          transition: { staggerChildren: 0.08, delayChildren: delay },
+        },
       }}
       className={className}
     >
@@ -410,7 +608,7 @@ function PricingCard({
           <span
             className="text-[9px] font-mono font-bold tracking-[0.2em] uppercase px-3 py-1"
             style={{
-              color: ctaActive ? CHARCOAL : "rgba(255,255,255,0.3)",
+              color: ctaActive ? CHARCOAL : "rgba(255,255,255,0.62)",
               backgroundColor: ctaActive ? accentColor : CHARCOAL,
               border: ctaActive ? "none" : "1px solid rgba(255,255,255,0.1)",
             }}
@@ -420,30 +618,32 @@ function PricingCard({
         </div>
 
         {/* Geometric header illustration */}
-        <div
-          className="pt-6"
-          style={{ opacity: dimmed ? 0.4 : 1 }}
-        >
+        {/* No container opacity. It MULTIPLIED with each child's own alpha — 0.55 text
+            inside a 0.5 wrapper renders at 0.275, which measured 2.39:1. The dimmed
+            tier is already signalled by a dashed border, muted colour, a rule through
+            each excluded feature and screen-reader text; it does not also need to be
+            unreadable. */}
+        <div className="pt-6">
           {geometry}
         </div>
 
         {/* Content */}
-        <div
-          className="px-8 pb-8"
-          style={{ opacity: dimmed ? 0.5 : 1 }}
-        >
+        <div className="px-8 pb-8">
           <h2
             className="text-3xl font-mono font-bold mb-1"
-            style={{ color: dimmed ? `${CREAM}99` : CREAM }}
+            style={{ color: dimmed ? `${CREAM}B8` : CREAM }}
           >
             {title}
           </h2>
-          <p className="text-xs font-mono mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>
+          <p
+            className="text-xs font-mono mb-1"
+            style={{ color: "rgba(255,255,255,0.55)" }}
+          >
             {priceLabel}
           </p>
           <p
             className="text-[10px] font-mono mb-6"
-            style={{ color: "rgba(255,255,255,0.2)" }}
+            style={{ color: "rgba(255,255,255,0.55)" }}
           >
             {description}
           </p>
@@ -453,12 +653,30 @@ function PricingCard({
               <li
                 key={feature}
                 className="flex items-start gap-3 text-sm font-mono"
-                style={{ color: dimmed ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.6)" }}
+                style={{
+                  // The dimmed state marks a feature this tier does NOT include. At
+                  // 0.3 alpha it measured 1.5:1 — a reader could not tell what they
+                  // were missing. It also signalled exclusion by dimness ALONE, which
+                  // is a colour-only cue. Now legible, and marked by a rule through
+                  // the text so the meaning survives without relying on contrast.
+                  color: dimmed
+                    ? "rgba(255,255,255,0.55)"
+                    : "rgba(255,255,255,0.72)",
+                  textDecoration: dimmed ? "line-through" : undefined,
+                }}
               >
                 <span
                   className="h-1.5 w-1.5 shrink-0 mt-1.5"
-                  style={{ backgroundColor: dimmed ? "rgba(255,255,255,0.2)" : accentColor }}
+                  aria-hidden="true"
+                  style={{
+                    backgroundColor: dimmed
+                      ? "rgba(255,255,255,0.4)"
+                      : accentColor,
+                  }}
                 />
+                <span className="sr-only">
+                  {dimmed ? "Not included: " : "Included: "}
+                </span>
                 {feature}
               </li>
             ))}
@@ -482,7 +700,11 @@ function PricingCard({
                       `0 0 0px ${accentColor}00`,
                     ],
                   }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{
+                    duration: 2.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
                 />
                 <span className="relative z-10">{ctaLabel}</span>
               </motion.div>
@@ -492,7 +714,7 @@ function PricingCard({
               className="w-full text-center border-2 border-dashed px-6 py-3.5 text-sm font-mono font-semibold cursor-default"
               style={{
                 borderColor: "rgba(255,255,255,0.1)",
-                color: "rgba(255,255,255,0.2)",
+                color: "rgba(255,255,255,0.55)",
               }}
             >
               {ctaLabel}
@@ -527,9 +749,7 @@ function ComparisonCell({ value }: { value: string | boolean }) {
       </svg>
     );
   }
-  return (
-    <span className="text-white/20 font-mono text-sm">&mdash;</span>
-  );
+  return <span className="text-white/50 font-mono text-sm">&mdash;</span>;
 }
 
 /* ─── Dot grid background ─── */
@@ -552,7 +772,6 @@ function DotGrid() {
 export default function PricingPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: CHARCOAL }}>
-
       {/* ══════════════════ HERO ══════════════════ */}
       <div className="relative overflow-hidden">
         {/* Animated gradient mesh background */}
@@ -611,25 +830,31 @@ export default function PricingPage() {
               style={{ height: 2, backgroundColor: GOLD, originX: 0 }}
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
-              transition={{ duration: 1.5, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+              transition={{
+                duration: 1.5,
+                delay: 0.6,
+                ease: [0.25, 0.46, 0.45, 0.94],
+              }}
             />
 
             <motion.p
               variants={fadeUp}
               className="text-base sm:text-lg font-sans max-w-xl mx-auto leading-relaxed"
-              style={{ color: "rgba(255,255,255,0.4)" }}
+              style={{ color: "rgba(255,255,255,0.55)" }}
             >
-              The full pipeline is available at no cost during our public preview.
-              No credit card. No strings.
+              The full pipeline is available at no cost during our public
+              preview. No credit card. No strings.
             </motion.p>
           </Section>
         </div>
       </div>
 
       <div className="mx-auto max-w-6xl px-6">
-
         {/* ══════════════════ PRICING CARDS ══════════════════ */}
-        <Section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-32" delay={0.1}>
+        <Section
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-32"
+          delay={0.1}
+        >
           <PricingCard
             title="Free"
             priceLabel="$0 / forever during preview"
@@ -677,7 +902,7 @@ export default function PricingPage() {
             </p>
             <p
               className="text-[11px] font-mono tracking-[0.2em] uppercase mb-1"
-              style={{ color: "rgba(255,255,255,0.3)" }}
+              style={{ color: "rgba(255,255,255,0.55)" }}
             >
               infographics generated during preview
             </p>
@@ -703,20 +928,41 @@ export default function PricingPage() {
             </h2>
           </motion.div>
 
-          <motion.div variants={fadeUp} className="relative z-10 overflow-x-auto">
+          <motion.div
+            variants={fadeUp}
+            tabIndex={0}
+            role="region"
+            aria-label="Plan comparison table, scroll horizontally"
+            className="relative z-10 overflow-x-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A84B]"
+          >
             <table className="w-full text-left" style={{ minWidth: 600 }}>
               <thead>
-                <tr className="border-b-2" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-                  <th className="pb-4 pr-8 text-xs font-mono font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.3)" }}>
+                <tr
+                  className="border-b-2"
+                  style={{ borderColor: "rgba(255,255,255,0.08)" }}
+                >
+                  <th
+                    className="pb-4 pr-8 text-xs font-mono font-semibold uppercase tracking-wider"
+                    style={{ color: "rgba(255,255,255,0.55)" }}
+                  >
                     Feature
                   </th>
-                  <th className="pb-4 px-4 text-xs font-mono font-semibold uppercase tracking-wider text-center" style={{ color: GOLD }}>
+                  <th
+                    className="pb-4 px-4 text-xs font-mono font-semibold uppercase tracking-wider text-center"
+                    style={{ color: GOLD }}
+                  >
                     Free
                   </th>
-                  <th className="pb-4 px-4 text-xs font-mono font-semibold uppercase tracking-wider text-center" style={{ color: BLUE }}>
+                  <th
+                    className="pb-4 px-4 text-xs font-mono font-semibold uppercase tracking-wider text-center"
+                    style={{ color: BLUE }}
+                  >
                     Pro
                   </th>
-                  <th className="pb-4 px-4 text-xs font-mono font-semibold uppercase tracking-wider text-center" style={{ color: PURPLE }}>
+                  <th
+                    className="pb-4 px-4 text-xs font-mono font-semibold uppercase tracking-wider text-center"
+                    style={{ color: PURPLE }}
+                  >
                     Enterprise
                   </th>
                 </tr>
@@ -728,7 +974,10 @@ export default function PricingPage() {
                     className="border-b"
                     style={{ borderColor: "rgba(255,255,255,0.04)" }}
                   >
-                    <td className="py-4 pr-8 text-sm font-mono" style={{ color: `${CREAM}AA` }}>
+                    <td
+                      className="py-4 pr-8 text-sm font-mono"
+                      style={{ color: `${CREAM}AA` }}
+                    >
                       {row.label}
                     </td>
                     <td className="py-4 px-4 text-center">
@@ -796,18 +1045,72 @@ export default function PricingPage() {
             />
 
             {/* Flanking geometric decorations */}
-            <div className="absolute left-6 top-1/2 -translate-y-1/2 hidden sm:block" aria-hidden="true">
+            <div
+              className="absolute left-6 top-1/2 -translate-y-1/2 hidden sm:block"
+              aria-hidden="true"
+            >
               <svg width="40" height="120" viewBox="0 0 40 120">
-                <rect x="0" y="0" width="40" height="40" fill="none" stroke={GOLD} strokeWidth="1" opacity="0.15" />
-                <rect x="10" y="45" width="20" height="20" fill={GOLD} opacity="0.06" />
-                <circle cx="20" cy="90" r="15" fill="none" stroke={GOLD} strokeWidth="1" opacity="0.1" />
+                <rect
+                  x="0"
+                  y="0"
+                  width="40"
+                  height="40"
+                  fill="none"
+                  stroke={GOLD}
+                  strokeWidth="1"
+                  opacity="0.15"
+                />
+                <rect
+                  x="10"
+                  y="45"
+                  width="20"
+                  height="20"
+                  fill={GOLD}
+                  opacity="0.06"
+                />
+                <circle
+                  cx="20"
+                  cy="90"
+                  r="15"
+                  fill="none"
+                  stroke={GOLD}
+                  strokeWidth="1"
+                  opacity="0.1"
+                />
               </svg>
             </div>
-            <div className="absolute right-6 top-1/2 -translate-y-1/2 hidden sm:block" aria-hidden="true">
+            <div
+              className="absolute right-6 top-1/2 -translate-y-1/2 hidden sm:block"
+              aria-hidden="true"
+            >
               <svg width="40" height="120" viewBox="0 0 40 120">
-                <circle cx="20" cy="20" r="18" fill="none" stroke={GOLD} strokeWidth="1" opacity="0.15" />
-                <rect x="5" y="50" width="30" height="30" fill={GOLD} opacity="0.06" />
-                <rect x="10" y="90" width="20" height="20" fill="none" stroke={GOLD} strokeWidth="1" opacity="0.1" />
+                <circle
+                  cx="20"
+                  cy="20"
+                  r="18"
+                  fill="none"
+                  stroke={GOLD}
+                  strokeWidth="1"
+                  opacity="0.15"
+                />
+                <rect
+                  x="5"
+                  y="50"
+                  width="30"
+                  height="30"
+                  fill={GOLD}
+                  opacity="0.06"
+                />
+                <rect
+                  x="10"
+                  y="90"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke={GOLD}
+                  strokeWidth="1"
+                  opacity="0.1"
+                />
               </svg>
             </div>
 
@@ -815,7 +1118,7 @@ export default function PricingPage() {
               <motion.p
                 variants={fadeUp}
                 className="text-[10px] font-mono tracking-[0.2em] uppercase mb-5"
-                style={{ color: "rgba(255,255,255,0.2)" }}
+                style={{ color: "rgba(255,255,255,0.55)" }}
               >
                 No credit card &middot; No limits during preview
               </motion.p>
@@ -847,16 +1150,22 @@ export default function PricingPage() {
                           `0 0 0px ${GOLD}00`,
                         ],
                       }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
                     />
-                    <span className="relative z-10">Start generating — free</span>
+                    <span className="relative z-10">
+                      Start generating — free
+                    </span>
                   </motion.span>
                 </Link>
               </motion.div>
               <motion.p
                 variants={fadeIn}
                 className="text-[10px] font-mono mt-6"
-                style={{ color: "rgba(255,255,255,0.2)" }}
+                style={{ color: "rgba(255,255,255,0.55)" }}
               >
                 Join thousands of teams already using ZGNAL in preview.
               </motion.p>

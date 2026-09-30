@@ -10,13 +10,13 @@ const LEVEL_STYLES = {
   green: {
     bg: 'bg-emerald-500/10',
     border: 'border-emerald-500/30',
-    text: 'text-emerald-400',
+    text: 'text-emerald-300',
     dot: 'bg-emerald-400',
   },
   yellow: {
     bg: 'bg-amber-500/10',
     border: 'border-amber-500/30',
-    text: 'text-amber-400',
+    text: 'text-amber-300',
     dot: 'bg-amber-400',
   },
   red: {
@@ -36,11 +36,11 @@ export function QualityBadge({ badge }: Props) {
       <span className={`text-[11px] font-mono tracking-wider uppercase ${s.text}`}>
         {badge.label}
       </span>
-      <span className="text-[10px] font-mono text-(--z-cream)/40">
+      <span className="text-[10px] font-mono text-(--z-cream)/60">
         {badge.overall}/100
       </span>
       {badge.retryCount > 0 && (
-        <span className="text-[9px] font-mono text-(--z-cream)/30">
+        <span className="text-[9px] font-mono text-(--z-cream)/60">
           ({badge.retryCount} {badge.retryCount === 1 ? 'retry' : 'retries'})
         </span>
       )}

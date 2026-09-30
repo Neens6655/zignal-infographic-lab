@@ -90,7 +90,7 @@ export type ChatConfig = {
 
 export const STYLE_CATALOG = [
   { id: 'executive-institutional', label: 'Executive Institutional', desc: 'McKinsey-grade multi-panel dashboard', accent: '#D4A84B', icon: '▦' },
-  { id: 'deconstruct', label: 'Deconstruct', desc: 'NYT-style exploded view with callouts', accent: '#C04B3C', icon: '◎' },
+  { id: 'deconstruct', label: 'Deconstruct', desc: 'NYT-style exploded view with callouts', accent: '#D9604F', icon: '◎' },
   { id: 'aerial-explainer', label: 'Aerial Explainer', desc: 'Drone-view isometric cutaway', accent: '#5B8DEF', icon: '◇' },
   { id: 'technical-schematic', label: 'Technical Schematic', desc: 'Blueprint grid with process flows', accent: '#8BC34A', icon: '⬡' },
   { id: 'craft-handmade', label: 'Craft Handmade', desc: 'Watercolor textures, hand-drawn art', accent: '#A78BFA', icon: '✦' },

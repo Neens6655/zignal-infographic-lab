@@ -492,11 +492,11 @@ function CodeBlock({
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06] bg-[#0A0A0C]">
         <div className="flex items-center gap-3">
           {/* Language badge */}
-          <span className="text-[9px] font-mono font-semibold tracking-[0.15em] uppercase text-[#D4A84B]/60">
+          <span className="text-[9px] font-mono font-semibold tracking-[0.15em] uppercase text-[#D4A84B]">
             {displayLang}
           </span>
           {title && (
-            <span className="text-[10px] font-mono text-white/30">
+            <span className="text-[10px] font-mono text-white/50">
               {title}
             </span>
           )}
@@ -504,7 +504,7 @@ function CodeBlock({
         {/* Copy button */}
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 text-[10px] font-mono text-white/30 hover:text-[#D4A84B] transition-colors"
+          className="flex items-center gap-1.5 text-[10px] font-mono text-white/50 hover:text-[#D4A84B] transition-colors"
         >
           <AnimatePresence mode="wait">
             {copied ? (
@@ -541,7 +541,7 @@ function CodeBlock({
               onClick={() => setActiveTab(i)}
               className={`
                 relative px-5 py-2.5 text-[10px] font-mono font-semibold tracking-wider uppercase transition-all duration-200
-                ${activeTab === i ? 'text-[#D4A84B] bg-[#0D0D0F]' : 'text-white/30 hover:text-white/50'}
+                ${activeTab === i ? 'text-[#D4A84B] bg-[#0D0D0F]' : 'text-white/50 hover:text-white/50'}
               `}
             >
               {activeTab === i && (
@@ -558,7 +558,12 @@ function CodeBlock({
       )}
 
       {/* Code content */}
-      <pre className="px-5 py-4 text-[13px] font-mono overflow-x-auto leading-[1.7]">
+      <pre
+        tabIndex={0}
+        role="region"
+        aria-label="Code sample, scroll horizontally"
+        className="px-5 py-4 text-[13px] font-mono overflow-x-auto leading-[1.7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A84B]"
+      >
         {highlightCode(displayCode, displayLang)}
       </pre>
     </div>
@@ -592,7 +597,7 @@ function highlightCode(code: string, language: string): React.ReactNode[] {
 function highlightJsonLine(line: string, li: number): React.ReactNode {
   // Comments
   if (/^\s*\/\//.test(line)) {
-    return <span className="text-white/25 italic">{line}</span>;
+    return <span className="text-white/50 italic">{line}</span>;
   }
 
   const parts: React.ReactNode[] = [];
@@ -606,10 +611,10 @@ function highlightJsonLine(line: string, li: number): React.ReactNode {
   // eslint-disable-next-line no-cond-assign
   while ((match = keyRegex.exec(remaining)) !== null) {
     if (match.index > lastIndex) {
-      parts.push(<span key={`b${li}-${keyIdx}`} className="text-white/30">{remaining.slice(lastIndex, match.index)}</span>);
+      parts.push(<span key={`b${li}-${keyIdx}`} className="text-white/50">{remaining.slice(lastIndex, match.index)}</span>);
     }
     parts.push(<span key={`k${li}-${keyIdx}`} className="text-[#D4A84B]">{match[1]}</span>);
-    parts.push(<span key={`c${li}-${keyIdx}`} className="text-white/30">:</span>);
+    parts.push(<span key={`c${li}-${keyIdx}`} className="text-white/50">:</span>);
     lastIndex = match.index + match[0].length;
     keyIdx++;
   }
@@ -617,13 +622,13 @@ function highlightJsonLine(line: string, li: number): React.ReactNode {
   if (keyIdx === 0) {
     // event: or data: lines (SSE mixed in JSON)
     if (/^event:/.test(line)) {
-      return <span className="text-[#D4A84B]/70">{line}</span>;
+      return <span className="text-[#D4A84B]">{line}</span>;
     }
     if (/^\s*data:/.test(line)) {
       return (
         <span>
-          <span className="text-[#D4A84B]/50">data:</span>
-          <span className="text-white/40">{line.replace(/^\s*data:/, '')}</span>
+          <span className="text-[#D4A84B]">data:</span>
+          <span className="text-white/50">{line.replace(/^\s*data:/, '')}</span>
         </span>
       );
     }
@@ -631,23 +636,23 @@ function highlightJsonLine(line: string, li: number): React.ReactNode {
     if (/^\s*"/.test(line)) {
       return <span className="text-white/50">{line}</span>;
     }
-    return <span className="text-white/30">{line}</span>;
+    return <span className="text-white/50">{line}</span>;
   }
 
   if (lastIndex < remaining.length) {
     const rest = remaining.slice(lastIndex);
     const valMatch = rest.match(/^(\s*)("[^"]*")(.*)/);
     if (valMatch) {
-      parts.push(<span key={`sp${li}`} className="text-white/30">{valMatch[1]}</span>);
+      parts.push(<span key={`sp${li}`} className="text-white/50">{valMatch[1]}</span>);
       parts.push(<span key={`sv${li}`} className="text-white/60">{valMatch[2]}</span>);
-      parts.push(<span key={`sr${li}`} className="text-white/30">{valMatch[3]}</span>);
+      parts.push(<span key={`sr${li}`} className="text-white/50">{valMatch[3]}</span>);
     } else {
       // numbers, booleans, etc.
       const numMatch = rest.match(/^(\s*)([\d.]+|true|false|null)(.*)/);
       if (numMatch) {
-        parts.push(<span key={`sp${li}`} className="text-white/30">{numMatch[1]}</span>);
+        parts.push(<span key={`sp${li}`} className="text-white/50">{numMatch[1]}</span>);
         parts.push(<span key={`nv${li}`} className="text-[#7EC8E3]">{numMatch[2]}</span>);
-        parts.push(<span key={`nr${li}`} className="text-white/30">{numMatch[3]}</span>);
+        parts.push(<span key={`nr${li}`} className="text-white/50">{numMatch[3]}</span>);
       } else {
         parts.push(<span key={`r${li}`} className="text-white/50">{rest}</span>);
       }
@@ -660,16 +665,16 @@ function highlightJsonLine(line: string, li: number): React.ReactNode {
 function highlightBashLine(line: string, _li: number): React.ReactNode {
   // Comments
   if (/^\s*#/.test(line)) {
-    return <span className="text-white/25 italic">{line}</span>;
+    return <span className="text-white/50 italic">{line}</span>;
   }
   // Variable assignments
   const envMatch = line.match(/^(\s*)([\w_]+)(=)(.*)/);
   if (envMatch) {
     return (
       <span>
-        <span className="text-white/30">{envMatch[1]}</span>
+        <span className="text-white/50">{envMatch[1]}</span>
         <span className="text-[#D4A84B]">{envMatch[2]}</span>
-        <span className="text-white/30">{envMatch[3]}</span>
+        <span className="text-white/50">{envMatch[3]}</span>
         <span className="text-white/60">{envMatch[4]}</span>
       </span>
     );
@@ -679,7 +684,7 @@ function highlightBashLine(line: string, _li: number): React.ReactNode {
   if (cmdMatch) {
     return (
       <span>
-        <span className="text-white/30">{cmdMatch[1]}</span>
+        <span className="text-white/50">{cmdMatch[1]}</span>
         <span className="text-[#D4A84B]">{cmdMatch[2]}</span>
         <span className="text-white/50">{cmdMatch[3]}</span>
       </span>
@@ -707,17 +712,17 @@ function highlightBashLine(line: string, _li: number): React.ReactNode {
 
 function highlightSseLine(line: string, _li: number): React.ReactNode {
   if (/^event:/.test(line)) {
-    return <span className="text-[#D4A84B]/80 font-semibold">{line}</span>;
+    return <span className="text-[#D4A84B] font-semibold">{line}</span>;
   }
   if (/^data:/.test(line)) {
     return (
       <span>
-        <span className="text-[#D4A84B]/50 font-semibold">data:</span>
+        <span className="text-[#D4A84B] font-semibold">data:</span>
         <span className="text-white/50">{line.slice(5)}</span>
       </span>
     );
   }
-  return <span className="text-white/30">{line}</span>;
+  return <span className="text-white/50">{line}</span>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -732,7 +737,12 @@ function DocTable({
   rows: (string | React.ReactNode)[][];
 }) {
   return (
-    <div className="overflow-x-auto my-4">
+    <div
+      tabIndex={0}
+      role="region"
+      aria-label="Table, scroll horizontally"
+      className="overflow-x-auto my-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A84B]"
+    >
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="border-b-2 border-[#D4A84B]/30">
@@ -755,7 +765,7 @@ function DocTable({
               {row.map((cell, ci) => (
                 <td
                   key={ci}
-                  className={`px-4 py-3 text-[13px] ${ci === 0 ? 'font-mono text-white/70' : 'text-white/45'}`}
+                  className={`px-4 py-3 text-[13px] ${ci === 0 ? 'font-mono text-white/70' : 'text-white/50'}`}
                 >
                   {cell}
                 </td>
@@ -788,7 +798,12 @@ function HeroPipelineFlow() {
 
   return (
     <div ref={ref} className="mt-10 mb-4">
-      <div className="flex items-center gap-0 overflow-x-auto pb-2">
+      <div
+        tabIndex={0}
+        role="region"
+        aria-label="Pipeline stages, scroll horizontally"
+        className="flex items-center gap-0 overflow-x-auto pb-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A84B]"
+      >
         {stages.map((stage, i) => (
           <div key={stage.label} className="flex items-center shrink-0">
             <motion.div
@@ -812,7 +827,7 @@ function HeroPipelineFlow() {
                   <path d={stage.icon} />
                 </svg>
               </div>
-              <span className="mt-2 text-[7px] sm:text-[8px] font-mono text-white/30 tracking-[0.1em] uppercase">
+              <span className="mt-2 text-[7px] sm:text-[8px] font-mono text-white/50 tracking-[0.1em] uppercase">
                 {stage.label}
               </span>
             </motion.div>
@@ -871,7 +886,7 @@ function SidebarTOC({ activeId }: { activeId: string }) {
                 }}
                 className={`
                   group flex items-center gap-3 py-1.5 text-[10px] font-mono transition-all duration-300
-                  ${isActive ? 'text-[#D4A84B]' : 'text-white/25 hover:text-white/50'}
+                  ${isActive ? 'text-[#D4A84B]' : 'text-white/50 hover:text-white/50'}
                 `}
               >
                 <span
@@ -912,7 +927,12 @@ function PipelineSection() {
       />
 
       {/* Desktop horizontal pipeline */}
-      <div className="hidden md:block overflow-x-auto pb-6 -mx-2 relative">
+      <div
+      tabIndex={0}
+      role="region"
+      aria-label="Diagram, scroll horizontally"
+      className="hidden md:block overflow-x-auto pb-6 -mx-2 relative focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A84B]"
+    >
         <div className="flex items-start gap-0 min-w-[1000px] px-2">
           {PIPELINE_STAGES.map((agent, i) => (
             <div key={agent.agent} className="flex items-start">
@@ -926,7 +946,7 @@ function PipelineSection() {
                 <div
                   className={`
                     w-20 h-20 border-2 flex items-center justify-center transition-all duration-300 bg-[#0A0A0B] relative overflow-hidden
-                    ${expandedIdx === i ? 'border-[#D4A84B] text-[#D4A84B] shadow-[0_0_32px_rgba(212,168,75,0.25)]' : 'border-white/10 text-white/40 group-hover:border-[#D4A84B]/50 group-hover:text-[#D4A84B]/70'}
+                    ${expandedIdx === i ? 'border-[#D4A84B] text-[#D4A84B] shadow-[0_0_32px_rgba(212,168,75,0.25)]' : 'border-white/10 text-white/50 group-hover:border-[#D4A84B]/50 group-hover:text-[#D4A84B]'}
                   `}
                 >
                   <div className={`absolute top-0 left-0 w-2 h-2 border-t border-l transition-colors duration-300 ${expandedIdx === i ? 'border-[#D4A84B]' : 'border-white/10 group-hover:border-[#D4A84B]/40'}`} />
@@ -937,12 +957,12 @@ function PipelineSection() {
                 <span className="mt-3 text-[11px] font-mono font-bold text-white tracking-wide">
                   {agent.agent}
                 </span>
-                <span className="text-[9px] font-mono text-white/30 tracking-[0.15em] uppercase mt-0.5">
+                <span className="text-[9px] font-mono text-white/50 tracking-[0.15em] uppercase mt-0.5">
                   {agent.stage}
                 </span>
 
                 <span
-                  className={`absolute -top-2 -right-1 text-[8px] font-mono px-1.5 py-0.5 transition-colors duration-300 ${expandedIdx === i ? 'bg-[#D4A84B] text-[#0A0A0B]' : 'bg-white/5 text-white/20'}`}
+                  className={`absolute -top-2 -right-1 text-[8px] font-mono px-1.5 py-0.5 transition-colors duration-300 ${expandedIdx === i ? 'bg-[#D4A84B] text-[#0A0A0B]' : 'bg-white/5 text-white/50'}`}
                 >
                   {String(i + 1).padStart(2, '0')}
                 </span>
@@ -991,7 +1011,7 @@ function PipelineSection() {
                 <div
                   className={`
                     w-12 h-12 border-2 flex items-center justify-center shrink-0 transition-colors
-                    ${expandedIdx === i ? 'border-[#D4A84B] text-[#D4A84B]' : 'border-white/10 text-white/40'}
+                    ${expandedIdx === i ? 'border-[#D4A84B] text-[#D4A84B]' : 'border-white/10 text-white/50'}
                   `}
                 >
                   <div className="scale-[0.4]">{agent.icon}</div>
@@ -999,15 +1019,15 @@ function PipelineSection() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-mono font-bold text-white">{agent.agent}</span>
-                    <span className="text-[9px] font-mono text-white/30 tracking-[0.15em] uppercase">
+                    <span className="text-[9px] font-mono text-white/50 tracking-[0.15em] uppercase">
                       {agent.stage}
                     </span>
                   </div>
-                  <p className="text-[11px] text-white/40 leading-relaxed mt-0.5 truncate">{agent.desc.slice(0, 80)}...</p>
+                  <p className="text-[11px] text-white/50 leading-relaxed mt-0.5 truncate">{agent.desc.slice(0, 80)}...</p>
                 </div>
                 <span
                   className={`
-                    text-white/20 text-xs font-mono transition-transform duration-300
+                    text-white/50 text-xs font-mono transition-transform duration-300
                     ${expandedIdx === i ? 'rotate-90' : ''}
                   `}
                 >
@@ -1043,22 +1063,22 @@ function PipelineSection() {
                     {PIPELINE_STAGES[expandedIdx].icon}
                   </div>
                   <span className="font-mono font-bold text-white text-sm ml-2">{PIPELINE_STAGES[expandedIdx].agent}</span>
-                  <span className="text-[9px] font-mono text-[#D4A84B]/60 tracking-[0.15em] uppercase">
+                  <span className="text-[9px] font-mono text-[#D4A84B] tracking-[0.15em] uppercase">
                     Stage {String(expandedIdx + 1).padStart(2, '0')} / {PIPELINE_STAGES[expandedIdx].stage}
                   </span>
                 </div>
                 <p className="text-sm text-white/50 leading-relaxed mb-4">{PIPELINE_STAGES[expandedIdx].desc}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 pt-4 border-t border-[#D4A84B]/10">
                   <div>
-                    <p className="text-[9px] font-mono text-[#D4A84B]/60 tracking-[0.15em] uppercase mb-1">Function</p>
+                    <p className="text-[9px] font-mono text-[#D4A84B] tracking-[0.15em] uppercase mb-1">Function</p>
                     <code className="text-xs font-mono text-white/70">{PIPELINE_STAGES[expandedIdx].functionName}</code>
                   </div>
                   <div>
-                    <p className="text-[9px] font-mono text-[#D4A84B]/60 tracking-[0.15em] uppercase mb-1">Model</p>
+                    <p className="text-[9px] font-mono text-[#D4A84B] tracking-[0.15em] uppercase mb-1">Model</p>
                     <code className="text-xs font-mono text-white/70">{PIPELINE_STAGES[expandedIdx].model}</code>
                   </div>
                   <div>
-                    <p className="text-[9px] font-mono text-[#D4A84B]/60 tracking-[0.15em] uppercase mb-1">Output</p>
+                    <p className="text-[9px] font-mono text-[#D4A84B] tracking-[0.15em] uppercase mb-1">Output</p>
                     <code className="text-xs font-mono text-white/70">{PIPELINE_STAGES[expandedIdx].output}</code>
                   </div>
                 </div>
@@ -1095,7 +1115,7 @@ function ApiEndpoint({ endpoint }: { endpoint: Endpoint }) {
             {endpoint.method}
           </span>
           <code className="text-sm font-mono text-white/80">{endpoint.path}</code>
-          <span className="ml-auto text-white/20">
+          <span className="ml-auto text-white/50">
             <ChevronRight
               size={16}
               className={`transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
@@ -1114,29 +1134,29 @@ function ApiEndpoint({ endpoint }: { endpoint: Endpoint }) {
               className="overflow-hidden"
             >
               <div className="px-5 pb-5 border-t border-white/[0.04]">
-                <p className="text-sm text-white/45 leading-relaxed mt-4 mb-4">{endpoint.description}</p>
+                <p className="text-sm text-white/50 leading-relaxed mt-4 mb-4">{endpoint.description}</p>
 
                 {endpoint.requestNote && (
-                  <p className="text-xs text-white/30 italic mb-3">{endpoint.requestNote}</p>
+                  <p className="text-xs text-white/50 italic mb-3">{endpoint.requestNote}</p>
                 )}
 
                 {endpoint.requestBody && (
                   <>
-                    <p className="text-[10px] font-mono font-semibold tracking-[0.15em] uppercase text-[#D4A84B]/60 mb-2">Request Body</p>
+                    <p className="text-[10px] font-mono font-semibold tracking-[0.15em] uppercase text-[#D4A84B] mb-2">Request Body</p>
                     <CodeBlock code={endpoint.requestBody} language="json" />
                   </>
                 )}
 
-                <p className="text-[10px] font-mono font-semibold tracking-[0.15em] uppercase text-[#D4A84B]/60 mb-2 mt-4">Response</p>
+                <p className="text-[10px] font-mono font-semibold tracking-[0.15em] uppercase text-[#D4A84B] mb-2 mt-4">Response</p>
                 <CodeBlock code={endpoint.responseBody} language={endpoint.path === '/api/generate' ? 'sse' : 'json'} />
 
                 {endpoint.responseNote && (
-                  <p className="text-xs text-white/35 leading-relaxed mt-2">{endpoint.responseNote}</p>
+                  <p className="text-xs text-white/50 leading-relaxed mt-2">{endpoint.responseNote}</p>
                 )}
 
                 {endpoint.curlExample && (
                   <>
-                    <p className="text-[10px] font-mono font-semibold tracking-[0.15em] uppercase text-[#D4A84B]/60 mb-2 mt-4">cURL Example</p>
+                    <p className="text-[10px] font-mono font-semibold tracking-[0.15em] uppercase text-[#D4A84B] mb-2 mt-4">cURL Example</p>
                     <CodeBlock code={endpoint.curlExample} language="bash" />
                   </>
                 )}
@@ -1159,7 +1179,7 @@ function EditOnGithub({ section }: { section: string }) {
       href={`${GITHUB_URL}/edit/main/src/app/(pages)/docs/DocsClient.tsx`}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1.5 text-[10px] font-mono text-white/20 hover:text-[#D4A84B]/60 transition-colors mt-6"
+      className="inline-flex items-center gap-1.5 text-[10px] font-mono text-white/50 hover:text-[#D4A84B] transition-colors mt-6"
     >
       Edit &ldquo;{section}&rdquo; on GitHub <ExternalLink size={10} />
     </a>
@@ -1221,7 +1241,7 @@ export default function DocsClient() {
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-mono font-bold text-white leading-tight mb-6 relative">
             Documentation
           </h1>
-          <p className="text-base sm:text-lg text-white/45 leading-relaxed max-w-2xl relative mb-8">
+          <p className="text-base sm:text-lg text-white/50 leading-relaxed max-w-2xl relative mb-8">
             Everything you need to build with ZGNAL.AI — from quick start to API reference.
           </p>
 
@@ -1253,7 +1273,7 @@ export default function DocsClient() {
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] border border-white/[0.08] text-[11px] font-mono text-white/40 hover:text-[#D4A84B] hover:border-[#D4A84B]/30 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] border border-white/[0.08] text-[11px] font-mono text-white/50 hover:text-[#D4A84B] hover:border-[#D4A84B]/30 transition-colors"
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
                 <path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z" />
@@ -1278,7 +1298,7 @@ export default function DocsClient() {
               </h2>
             </Reveal>
             <Reveal delay={0.05}>
-              <p className="text-sm text-white/45 leading-relaxed mb-8 max-w-xl">
+              <p className="text-sm text-white/50 leading-relaxed mb-8 max-w-xl">
                 Clone, install, configure, and start generating infographics locally.
               </p>
             </Reveal>
@@ -1352,7 +1372,7 @@ export default function DocsClient() {
               </h2>
             </Reveal>
             <Reveal delay={0.05}>
-              <p className="text-sm text-white/45 leading-relaxed mb-6 max-w-xl">
+              <p className="text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
                 Requirements and environment variable configuration.
               </p>
             </Reveal>
@@ -1360,7 +1380,7 @@ export default function DocsClient() {
             <Reveal delay={0.1}>
               <div className="mb-8">
                 <h3 className="text-base font-mono font-bold text-white mb-3">Prerequisites</h3>
-                <ul className="space-y-2 text-sm text-white/45">
+                <ul className="space-y-2 text-sm text-white/50">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-[#D4A84B]" />
                     <span><strong className="text-white/70">Node.js 18+</strong> — Required runtime</span>
@@ -1386,7 +1406,7 @@ export default function DocsClient() {
                   v.required ? (
                     <span key={`req-${v.name}`} className="text-[#D4A84B] font-mono font-bold text-[11px]">Yes</span>
                   ) : (
-                    <span key={`req-${v.name}`} className="text-white/30 font-mono text-[11px]">No</span>
+                    <span key={`req-${v.name}`} className="text-white/50 font-mono text-[11px]">No</span>
                   ),
                   v.description,
                 ])}
@@ -1410,7 +1430,7 @@ export default function DocsClient() {
               </h2>
             </Reveal>
             <Reveal delay={0.05}>
-              <p className="text-sm text-white/45 leading-relaxed mb-6 max-w-xl">
+              <p className="text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
                 Key directories and files in the project.
               </p>
             </Reveal>
@@ -1469,12 +1489,12 @@ export default function DocsClient() {
               </h2>
             </Reveal>
             <Reveal delay={0.05}>
-              <p className="text-sm text-white/45 leading-relaxed mb-6 max-w-xl">
+              <p className="text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
                 Each generation passes through seven sequential stages. Click any node to see the function name, model used, and input/output types.
               </p>
             </Reveal>
             <Reveal delay={0.1}>
-              <p className="text-xs text-white/30 leading-relaxed mb-8 max-w-xl">
+              <p className="text-xs text-white/50 leading-relaxed mb-8 max-w-xl">
                 All stages run inline on Vercel serverless functions. The full pipeline source is in{' '}
                 <code className="text-white/50 font-mono text-[11px]">src/lib/pipeline.ts</code>.
               </p>
@@ -1497,12 +1517,12 @@ export default function DocsClient() {
               </h2>
             </Reveal>
             <Reveal delay={0.05}>
-              <p className="text-sm text-white/45 leading-relaxed mb-4 max-w-xl">
+              <p className="text-sm text-white/50 leading-relaxed mb-4 max-w-xl">
                 All API routes are Next.js Route Handlers. The main generation endpoint streams SSE events; all others return JSON.
               </p>
             </Reveal>
             <Reveal delay={0.1}>
-              <p className="text-xs text-white/30 leading-relaxed mb-8 max-w-xl">
+              <p className="text-xs text-white/50 leading-relaxed mb-8 max-w-xl">
                 Base URL: <code className="text-white/50 font-mono text-[11px]">https://zgnal.ai</code> (production) or{' '}
                 <code className="text-white/50 font-mono text-[11px]">http://localhost:3000</code> (development)
               </p>
@@ -1529,7 +1549,7 @@ export default function DocsClient() {
               </h2>
             </Reveal>
             <Reveal delay={0.05}>
-              <p className="text-sm text-white/45 leading-relaxed mb-6 max-w-xl">
+              <p className="text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
                 The pipeline accepts multiple content formats. All inputs are normalized to plain text before entering the analysis stages.
               </p>
             </Reveal>
@@ -1566,13 +1586,13 @@ export default function DocsClient() {
               </h2>
             </Reveal>
             <Reveal delay={0.05}>
-              <p className="text-sm text-white/45 leading-relaxed mb-4 max-w-xl">
+              <p className="text-sm text-white/50 leading-relaxed mb-4 max-w-xl">
                 400+ unique combinations. Set <code className="text-white/60 font-mono text-[12px]">preset: &quot;auto&quot;</code> to let the pipeline choose the best pairing for your content, or specify both explicitly.
               </p>
             </Reveal>
             <Reveal delay={0.1}>
-              <p className="text-xs text-white/30 leading-relaxed mb-8">
-                See the <a href="/styles" className="text-[#D4A84B]/60 hover:text-[#D4A84B] underline underline-offset-2 transition-colors">visual gallery</a> for previews of each style.
+              <p className="text-xs text-white/50 leading-relaxed mb-8">
+                See the <a href="/styles" className="text-[#D4A84B] hover:text-[#D4A84B] underline underline-offset-2 transition-colors">visual gallery</a> for previews of each style.
               </p>
             </Reveal>
 
@@ -1617,7 +1637,7 @@ export default function DocsClient() {
               </h2>
             </Reveal>
             <Reveal delay={0.05}>
-              <p className="text-sm text-white/45 leading-relaxed mb-6 max-w-xl">
+              <p className="text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
                 Every generated infographic can be exported in four formats. Share directly to X, LinkedIn, or WhatsApp from the result viewer.
               </p>
             </Reveal>
@@ -1652,7 +1672,7 @@ export default function DocsClient() {
 
             <Reveal delay={0.1}>
               <h3 className="text-base font-mono font-bold text-white mb-3 mt-6">next.config.ts</h3>
-              <p className="text-sm text-white/45 leading-relaxed mb-3">
+              <p className="text-sm text-white/50 leading-relaxed mb-3">
                 Security headers and Content Security Policy are configured in the Next.js config. Image domains are whitelisted for Supabase and external sources.
               </p>
               <CodeBlock
@@ -1667,7 +1687,7 @@ export default function DocsClient() {
 
             <Reveal delay={0.15}>
               <h3 className="text-base font-mono font-bold text-white mb-3 mt-8">Tailwind CSS v4</h3>
-              <p className="text-sm text-white/45 leading-relaxed mb-3">
+              <p className="text-sm text-white/50 leading-relaxed mb-3">
                 This project uses Tailwind CSS v4 with CSS-first configuration. Design tokens are defined in <code className="text-white/60 font-mono text-[12px]">globals.css</code> using <code className="text-white/60 font-mono text-[12px]">@theme {'{}'}</code>, not a JavaScript config file.
               </p>
               <CodeBlock
@@ -1685,10 +1705,10 @@ export default function DocsClient() {
 
             <Reveal delay={0.2}>
               <h3 className="text-base font-mono font-bold text-white mb-3 mt-8">Fonts</h3>
-              <p className="text-sm text-white/45 leading-relaxed mb-3">
+              <p className="text-sm text-white/50 leading-relaxed mb-3">
                 Two fonts loaded from Google Fonts via <code className="text-white/60 font-mono text-[12px]">next/font/google</code>:
               </p>
-              <ul className="space-y-2 text-sm text-white/45 mb-3">
+              <ul className="space-y-2 text-sm text-white/50 mb-3">
                 <li className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-[#D4A84B]" />
                   <span><strong className="text-white/70 font-mono">IBM Plex Mono</strong> — Headings, labels, code, navigation</span>
@@ -1740,7 +1760,7 @@ git push origin feature/your-feature-name
 
             <Reveal delay={0.15}>
               <h3 className="text-base font-mono font-bold text-white mb-3 mt-8">Code Conventions</h3>
-              <ul className="space-y-2 text-sm text-white/45">
+              <ul className="space-y-2 text-sm text-white/50">
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-[#D4A84B] mt-1.5 shrink-0" />
                   <span>TypeScript strict mode everywhere — no <code className="text-white/60 font-mono text-[12px]">any</code> types</span>
@@ -1788,7 +1808,7 @@ npm run dev
 
             <Reveal delay={0.25}>
               <h3 className="text-base font-mono font-bold text-white mb-3 mt-8">Adding a New Layout</h3>
-              <p className="text-sm text-white/45 leading-relaxed mb-3">
+              <p className="text-sm text-white/50 leading-relaxed mb-3">
                 Same process as styles: create <code className="text-white/60 font-mono text-[12px]">src/lib/references/layouts/your-layout.md</code>, register in <code className="text-white/60 font-mono text-[12px]">constants.ts</code>, test generation.
               </p>
             </Reveal>
@@ -1820,7 +1840,7 @@ npm run build         # TypeScript + Next.js build`}
               </h2>
             </Reveal>
             <Reveal delay={0.05}>
-              <p className="text-sm text-white/45 leading-relaxed mb-6 max-w-xl">
+              <p className="text-sm text-white/50 leading-relaxed mb-6 max-w-xl">
                 Recommended deployment target is Vercel. Push to GitHub and it auto-deploys.
               </p>
             </Reveal>
@@ -1843,34 +1863,34 @@ git push origin main  # Triggers auto-deploy on Vercel`}
 
             <Reveal delay={0.15}>
               <h3 className="text-base font-mono font-bold text-white mb-3 mt-8">Post-Deploy Checklist</h3>
-              <div className="space-y-2 text-sm text-white/45">
+              <div className="space-y-2 text-sm text-white/50">
                 <div className="flex items-start gap-3">
                   <span className="w-5 h-5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-[10px] font-mono text-white/30">1</span>
+                    <span className="text-[10px] font-mono text-white/50">1</span>
                   </span>
                   <span>Verify the live URL loads: <code className="text-white/60 font-mono text-[12px]">https://zgnal.ai</code></span>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="w-5 h-5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-[10px] font-mono text-white/30">2</span>
+                    <span className="text-[10px] font-mono text-white/50">2</span>
                   </span>
                   <span>Test one generation end-to-end on production</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="w-5 h-5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-[10px] font-mono text-white/30">3</span>
+                    <span className="text-[10px] font-mono text-white/50">3</span>
                   </span>
                   <span>Check Vercel function logs for runtime errors</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="w-5 h-5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-[10px] font-mono text-white/30">4</span>
+                    <span className="text-[10px] font-mono text-white/50">4</span>
                   </span>
                   <span>Verify all environment variables are set in Vercel dashboard</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <span className="w-5 h-5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-[10px] font-mono text-white/30">5</span>
+                    <span className="text-[10px] font-mono text-white/50">5</span>
                   </span>
                   <span>No console errors on page load (check browser DevTools)</span>
                 </div>

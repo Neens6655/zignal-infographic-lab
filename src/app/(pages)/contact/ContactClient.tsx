@@ -428,7 +428,7 @@ export default function ContactClient() {
                       <span className="inline-block w-2 h-2 bg-[#D4A84B]/30 border border-[#D4A84B]/50" />
                       <label
                         htmlFor="name"
-                        className="block text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-white/40"
+                        className="block text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-white/50"
                       >
                         Name
                       </label>
@@ -447,7 +447,7 @@ export default function ContactClient() {
                         className={`
                           w-full bg-transparent border-0 border-b-2 px-0 py-3
                           text-white font-sans text-base
-                          placeholder:text-white/20
+                          placeholder:text-white/50
                           outline-none transition-colors duration-300
                           ${focused === "name" ? "border-[#D4A84B]" : "border-white/10"}
                         `}
@@ -472,7 +472,7 @@ export default function ContactClient() {
                       <span className="inline-block w-2 h-2 border border-[#D4A84B]/50 rotate-45" />
                       <label
                         htmlFor="email"
-                        className="block text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-white/40"
+                        className="block text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-white/50"
                       >
                         Email
                       </label>
@@ -491,7 +491,7 @@ export default function ContactClient() {
                         className={`
                           w-full bg-transparent border-0 border-b-2 px-0 py-3
                           text-white font-sans text-base
-                          placeholder:text-white/20
+                          placeholder:text-white/50
                           outline-none transition-colors duration-300
                           ${focused === "email" ? "border-[#D4A84B]" : "border-white/10"}
                         `}
@@ -515,7 +515,7 @@ export default function ContactClient() {
                       <span className="inline-block w-2 h-2 bg-[#D4A84B]/20 border border-[#D4A84B]/40" style={{ clipPath: "polygon(50% 0%, 100% 100%, 0% 100%)" }} />
                       <label
                         htmlFor="subject"
-                        className="block text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-white/40"
+                        className="block text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-white/50"
                       >
                         Subject
                       </label>
@@ -543,7 +543,7 @@ export default function ContactClient() {
                         ))}
                       </select>
                       {/* Chevron */}
-                      <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-white/30 text-xs font-mono">
+                      <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-white/50 text-xs font-mono">
                         &#x25BC;
                       </span>
                       <motion.div
@@ -565,7 +565,7 @@ export default function ContactClient() {
                       <span className="inline-block w-2 h-2 rounded-full border border-[#D4A84B]/50" />
                       <label
                         htmlFor="message"
-                        className="block text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-white/40"
+                        className="block text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-white/50"
                       >
                         Message
                       </label>
@@ -584,7 +584,7 @@ export default function ContactClient() {
                         className={`
                           w-full bg-transparent border-0 border-b-2 px-0 py-3
                           text-white font-sans text-base resize-none
-                          placeholder:text-white/20
+                          placeholder:text-white/50
                           outline-none transition-colors duration-300
                           ${focused === "message" ? "border-[#D4A84B]" : "border-white/10"}
                         `}
@@ -692,7 +692,7 @@ export default function ContactClient() {
                       setSubmitted(false);
                       setForm({ name: "", email: "", subject: SUBJECTS[0], message: "" });
                     }}
-                    className="mt-10 text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-white/30 hover:text-[#D4A84B] transition-colors"
+                    className="mt-10 text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-white/50 hover:text-[#D4A84B] transition-colors"
                   >
                     Send another message
                   </motion.button>
@@ -717,7 +717,7 @@ export default function ContactClient() {
                 <circle cx="10" cy="10" r="8" stroke="#D4A84B" strokeWidth="1.5" />
                 <path d="M10 5V10L13 13" stroke="#D4A84B" strokeWidth="1.5" />
               </svg>
-              <p className="text-xs font-mono text-white/40 leading-relaxed">
+              <p className="text-xs font-mono text-white/50 leading-relaxed">
                 We typically respond within{" "}
                 <span className="text-[#D4A84B] font-semibold">24 hours</span>
               </p>
@@ -753,7 +753,7 @@ export default function ContactClient() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-white/30 group-hover:text-[#D4A84B] transition-colors">
+                        <span className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-white/50 group-hover:text-[#D4A84B] transition-colors">
                           {link.label}
                         </span>
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 opacity-20 group-hover:opacity-60 transition-opacity">
@@ -783,7 +783,7 @@ export default function ContactClient() {
           transition={{ duration: 0.6 }}
           className="border-t border-white/[0.06] pt-12"
         >
-          <p className="text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-white/25 mb-6">
+          <p className="text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-white/50 mb-6">
             Prefer email?
           </p>
           <div className="flex flex-wrap gap-x-10 gap-y-4">
@@ -791,7 +791,7 @@ export default function ContactClient() {
               <a
                 key={email}
                 href={`mailto:${email}`}
-                className="text-sm font-mono text-white/40 hover:text-[#D4A84B] transition-colors duration-300"
+                className="text-sm font-mono text-white/50 hover:text-[#D4A84B] transition-colors duration-300"
               >
                 {email}
               </a>

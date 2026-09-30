@@ -143,7 +143,7 @@ export default function PrivacyPage() {
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-mono font-bold text-white mb-2">
           Privacy Policy
         </h1>
-        <p className="text-xs font-mono text-white/30 mb-8">Last updated: March 2026</p>
+        <p className="text-xs font-mono text-white/50 mb-8">Last updated: March 2026</p>
       </motion.div>
 
       {/* TL;DR Box */}
@@ -181,7 +181,7 @@ export default function PrivacyPage() {
 
           {/* Contact callout */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.5 }}
@@ -202,7 +202,7 @@ export default function PrivacyPage() {
         {/* Sidebar TOC — desktop only */}
         <aside className="hidden lg:block w-56 shrink-0">
           <nav className="sticky top-28">
-            <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-white/30 mb-4">
+            <p className="text-[9px] font-mono font-semibold tracking-[0.2em] uppercase text-white/50 mb-4">
               On this page
             </p>
             <ul className="space-y-2">
@@ -213,7 +213,7 @@ export default function PrivacyPage() {
                     className={`flex items-center gap-2 text-xs font-mono transition-colors duration-200 ${
                       activeId === section.id
                         ? 'text-[#D4A84B]'
-                        : 'text-white/25 hover:text-white/50'
+                        : 'text-white/50 hover:text-white/50'
                     }`}
                   >
                     <span className="w-5 text-right shrink-0">{section.number}</span>

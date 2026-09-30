@@ -31,8 +31,8 @@ interface Version {
 const TAG_COLORS: Record<Tag, { bg: string; text: string }> = {
   Feature: { bg: "bg-[#D4A84B]/15", text: "text-[#D4A84B]" },
   Fix: { bg: "bg-red-500/10", text: "text-red-400" },
-  Infrastructure: { bg: "bg-cyan-500/10", text: "text-cyan-400" },
-  Design: { bg: "bg-fuchsia-500/10", text: "text-fuchsia-400" },
+  Infrastructure: { bg: "bg-cyan-500/10", text: "text-cyan-300" },
+  Design: { bg: "bg-fuchsia-500/10", text: "text-fuchsia-300" },
 };
 
 const VERSIONS: Version[] = [
@@ -388,7 +388,7 @@ function Hero() {
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
             transition={{ duration: 0.6, delay: 0.7 }}
-            className="text-base sm:text-lg text-white/40 max-w-md font-sans"
+            className="text-base sm:text-lg text-white/50 max-w-md font-sans"
           >
             Release history for the ZGNAL.AI Infographic Lab.
           </motion.p>
@@ -507,7 +507,7 @@ function VersionCard({ version, index }: { version: Version; index: number }) {
                 )}
               </div>
 
-              <p className="text-xs font-mono text-white/30 mb-2">{version.date}</p>
+              <p className="text-xs font-mono text-white/50 mb-2">{version.date}</p>
               <p className="text-sm sm:text-base font-sans text-white/60 leading-relaxed">
                 {version.summary}
               </p>
@@ -568,7 +568,7 @@ function BulletItem({
         className={`
           shrink-0 text-[9px] font-mono tracking-wider uppercase px-2 py-0.5 mt-[3px]
           ${colors.bg} ${colors.text}
-          opacity-60 group-hover:opacity-100 transition-opacity duration-200
+          opacity-100 transition-opacity duration-200
         `}
       >
         {entry.tag}
@@ -644,13 +644,13 @@ function WhatsNext() {
             transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
             className="p-5 border border-dashed border-white/[0.08] bg-white/[0.01]"
           >
-            <p className="text-[9px] font-mono tracking-[0.15em] uppercase text-[#D4A84B]/60 mb-2">
+            <p className="text-[9px] font-mono tracking-[0.15em] uppercase text-[#D4A84B] mb-2">
               Coming soon
             </p>
             <p className="text-sm font-mono font-semibold text-white/70 mb-1.5">
               {item.label}
             </p>
-            <p className="text-xs font-sans text-white/35 leading-relaxed">
+            <p className="text-xs font-sans text-white/50 leading-relaxed">
               {item.desc}
             </p>
           </motion.div>

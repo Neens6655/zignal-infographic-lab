@@ -29,15 +29,15 @@ export function RelatedContent({ title, items, basePath, accent }: RelatedConten
             className="group block p-5 border border-white/[0.06] bg-white/[0.01] hover:border-white/[0.12] transition-colors"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[9px] font-mono tracking-widest uppercase text-white/30">
+              <span className="text-[9px] font-mono tracking-widest uppercase text-white/50">
                 {item.category}
               </span>
               <ArrowRight
-                className="h-3 w-3 text-white/20 group-hover:text-white/50 transition-colors"
+                className="h-3 w-3 text-white/50 group-hover:text-white/50 transition-colors"
               />
             </div>
             <h3 className="text-sm font-mono font-bold text-white mb-1">{item.name}</h3>
-            <p className="text-xs text-white/40 line-clamp-2">{item.description}</p>
+            <p className="text-xs text-white/50 line-clamp-2">{item.description}</p>
           </Link>
         ))}
       </div>

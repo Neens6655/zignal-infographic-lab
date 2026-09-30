@@ -387,8 +387,8 @@ export default function StudioPage() {
           margin-left: auto;
         }
         .primary.stop {
-          background: var(--z-brick, #c04b3c);
-          border-color: var(--z-brick, #c04b3c);
+          background: var(--z-brick, #D9604F);
+          border-color: var(--z-brick, #D9604F);
           color: #fff;
         }
         .ghost:hover:not(:disabled) {

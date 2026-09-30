@@ -143,7 +143,7 @@ export function ChatInput({ onSend, isGenerating }: Props) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="pb-1.5 text-[11px] text-(--z-gold)/50 font-mono italic truncate"
+            className="pb-1.5 text-[11px] text-(--z-gold)/70 font-mono italic truncate"
           >
             {interimTranscript}
           </motion.div>

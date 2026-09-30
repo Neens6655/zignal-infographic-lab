@@ -73,7 +73,7 @@ export default async function StylePage({ params }: { params: Promise<{ slug: st
             className="inline-block h-3 w-24 border border-white/[0.06]"
             style={{ backgroundColor: style.accent }}
           />
-          <p className="text-[9px] font-mono tracking-widest uppercase text-white/30 mt-1">
+          <p className="text-[9px] font-mono tracking-widest uppercase text-white/50 mt-1">
             Accent color {style.accent}
           </p>
         </div>
@@ -102,7 +102,7 @@ export default async function StylePage({ params }: { params: Promise<{ slug: st
           {style.keywords.map((kw) => (
             <span
               key={kw}
-              className="text-[10px] font-mono text-white/30 bg-white/[0.03] border border-white/[0.06] px-3 py-1"
+              className="text-[10px] font-mono text-white/50 bg-white/[0.03] border border-white/[0.06] px-3 py-1"
             >
               {kw}
             </span>

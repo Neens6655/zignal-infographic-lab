@@ -19,7 +19,7 @@ export function TextMessage({ message }: Props) {
         }`}
       >
         {!isUser && (
-          <span className="text-[10px] font-mono font-bold tracking-[0.12em] text-(--z-gold)/60 mr-1.5">Z</span>
+          <span className="text-[10px] font-mono font-bold tracking-[0.12em] text-(--z-gold)/70 mr-1.5">Z</span>
         )}
         <span className="whitespace-pre-wrap">{message.content}</span>
       </div>

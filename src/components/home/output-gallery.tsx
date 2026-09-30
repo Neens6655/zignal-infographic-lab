@@ -23,7 +23,10 @@ export function OutputGallery({
         {/* Header */}
         <div className="mb-12 sm:mb-16 max-w-3xl">
           <ScrollReveal>
-            <p className="label-mono text-(--z-gold) mb-4">
+            {/* This section sits on the CREAM surface, where gold measures 1.97:1.
+              design-029: on light surfaces gold is an accent (rule, border,
+              underline) and the text itself stays charcoal. */}
+            <p className="label-mono text-(--z-light-muted) border-l-2 border-(--z-gold) pl-3 mb-4">
               Gallery — real outputs
             </p>
           </ScrollReveal>

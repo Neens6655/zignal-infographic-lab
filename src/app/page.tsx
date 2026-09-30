@@ -64,7 +64,7 @@ const INPUT_MODES = [
     desc: "Any web page or article",
     icon: Globe,
     bg: "bg-blue-500/10",
-    iconColor: "text-blue-400",
+    iconColor: "text-blue-300",
   },
   {
     id: "video",
@@ -73,7 +73,7 @@ const INPUT_MODES = [
     desc: "YouTube, Vimeo, or Loom",
     icon: Video,
     bg: "bg-rose-500/10",
-    iconColor: "text-rose-400",
+    iconColor: "text-rose-300",
   },
   {
     id: "file",
@@ -82,7 +82,7 @@ const INPUT_MODES = [
     desc: "Docs, PDFs, or slides",
     icon: Upload,
     bg: "bg-emerald-500/10",
-    iconColor: "text-emerald-400",
+    iconColor: "text-emerald-300",
   },
 ];
 
@@ -355,13 +355,13 @@ export default function Home() {
                       <div className="h-2 w-2 rounded-full bg-(--z-gold)/60" />
                       <div className="h-2 w-2 rounded-full bg-(--z-olive)/60" />
                     </div>
-                    <span className="text-[9px] font-mono tracking-[0.25em] text-white/30 uppercase">
+                    <span className="text-[9px] font-mono tracking-[0.25em] text-white/50 uppercase">
                       ZGNAL.ENGINE v2.0
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-1.5 w-1.5 bg-(--z-gold) animate-pulse" />
-                    <span className="text-[9px] font-mono text-(--z-gold)/60">
+                    <span className="text-[9px] font-mono text-(--z-gold)/70">
                       PROCESSING
                     </span>
                   </div>
@@ -390,7 +390,7 @@ export default function Home() {
 
                 {/* Bezel bottom */}
                 <div className="flex items-center justify-center px-5 py-2 border-t border-white/[0.06] bg-white/[0.02]">
-                  <span className="text-[8px] font-mono tracking-[0.3em] text-white/15 uppercase">
+                  <span className="text-[8px] font-mono tracking-[0.3em] text-white/50 uppercase">
                     Agentic Infographic Pipeline — 5 modules
                   </span>
                 </div>
@@ -759,7 +759,7 @@ export default function Home() {
                           className="h-2.5 w-2.5 rounded-full"
                           style={{
                             background:
-                              "radial-gradient(circle at 35% 35%, #E86B5F, #C04B3C)",
+                              "radial-gradient(circle at 35% 35%, #E86B5F, #D9604F)",
                           }}
                         />
                         <div
@@ -777,13 +777,13 @@ export default function Home() {
                           }}
                         />
                       </div>
-                      <span className="text-[10px] font-mono tracking-[0.25em] text-white/40 uppercase font-bold">
+                      <span className="text-[10px] font-mono tracking-[0.25em] text-white/50 uppercase font-bold">
                         ZGNAL.LAB
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="h-1.5 w-1.5 bg-(--z-olive)/50" />
-                      <span className="text-[9px] font-mono text-white/30 uppercase tracking-wider font-medium">
+                      <span className="text-[9px] font-mono text-white/50 uppercase tracking-wider font-medium">
                         Ready
                       </span>
                     </div>
@@ -804,11 +804,11 @@ export default function Home() {
                             className={`group flex items-center gap-1.5 py-2 px-3 sm:px-4 transition-all text-[10px] sm:text-[11px] font-mono tracking-wide border-b-2 flex-1 justify-center ${
                               isActive
                                 ? "bg-white/[0.05] border-b-(--z-gold) text-white"
-                                : "bg-transparent border-b-transparent text-white/40 hover:text-white/60 hover:bg-white/[0.02]"
+                                : "bg-transparent border-b-transparent text-white/50 hover:text-white/60 hover:bg-white/[0.02]"
                             }`}
                           >
                             <Icon
-                              className={`h-3.5 w-3.5 ${isActive ? mode.iconColor : "text-white/30"}`}
+                              className={`h-3.5 w-3.5 ${isActive ? mode.iconColor : "text-white/50"}`}
                             />
                             <span className="hidden sm:inline">
                               {mode.label}
@@ -831,7 +831,7 @@ export default function Home() {
                                   setExtractSource("");
                                   setContent("");
                                 }}
-                                className="text-white/30 hover:text-white/50 ml-auto"
+                                className="text-white/50 hover:text-white/50 ml-auto"
                               >
                                 <X className="h-3 w-3" />
                               </button>
@@ -844,7 +844,7 @@ export default function Home() {
                             placeholder={
                               "Paste text, a URL transcript, or your notes — the engine researches, verifies, and renders. 50+ characters."
                             }
-                            className="w-full min-h-[72px] sm:min-h-[84px] lg:[@media(max-height:719px)]:min-h-[52px] max-h-[220px] resize-none bg-transparent text-[14px] sm:text-[15px] text-white placeholder:text-white/35 focus:outline-none leading-relaxed font-sans pr-16 sm:pr-24 z-scroll"
+                            className="w-full min-h-[72px] sm:min-h-[84px] lg:[@media(max-height:719px)]:min-h-[52px] max-h-[220px] resize-none bg-transparent text-[14px] sm:text-[15px] text-white placeholder:text-white/50 focus:outline-none leading-relaxed font-sans pr-16 sm:pr-24 z-scroll"
                             disabled={isGenerating || isImproving}
                           />
                           {/* Voice + Improve buttons */}
@@ -860,7 +860,7 @@ export default function Home() {
                                 className={`flex items-center justify-center w-8 h-8 transition-all ${
                                   voiceState === "listening"
                                     ? "text-(--z-brick) voice-recording"
-                                    : "text-white/30 hover:text-white/60"
+                                    : "text-white/50 hover:text-white/60"
                                 }`}
                               >
                                 {voiceState === "listening" ? (
@@ -891,7 +891,7 @@ export default function Home() {
                           </div>
                           {/* Voice interim transcript */}
                           {voiceState === "listening" && interimTranscript && (
-                            <div className="absolute bottom-12 right-4 text-[11px] text-(--z-gold)/50 font-mono italic max-w-[200px] truncate">
+                            <div className="absolute bottom-12 right-4 text-[11px] text-(--z-gold)/70 font-mono italic max-w-[200px] truncate">
                               {interimTranscript}
                             </div>
                           )}
@@ -900,9 +900,9 @@ export default function Home() {
                         <div className="p-4 sm:p-5">
                           <div className="flex items-center gap-2 mb-3">
                             {inputMode === "video" ? (
-                              <Video className="h-4 w-4 text-rose-400" />
+                              <Video className="h-4 w-4 text-rose-300" />
                             ) : (
-                              <Link2 className="h-4 w-4 text-blue-400" />
+                              <Link2 className="h-4 w-4 text-blue-300" />
                             )}
                             <span className="text-[11px] font-mono text-white/50">
                               {inputMode === "video"
@@ -926,7 +926,7 @@ export default function Home() {
                                   ? "https://youtube.com/watch?v=..."
                                   : "https://example.com/article"
                               }
-                              className="flex-1 bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-[14px] text-white placeholder:text-white/30 focus:outline-none focus:border-(--z-gold)/30 font-mono"
+                              className="flex-1 bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-[14px] text-white placeholder:text-white/50 focus:outline-none focus:border-(--z-gold)/30 font-mono"
                               disabled={isExtracting}
                             />
                             <button
@@ -948,7 +948,7 @@ export default function Home() {
                               {extractError}
                             </div>
                           )}
-                          <p className="text-[10px] text-white/25 font-mono mt-3">
+                          <p className="text-[10px] text-white/50 font-mono mt-3">
                             {inputMode === "video"
                               ? "We'll extract the transcript and description to generate your infographic."
                               : "We'll fetch the page content, strip navigation, and extract the article text."}
@@ -988,7 +988,7 @@ export default function Home() {
                             ) : (
                               <>
                                 <UploadCloud
-                                  className={`h-8 w-8 ${dragOver ? "text-(--z-gold)" : "text-white/20"}`}
+                                  className={`h-8 w-8 ${dragOver ? "text-(--z-gold)" : "text-white/50"}`}
                                 />
                                 <div className="text-center">
                                   <span className="text-[12px] font-mono text-white/50">
@@ -997,7 +997,7 @@ export default function Home() {
                                       browse
                                     </span>
                                   </span>
-                                  <p className="text-[10px] text-white/25 font-mono mt-1">
+                                  <p className="text-[10px] text-white/50 font-mono mt-1">
                                     PDF, DOCX, PPTX, TXT, MD, CSV, JSON — up to
                                     10 MB
                                   </p>
@@ -1030,7 +1030,7 @@ export default function Home() {
                           className={`shrink-0 px-3 py-1.5 text-[10px] font-mono font-medium tracking-wide uppercase transition-all border ${
                             selectedPreset === p.id
                               ? "bg-(--z-gold)/10 text-(--z-gold) border-(--z-gold)/20"
-                              : "text-white/40 border-transparent hover:text-white/60 hover:bg-white/[0.03]"
+                              : "text-white/50 border-transparent hover:text-white/60 hover:bg-white/[0.03]"
                           }`}
                         >
                           {p.label}
@@ -1061,7 +1061,7 @@ export default function Home() {
                     {showAdvanced && (
                       <div className="border-t border-white/[0.06] px-5 py-4 bg-white/[0.02] shrink-0">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-[10px] font-mono tracking-[0.15em] text-white/40 uppercase">
+                          <span className="text-[10px] font-mono tracking-[0.15em] text-white/50 uppercase">
                             Visual Style Override
                           </span>
                           <button
@@ -1162,7 +1162,7 @@ export default function Home() {
                 {/* Char count + research hint */}
                 <div className="flex justify-between items-center mt-3 px-1">
                   <span
-                    className={`text-[11px] font-mono transition-colors ${content.length >= 50 ? "text-white/40" : content.length > 0 ? "text-(--z-brick)/70" : "text-white/40"}`}
+                    className={`text-[11px] font-mono transition-colors ${content.length >= 50 ? "text-white/50" : content.length > 0 ? "text-(--z-brick)/70" : "text-white/50"}`}
                   >
                     {content.length > 0 ? (
                       <>
@@ -1189,7 +1189,7 @@ export default function Home() {
                     placeholder="Research hint (optional) — e.g., 'SpaceX Falcon 9 landing'"
                     maxLength={500}
                     aria-label="Research hint"
-                    className="w-full mt-3 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] px-4 py-2.5 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-(--z-gold)/30 font-mono"
+                    className="w-full mt-3 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] px-4 py-2.5 text-xs text-white placeholder:text-white/50 focus:outline-none focus:border-(--z-gold)/30 font-mono"
                   />
                 )}
               </motion.div>
@@ -1203,7 +1203,7 @@ export default function Home() {
             transition={{ delay: 1.5 }}
             className="hidden lg:block absolute bottom-6 left-1/2 -translate-x-1/2"
           >
-            <ChevronDown className="h-5 w-5 text-white/40 animate-scroll-bounce" />
+            <ChevronDown className="h-5 w-5 text-white/50 animate-scroll-bounce" />
           </motion.div>
         </section>
 
@@ -1442,11 +1442,11 @@ function Nav() {
             <span className="font-mono text-[15px] font-black tracking-tight text-white">
               ZGNAL
             </span>
-            <span className="font-mono text-[15px] font-black tracking-tight text-white/25">
+            <span className="font-mono text-[15px] font-black tracking-tight text-white/50">
               .AI
             </span>
           </div>
-          <span className="hidden sm:inline text-[9px] text-white/30 font-mono tracking-[0.15em] uppercase border-l border-white/[0.08] pl-3 ml-1">
+          <span className="hidden sm:inline text-[9px] text-white/50 font-mono tracking-[0.15em] uppercase border-l border-white/[0.08] pl-3 ml-1">
             Infographic Lab
           </span>
         </a>

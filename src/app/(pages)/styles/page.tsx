@@ -25,7 +25,7 @@ const STYLES = [
     id: 'deconstruct',
     name: 'Deconstruct',
     category: 'Exploded View',
-    accent: '#C04B3C',
+    accent: '#D9604F',
     icon: '\u25CE',
     desc: 'NYT-style exploded view with callout lines and numbered annotations. Takes a complex object or system apart to reveal how it works.',
     bestFor: 'Product breakdowns, system architecture, how-it-works explanations',
@@ -722,16 +722,16 @@ function StyleCard({ style, large = false }: { style: (typeof STYLES)[number]; l
       <div className="p-5 space-y-3">
         <div className="flex items-baseline gap-3 flex-wrap">
           <h3 className="text-sm font-mono font-bold text-white">{style.name}</h3>
-          <span className="text-[9px] font-mono tracking-widest uppercase text-white/25">{style.category}</span>
+          <span className="text-[9px] font-mono tracking-widest uppercase text-white/50">{style.category}</span>
         </div>
 
-        <p className={`text-xs text-white/40 leading-relaxed ${large ? '' : 'line-clamp-2'}`}>
+        <p className={`text-xs text-white/50 leading-relaxed ${large ? '' : 'line-clamp-2'}`}>
           {style.desc}
         </p>
 
         <div className="flex flex-wrap gap-1">
           {style.bestFor.split(', ').map((tag) => (
-            <span key={tag} className="text-[9px] font-mono text-white/35 bg-white/[0.03] border border-white/[0.06] px-2 py-0.5">
+            <span key={tag} className="text-[9px] font-mono text-white/50 bg-white/[0.03] border border-white/[0.06] px-2 py-0.5">
               {tag}
             </span>
           ))}
@@ -741,7 +741,7 @@ function StyleCard({ style, large = false }: { style: (typeof STYLES)[number]; l
           {style.layouts.map((layout) => (
             <span key={layout} className="flex items-center gap-1.5">
               <span className="h-[4px] w-[4px] inline-block shrink-0" style={{ backgroundColor: style.accent }} />
-              <span className="text-[9px] font-mono text-white/25">{layout}</span>
+              <span className="text-[9px] font-mono text-white/50">{layout}</span>
             </span>
           ))}
         </div>
@@ -803,7 +803,7 @@ function MarqueeTicker() {
         {doubled.map((item, i) => (
           <span key={`${item.name}-${i}`} className="flex items-center gap-3 shrink-0">
             <span className="h-[6px] w-[6px] inline-block" style={{ backgroundColor: item.accent }} />
-            <span className="text-sm font-mono text-white/20 uppercase tracking-widest">{item.name}</span>
+            <span className="text-sm font-mono text-white/50 uppercase tracking-widest">{item.name}</span>
           </span>
         ))}
       </div>
@@ -858,7 +858,7 @@ export default function StylesPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.25 }}
-            className="text-base sm:text-lg font-mono text-white/30 max-w-xl"
+            className="text-base sm:text-lg font-mono text-white/50 max-w-xl"
           >
             Each one a different visual language. Pair with 20 layouts for{' '}
             <span className="text-[#D4A84B]">400+ combinations</span>.
@@ -882,22 +882,22 @@ export default function StylesPage() {
             <span className="text-4xl sm:text-5xl font-mono font-bold text-[#D4A84B]">
               <AnimatedCounter target={20} />
             </span>
-            <span className="text-[9px] font-mono tracking-widest uppercase text-white/25 mt-1">styles</span>
+            <span className="text-[9px] font-mono tracking-widest uppercase text-white/50 mt-1">styles</span>
           </div>
-          <span className="text-white/10 text-3xl sm:text-4xl font-mono select-none">&times;</span>
+          <span className="text-white/50 text-3xl sm:text-4xl font-mono select-none">&times;</span>
           <div className="flex flex-col items-center">
             <span className="text-4xl sm:text-5xl font-mono font-bold text-[#D4A84B]">
               <AnimatedCounter target={20} />
             </span>
-            <span className="text-[9px] font-mono tracking-widest uppercase text-white/25 mt-1">layouts</span>
+            <span className="text-[9px] font-mono tracking-widest uppercase text-white/50 mt-1">layouts</span>
           </div>
-          <span className="text-white/10 text-3xl sm:text-4xl font-mono select-none">=</span>
+          <span className="text-white/50 text-3xl sm:text-4xl font-mono select-none">=</span>
           <div className="flex flex-col items-center">
             <span className="text-4xl sm:text-5xl font-mono font-bold text-white">
               <AnimatedCounter target={400} duration={1.6} />
               <span className="text-2xl sm:text-3xl text-[#D4A84B]">+</span>
             </span>
-            <span className="text-[9px] font-mono tracking-widest uppercase text-white/25 mt-1">combinations</span>
+            <span className="text-[9px] font-mono tracking-widest uppercase text-white/50 mt-1">combinations</span>
           </div>
         </div>
       </div>
@@ -905,7 +905,7 @@ export default function StylesPage() {
       {/* ── FEATURED STYLES ── */}
       <div className="mx-auto max-w-6xl px-6 pt-16 sm:pt-20 pb-10">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.5 }}
@@ -927,7 +927,7 @@ export default function StylesPage() {
       {/* ── FULL GALLERY ── */}
       <div className="mx-auto max-w-6xl px-6 pt-8 pb-16 sm:pb-24">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.5 }}
@@ -938,15 +938,20 @@ export default function StylesPage() {
 
         {/* Category filter with sliding gold underline */}
         <div className="sticky top-0 z-30 -mx-6 px-6 py-3 bg-[#0A0A0B]/95 backdrop-blur-md border-b border-white/[0.04] mb-10">
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pb-1 relative">
+          <div
+            tabIndex={0}
+            role="region"
+            aria-label="Style filters, scroll horizontally"
+            className="flex items-center gap-1 overflow-x-auto scrollbar-none pb-1 relative focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A84B]"
+          >
             <button
               onClick={() => setActiveFilter(null)}
               className={`relative shrink-0 text-[10px] font-mono tracking-widest uppercase px-3 py-1.5 transition-colors duration-200 ${
-                activeFilter === null ? 'text-[#D4A84B]' : 'text-white/30 hover:text-white/50'
+                activeFilter === null ? 'text-[#D4A84B]' : 'text-white/50 hover:text-white/50'
               }`}
             >
               All
-              <span className="ml-1 text-white/20">{STYLES.length}</span>
+              <span className="ml-1 text-white/50">{STYLES.length}</span>
               {activeFilter === null && (
                 <motion.div
                   layoutId="filter-underline"
@@ -961,11 +966,11 @@ export default function StylesPage() {
                 key={cat}
                 onClick={() => setActiveFilter(cat === activeFilter ? null : cat)}
                 className={`relative shrink-0 text-[10px] font-mono tracking-widest uppercase px-3 py-1.5 transition-colors duration-200 ${
-                  activeFilter === cat ? 'text-[#D4A84B]' : 'text-white/30 hover:text-white/50'
+                  activeFilter === cat ? 'text-[#D4A84B]' : 'text-white/50 hover:text-white/50'
                 }`}
               >
                 {cat}
-                <span className="ml-1 text-white/20">{categoryCounts[cat]}</span>
+                <span className="ml-1 text-white/50">{categoryCounts[cat]}</span>
                 {activeFilter === cat && (
                   <motion.div
                     layoutId="filter-underline"
@@ -1001,7 +1006,7 @@ export default function StylesPage() {
 
         {filtered.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-sm font-mono text-white/30">No styles in this category.</p>
+            <p className="text-sm font-mono text-white/50">No styles in this category.</p>
           </div>
         )}
       </div>
@@ -1010,7 +1015,7 @@ export default function StylesPage() {
       <div className="border-t border-white/[0.06]">
         <div className="mx-auto max-w-6xl px-6 py-16 sm:py-24 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 0.6 }}
@@ -1018,7 +1023,7 @@ export default function StylesPage() {
             <h2 className="text-3xl sm:text-4xl font-mono font-bold text-white mb-4">
               Can&apos;t decide?
             </h2>
-            <p className="text-sm font-mono text-white/30 mb-8 max-w-md mx-auto">
+            <p className="text-sm font-mono text-white/50 mb-8 max-w-md mx-auto">
               Let the AI analyze your content and pick the perfect style + layout combination automatically.
             </p>
             <Link

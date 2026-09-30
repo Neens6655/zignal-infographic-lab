@@ -14,7 +14,7 @@ export function CTASection({ text, href, accent }: CTASectionProps) {
         <h2 className="text-xl sm:text-2xl font-mono font-bold text-white mb-4">
           Ready to create?
         </h2>
-        <p className="text-sm text-white/40 mb-8 max-w-md mx-auto">
+        <p className="text-sm text-white/50 mb-8 max-w-md mx-auto">
           {text}
         </p>
         <Link

@@ -116,12 +116,14 @@
   --z-blue: #5b8def;
   --z-olive: #8bc34a;
   --z-cream: #e8e5e0;
-  --z-muted: #6b6b73;
+  /* #6b6b73 measured 3.72:1 on the dark surface and failed AA. 5.37:1. */
+  --z-muted: #85858d;
 
   /* Light section tokens */
   --z-light: #f5f2ed;
   --z-light-text: #1a1a1c;
-  --z-light-muted: #8a8780;
+  /* #8a8780 measured 3.21:1 on the cream surface and failed AA. 5.72:1. */
+  --z-light-muted: #615f59;
   --z-light-border: #d8d4cc;
 }
 
