@@ -128,7 +128,18 @@ export async function POST(request: Request) {
         }).catch(() => {});
       } catch (err: unknown) {
         console.error("[generate]", err);
-        sendEvent("error", { error: "Generation failed. Please try again." });
+        // Classify, never swallow. "Please try again" hid a verification block
+        // behind a retry suggestion — the one case where retrying is exactly
+        // wrong, because the content itself is what failed.
+        const message = err instanceof Error ? err.message : String(err);
+        const isVerification = message.startsWith("Verification failed");
+        sendEvent("error", {
+          error: isVerification
+            ? message
+            : "Generation failed. Please try again.",
+          kind: isVerification ? "verification" : "transient",
+          retryable: !isVerification,
+        });
       } finally {
         clearInterval(heartbeat);
         controller.close();

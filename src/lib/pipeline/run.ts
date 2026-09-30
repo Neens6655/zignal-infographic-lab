@@ -21,7 +21,10 @@ import { assemblePrompt, assembleIllustrationPrompt } from "./prompt";
 import { applyNumberCorrections, type AppliedCorrection } from "./number-guard";
 import { runTruthGates } from "./truth-gate";
 import { buildLedger, citedSources } from "../research/ledger";
-import { planLayout } from "./layout-planner";
+import { planLayout, type PaletteName } from "./layout-planner";
+
+/** The only styles whose plate is legitimately dark. Everything else is institutional. */
+const DARK_STYLES = new Set(["ui-wireframe", "cyberpunk-neon", "technical-schematic", "chalkboard"]);
 import { renderTextLayer } from "./text-renderer";
 import { compositeInfographic } from "./compositor";
 import {
@@ -419,6 +422,7 @@ export async function runPipeline(
   const ledger = await buildLedger({
     userContent: input.content,
     citations: research.citations,
+    findings: research.findings,
   });
 
   const truth = await runTruthGates(finalContent, ledger);
@@ -455,7 +459,12 @@ export async function runPipeline(
     progress: 59,
     message: "Planning layout...",
   });
-  const layout = planLayout(finalContent, aspectRatio);
+  // Institutional styles are printed and read in a boardroom: cream plate, near-black
+  // type. Dark is reserved for live app dashboards, per the house rule.
+  const palette: PaletteName = DARK_STYLES.has(analysis.style)
+    ? "dark"
+    : "institutional";
+  const layout = planLayout(finalContent, aspectRatio, palette);
   pipelineTrace.push({
     stage: "03a",
     agent: "LayoutPlanner",
@@ -468,6 +477,7 @@ export async function runPipeline(
     analysis,
     aspectRatio,
     layout.illustrationZones,
+    palette,
   );
   pipelineTrace.push({
     stage: "03b",

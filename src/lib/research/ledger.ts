@@ -89,6 +89,43 @@ function entryId(origin: ClaimOrigin, value: string, entity: string): string {
   return `${origin}:${normalizeValue(value)}:${entity.toLowerCase().slice(0, 32)}`;
 }
 
+// ── Sentence / citation binding ───────────────────────────────────────
+
+/** Split prose into sentences, keeping bullet lines whole. */
+function splitIntoSentences(text: string): string[] {
+  return text
+    .split(/\n+/)
+    .flatMap((line) => line.split(/(?<=[.!?])\s+(?=[A-Z0-9$€£"'])/))
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
+/**
+ * Resolve inline reference markers to citations. Perplexity writes "[1][3]" where
+ * the index is 1-based into the citation array it returned alongside the answer.
+ */
+function citationsForSentence(
+  sentence: string,
+  citations: SourceCitation[],
+): SourceCitation[] {
+  const out: SourceCitation[] = [];
+  const seen = new Set<number>();
+  for (const m of sentence.matchAll(/\[(\d{1,2})\]/g)) {
+    const idx = parseInt(m[1], 10) - 1;
+    if (idx < 0 || idx >= citations.length || seen.has(idx)) continue;
+    seen.add(idx);
+    out.push(citations[idx]);
+  }
+  return out;
+}
+
+/** The single most authoritative citation, used when a sentence carries no marker. */
+function bestCitation(citations: SourceCitation[]): SourceCitation[] {
+  if (citations.length === 0) return [];
+  const sorted = [...citations].sort((a, b) => (a.tier ?? 3) - (b.tier ?? 3));
+  return [sorted[0]];
+}
+
 // ── Construction ──────────────────────────────────────────────────────
 
 /**
@@ -160,6 +197,19 @@ export function userEntry(claim: {
 export async function buildLedger(input: {
   userContent: string;
   citations: SourceCitation[];
+  /**
+   * The research prose (Perplexity's grounded answer, plus any Firecrawl digest).
+   *
+   * THIS IS WHERE THE EVIDENCE ACTUALLY LIVES. An earlier version of this module read
+   * only `citation.snippet`, which Perplexity always leaves empty — it returns bare
+   * URLs and puts the facts in the answer body. The ledger therefore produced zero
+   * research rows even on a perfectly healthy research run.
+   *
+   * Perplexity marks each sentence with inline [1][3] references into the citation
+   * array, so parsing those gives real per-claim source binding — better than the
+   * snippet approach it replaces.
+   */
+  findings?: string[];
 }): Promise<ClaimLedger> {
   const entries: LedgerEntry[] = [];
   const seen = new Set<string>();
@@ -177,9 +227,33 @@ export async function buildLedger(input: {
     push(userEntry(claim));
   }
 
-  // 2. Researched figures, each bound to the citation it came from.
-  for (const citation of input.citations) {
-    if (!citation.url || !citation.snippet) continue;
+  // 2a. Figures in the research prose, bound to the citations that sentence cites.
+  const usableCitations = input.citations.filter((c) => !!c.url);
+  for (const finding of input.findings ?? []) {
+    for (const sentence of splitIntoSentences(finding)) {
+      const claims = await extractNumericalClaims(sentence);
+      if (claims.length === 0) continue;
+
+      // "[1][3]" → citations 0 and 2. No marker means we cannot attribute the
+      // sentence to a specific source, so fall back to the highest-tier citation
+      // rather than inventing a binding.
+      const marked = citationsForSentence(sentence, usableCitations);
+      const bound = marked.length > 0 ? marked : bestCitation(usableCitations);
+      if (bound.length === 0) continue;
+
+      for (const claim of claims) {
+        if (isTrivialFigure(claim.value)) continue;
+        for (const citation of bound) {
+          push(researchEntry(claim, citation, sentence));
+        }
+      }
+    }
+  }
+
+  // 2b. Figures in citation snippets, where a source actually carries one
+  // (Firecrawl enrichment populates these; Perplexity does not).
+  for (const citation of usableCitations) {
+    if (!citation.snippet) continue;
     const claims = await extractNumericalClaims(citation.snippet);
     for (const claim of claims) {
       if (isTrivialFigure(claim.value)) continue;

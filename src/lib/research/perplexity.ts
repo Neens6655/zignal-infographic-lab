@@ -3,12 +3,12 @@
  * Searches for verified statistics, data, and facts using Perplexity's
  * grounded search model. Returns structured citations with source metadata.
  */
-import type { SourceCitation } from '../types';
+import type { SourceCitation } from "../types";
 
 // ── Types ────────────────────────────────────────────────────
 
 interface PerplexityMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -31,9 +31,14 @@ export interface PerplexityResult {
 
 // ── Constants ────────────────────────────────────────────────
 
-const API_URL = 'https://api.perplexity.ai/chat/completions';
-const MODEL = 'sonar-pro';
-const MAX_TOKENS = 6144; // Increased for structured research responses
+const API_URL = "https://api.perplexity.ai/chat/completions";
+const MODEL = "sonar-pro";
+/**
+ * 6144 was the cause of a hard 25s timeout on every call: sonar-pro spends the whole
+ * budget searching and composing. A direct probe at 100 tokens returned in 1.7s.
+ * 1800 is ample for a research digest and keeps the call inside the window.
+ */
+const MAX_TOKENS = 1800;
 
 // ── Intent-specific research prompts ─────────────────────────
 
@@ -78,26 +83,31 @@ export async function searchPerplexity(
   const apiKey = process.env.PERPLEXITY_API_KEY;
 
   if (!apiKey) {
-    console.warn('[perplexity] PERPLEXITY_API_KEY not set — skipping search');
-    return { answer: '', citations: [] };
+    console.warn("[perplexity] PERPLEXITY_API_KEY not set — skipping search");
+    return { answer: "", citations: [] };
   }
 
-  const topicList = topics.join(', ');
-  const effectiveIntent = intent || 'overview';
-  const systemPrompt = INTENT_SYSTEM_PROMPTS[effectiveIntent] || INTENT_SYSTEM_PROMPTS.overview;
+  const topicList = topics.join(", ");
+  const effectiveIntent = intent || "overview";
+  const systemPrompt =
+    INTENT_SYSTEM_PROMPTS[effectiveIntent] || INTENT_SYSTEM_PROMPTS.overview;
 
   // Build intent-specific user query
   let userQuery: string;
-  if (effectiveIntent === 'ranking' && entities && entities.length > 0) {
-    userQuery = `Research the following ranked entities: ${entities.join(', ')}.
+  if (effectiveIntent === "ranking" && entities && entities.length > 0) {
+    userQuery = `Research the following ranked entities: ${entities.join(", ")}.
 For EACH entity, provide: ${topicList}.
 Include exact figures with units and source year. Use only Tier 1 sources (government, Reuters, World Bank, academic).
 Present as a ranked list from #1 to #${entities.length}.`;
-  } else if (effectiveIntent === 'comparison' && entities && entities.length > 0) {
-    userQuery = `Compare these items: ${entities.join(' vs ')}.
+  } else if (
+    effectiveIntent === "comparison" &&
+    entities &&
+    entities.length > 0
+  ) {
+    userQuery = `Compare these items: ${entities.join(" vs ")}.
 Research the same metrics for each: ${topicList}.
 Provide exact, comparable figures from authoritative sources.`;
-  } else if (effectiveIntent === 'process') {
+  } else if (effectiveIntent === "process") {
     userQuery = `Explain the process/journey: ${contentSnippet.slice(0, 500)}.
 Break down into sequential stages. For each stage: what happens, key metrics, and why it matters.
 Research topics: ${topicList}.`;
@@ -108,52 +118,59 @@ Focus on the most authoritative sources. Organize for storytelling — each fact
   }
 
   const messages: PerplexityMessage[] = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userQuery },
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userQuery },
   ];
 
-  console.log(`[perplexity] intent=${effectiveIntent} | query: "${topicList}" (${entities?.length || 0} entities)`);
+  console.log(
+    `[perplexity] intent=${effectiveIntent} | query: "${topicList}" (${entities?.length || 0} entities)`,
+  );
 
   try {
     const response = await fetch(API_URL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         model: MODEL,
         messages,
         max_tokens: MAX_TOKENS,
       }),
-      signal: AbortSignal.timeout(25_000), // 25s timeout
+      // 45s, not 25s. This is a grounded search inside a 300s budget; being stingy
+      // here bought nothing and silently produced zero-citation runs, which the
+      // structurer then filled with invented statistics.
+      signal: AbortSignal.timeout(45_000),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[perplexity] API error ${response.status}: ${errorText}`);
-      return { answer: '', citations: [] };
+      return { answer: "", citations: [] };
     }
 
     const data = (await response.json()) as PerplexityResponse;
 
-    const answer = data.choices?.[0]?.message?.content ?? '';
+    const answer = data.choices?.[0]?.message?.content ?? "";
     const rawCitations = data.citations ?? [];
 
     const citations: SourceCitation[] = rawCitations.map((url) => ({
       url,
       title: extractDomain(url),
-      snippet: '',
-      provider: 'perplexity',
+      snippet: "",
+      provider: "perplexity",
     }));
 
-    console.log(`[perplexity] ${citations.length} citations, ${answer.length} chars answer`);
+    console.log(
+      `[perplexity] ${citations.length} citations, ${answer.length} chars answer`,
+    );
 
     return { answer, citations };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`[perplexity] fetch failed: ${message}`);
-    return { answer: '', citations: [] };
+    return { answer: "", citations: [] };
   }
 }
 
@@ -161,7 +178,7 @@ Focus on the most authoritative sources. Organize for storytelling — each fact
 
 function extractDomain(url: string): string {
   try {
-    return new URL(url).hostname.replace('www.', '');
+    return new URL(url).hostname.replace("www.", "");
   } catch {
     return url;
   }

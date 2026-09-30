@@ -37,19 +37,71 @@ function truncateWords(
   return { text: words.slice(0, max).join(" ") + "...", truncated: true };
 }
 
+/**
+ * Shorten prose WITHOUT leaving a sentence hanging.
+ *
+ * The previous version cut at a word boundary and deliberately dropped the ellipsis,
+ * on the reasoning that a visible "..." reads as broken on a clean McKinsey layout.
+ * That was half right and made things worse: removing the ellipsis did not remove the
+ * defect, it concealed it. The live render printed twelve sentences ending
+ * "...or dwelling within a" and "...is aligned with a specific" — which reads not as
+ * shortened but as a bug in the document.
+ *
+ * Order of preference:
+ *   1. a complete sentence fits           → use it, no marker needed
+ *   2. a clause boundary (; : ,) fits     → use it, closed with an ellipsis
+ *   3. nothing honest fits                → return empty, and the caller DROPS the line
+ */
 function truncateChars(
   text: string,
   max: number,
 ): { text: string; truncated: boolean } {
-  if (text.length <= max) return { text, truncated: false };
-  // Cut at the last word boundary and DROP the ellipsis — a rendered "..." on an
-  // infographic reads as broken/unfinished (worst on the clean McKinsey style).
-  const cut = text.slice(0, max);
-  const lastSpace = cut.lastIndexOf(" ");
-  const clean = (lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut)
-    .trimEnd()
-    .replace(/[,;:.\-–—]+$/, "");
-  return { text: clean, truncated: true };
+  const clean = text.trim();
+  if (clean.length <= max) return { text: clean, truncated: false };
+
+  const window = clean.slice(0, max);
+
+  // 1. Last complete sentence inside the budget.
+  const sentences = [...window.matchAll(/[.!?](?=\s|$)/g)];
+  if (sentences.length > 0) {
+    const end = sentences[sentences.length - 1].index! + 1;
+    if (end > max * 0.4) {
+      return { text: window.slice(0, end).trim(), truncated: true };
+    }
+  }
+
+  // 2. Clause boundary, closed honestly with an ellipsis.
+  const clause = Math.max(
+    window.lastIndexOf("; "),
+    window.lastIndexOf(": "),
+    window.lastIndexOf(", "),
+  );
+  if (clause > max * 0.5) {
+    return {
+      text:
+        window
+          .slice(0, clause)
+          .trimEnd()
+          .replace(/[,;:]$/, "") + "…",
+      truncated: true,
+    };
+  }
+
+  // 3. Word boundary with an ellipsis, only if there is room to say something.
+  const lastSpace = window.lastIndexOf(" ");
+  if (lastSpace > max * 0.55) {
+    return {
+      text:
+        window
+          .slice(0, lastSpace)
+          .trimEnd()
+          .replace(/[,;:\-–—]+$/, "") + "…",
+      truncated: true,
+    };
+  }
+
+  // 4. Too small to say anything without mutilating it.
+  return { text: "", truncated: true };
 }
 
 /**
@@ -148,14 +200,22 @@ export function enforceDensity(
       );
       section.content = section.content.slice(0, MAX_CONTENT_ITEMS);
     }
-    section.content = section.content.map((item) => {
-      const result = truncateChars(item, MAX_CONTENT_ITEM_CHARS);
-      if (result.truncated) {
-        truncatedLabels++;
-        violations.push(`Content item truncated: "${item}" → "${result.text}"`);
-      }
-      return result.text;
-    });
+    // An empty result means nothing could be said honestly in the space — drop the
+    // line rather than print a fragment of a sentence.
+    section.content = section.content
+      .map((item) => {
+        const result = truncateChars(item, MAX_CONTENT_ITEM_CHARS);
+        if (result.truncated) {
+          truncatedLabels++;
+          violations.push(
+            result.text
+              ? `Content item shortened: "${item}" → "${result.text}"`
+              : `Content item DROPPED (no honest fit): "${item}"`,
+          );
+        }
+        return result.text;
+      })
+      .filter((t) => t.length > 0);
 
     // Labels: max 4 per section, max 25 chars each
     if (section.labels.length > MAX_LABELS_PER_SECTION) {
@@ -165,14 +225,20 @@ export function enforceDensity(
       );
       section.labels = section.labels.slice(0, MAX_LABELS_PER_SECTION);
     }
-    section.labels = section.labels.map((label) => {
-      const result = truncateChars(label, MAX_LABEL_CHARS);
-      if (result.truncated) {
-        truncatedLabels++;
-        violations.push(`Label truncated: "${label}" → "${result.text}"`);
-      }
-      return result.text;
-    });
+    section.labels = section.labels
+      .map((label) => {
+        const result = truncateChars(label, MAX_LABEL_CHARS);
+        if (result.truncated) {
+          truncatedLabels++;
+          violations.push(
+            result.text
+              ? `Label shortened: "${label}" → "${result.text}"`
+              : `Label DROPPED (no honest fit): "${label}"`,
+          );
+        }
+        return result.text;
+      })
+      .filter((t) => t.length > 0);
   }
 
   // ── Stats bar: max 6 items ──────────────────────────────────

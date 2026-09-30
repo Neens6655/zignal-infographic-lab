@@ -295,6 +295,7 @@ export async function assembleIllustrationPrompt(
   analysis: ContentAnalysis,
   aspectRatio: string,
   illustrationZones: string,
+  palette: "institutional" | "dark" = "institutional",
 ): Promise<string> {
   const [styleDef] = await Promise.all([
     loadRef(`styles/${analysis.style}.md`),
@@ -302,13 +303,24 @@ export async function assembleIllustrationPrompt(
 
   const topicSummary = `${structured.title}: ${structured.sections.map((s) => s.heading).join(", ")}`;
 
+  // An institutional brief is printed and read in a boardroom. It is cream and white,
+  // and the text composited over it is near-black — so the plate must be LIGHT or the
+  // text is invisible. The previous version hardcoded a dark palette for every style.
+  const paletteRule =
+    palette === "institutional"
+      ? `4. LIGHT palette ONLY. Background must read as warm off-white / cream (#F2E8D5 to #FFFFFF).
+   Use restrained navy (#1B2A41), charcoal (#1C1C1C) and muted gold (#A67C32) for line work.
+   The text overlay is NEAR-BLACK, so every region must stay pale enough to read dark type over.
+   NO dark backgrounds, NO neon, NO glow effects. Think: printed McKinsey/JP Morgan handout.`
+      : `4. Use a DARK color palette — the text overlay will be white/light colored.`;
+
   return `Generate a BACKGROUND ILLUSTRATION for an executive infographic about: ${topicSummary}
 
 CRITICAL RULES — ILLUSTRATION ONLY:
 1. NO TEXT. NO LABELS. NO WORDS. NO LETTERS. NO NUMBERS. NO CHARACTERS OF ANY KIND.
 2. This is a background illustration. Text will be composited on top by a separate system.
 3. Generate subtle, muted visual elements that enhance the topic without competing with text.
-4. Use a DARK color palette — the text overlay will be white/light colored.
+${paletteRule}
 
 ZONE LAYOUT:
 ${illustrationZones}
@@ -320,7 +332,7 @@ VISUAL DIRECTION:
 ${styleDef ? `\nSTYLE REFERENCE:\n${styleDef.slice(0, 1000)}` : ""}
 
 - Create ${structured.sections.length} visual zones, each with subtle icons or illustrations related to: ${structured.sections.map((s) => s.visualElement || s.heading).join(", ")}
-- Keep illustrations at 30-50% opacity — they must not overpower white text
+- Keep illustrations restrained (30-50% opacity) — they must never compete with the composited text
 - Use geometric shapes, abstract data viz patterns, or muted photographic elements
 - Overall mood: executive, professional, trustworthy
 

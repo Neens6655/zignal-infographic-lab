@@ -9,6 +9,32 @@ import type {
 } from "./types";
 import { geminiGenerate, TEXT_MODEL, PRO_MODEL } from "./gemini";
 
+/**
+ * Shorten without leaving a sentence hanging. A hard slice at N characters produced
+ * body copy ending "...within a" in the first live render — which reads as a bug in
+ * the document rather than as an abbreviation.
+ */
+function sentenceSafeCut(text: string, max: number): string {
+  const clean = text.trim();
+  if (clean.length <= max) return clean;
+  const window = clean.slice(0, max);
+  const sentences = [...window.matchAll(/[.!?](?=\s|$)/g)];
+  if (sentences.length > 0) {
+    const end = sentences[sentences.length - 1].index! + 1;
+    if (end > max * 0.4) return window.slice(0, end).trim();
+  }
+  const lastSpace = window.lastIndexOf(" ");
+  if (lastSpace > max * 0.55) {
+    return (
+      window
+        .slice(0, lastSpace)
+        .trimEnd()
+        .replace(/[,;:\-–—]+$/, "") + "…"
+    );
+  }
+  return "";
+}
+
 // ── Structure content ─────────────────────────────────────────
 
 export async function structureContent(
@@ -154,14 +180,32 @@ INTENT: ${analysis.intent}
 LAYOUT: ${analysis.layout}
 STYLE: ${analysis.style}
 ${
+  // Condition on CITATIONS, not findings. Findings can be non-empty prose with no
+  // sourced figures in it (the self-contained path pushes the user's own text in
+  // here), and that was enough to take the "sole source of truth" branch — leaving
+  // the model free to invent "$3.4 Billion market size" with nothing behind it.
+  // Sourced figures require sources.
   research &&
+  research.citations.length > 0 &&
   (research.verifiedFacts.length > 0 || research.findings.length > 0)
     ? `
 RESEARCH DATA — THIS IS YOUR SOLE SOURCE OF TRUTH. Use ONLY these numbers. Do NOT substitute with your training data:
 ${research.verifiedFacts.map((f) => `- ${f}`).join("\n")}
 ${research.findings.map((f) => `- ${f.slice(0, 800)}`).join("\n")}
 `
-    : ""
+    : `
+NO RESEARCH DATA IS AVAILABLE FOR THIS BRIEF.
+
+Therefore: produce a QUALITATIVE explainer. Do NOT include any statistic, market size,
+percentage, growth rate, currency amount, accuracy figure or date-stamped projection.
+Not one. Every such figure would be fabricated, and fabricated figures are rejected by
+a downstream verification gate that will block this render entirely.
+
+Leave "stats_bar" as an array of label/value pairs holding only CATEGORICAL values
+drawn from the user's own content — names, stages, categories, component lists — never
+invented quantities. A clear explainer with no numbers is a correct output here; an
+explainer decorated with plausible-looking numbers is a failed one.
+`
 }
 CONTENT:
 ${content.slice(0, 8000)}`,
@@ -215,12 +259,12 @@ ${content.slice(0, 6000)}`,
       if (section.content.length > 5)
         section.content = section.content.slice(0, 5);
       section.content = section.content.map((c: string) =>
-        c.length > 120 ? c.slice(0, 117) + "..." : c,
+        c.length > 120 ? sentenceSafeCut(c, 120) : c,
       );
       if (section.labels.length > 6)
         section.labels = section.labels.slice(0, 6);
       section.labels = section.labels.map((l: string) =>
-        l.length > 80 ? l.slice(0, 77) + "..." : l,
+        l.length > 80 ? sentenceSafeCut(l, 80) : l,
       );
     }
 
