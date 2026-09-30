@@ -169,6 +169,13 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  /* `background-clip: text` paints only inside the LINE BOX, and
+     .heading-editorial sets line-height 0.92 — tighter than the font's own
+     descender depth. The 'y' in "into clarity" was sliced off in the hero on
+     every render. A descender-sized pad restores the glyph without moving the
+     baseline, since the span is display:block in a stacked headline. */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
 }
 
 /* === NOISE TEXTURE OVERLAY === */

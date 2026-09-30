@@ -283,7 +283,19 @@ export default function PagesLayout({
       </nav>
 
       {/* Page content */}
-      <main className="min-h-screen bg-[#0A0A0B] pt-16">{children}</main>
+      {/* id + tabIndex: the root layout renders a "Skip to main content" link
+          targeting #main-content, and that id existed ONLY on the homepage. On these
+          seven routes the link pointed at nothing and did nothing — a WCAG 2.4.1
+          Bypass Blocks failure that axe cannot see, because the markup is valid and
+          the target's absence is not. tabIndex={-1} lets focus actually land here
+          when the link is followed. */}
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="min-h-screen bg-[#0A0A0B] pt-16 focus:outline-none"
+      >
+        {children}
+      </main>
 
       {/* Footer */}
       <footer className="bg-[#060606] relative">
