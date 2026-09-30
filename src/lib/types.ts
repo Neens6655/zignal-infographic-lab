@@ -154,6 +154,20 @@ export type ProvenanceData = {
     referenceImages: number;
   };
   credibility: CredibilityScore;
+  /** Claim-ledger summary: the evidence behind the figures in THIS image. */
+  claimLedger?: {
+    rows: number;
+    userSupplied: number;
+    researched: number;
+    sources: { url: string; title: string; tier?: 1 | 2 | 3 }[];
+  };
+  /** Pre-render mandatory checks: claim grounding and input fidelity. */
+  truthGates?: {
+    gate: string;
+    passed: boolean;
+    score: number;
+    details: string;
+  }[];
   postGenFlags?: string[];
   numberAudit?: {
     totalClaims: number;
@@ -212,8 +226,22 @@ export type VerifiedFactSet = {
   dataFreshness: string;
 };
 
+/**
+ * Gate names. Keep this union closed — an open `string` is how a renamed check
+ * silently stops being mandatory, which has happened in this estate before.
+ */
+export type GateName =
+  // post-render, OCR-based
+  | "hallucination"
+  | "traceability"
+  | "readability"
+  | "data-integrity"
+  // pre-render, ledger-based (mandatory — see pipeline/truth-gate.ts)
+  | "claim-grounding"
+  | "input-fidelity";
+
 export type GateResult = {
-  gate: "hallucination" | "traceability" | "readability" | "data-integrity";
+  gate: GateName;
   passed: boolean;
   score: number;
   details: string;

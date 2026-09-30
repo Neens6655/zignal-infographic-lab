@@ -19,6 +19,8 @@ import { structureContent } from "./structure";
 import { getCachedResearch, setCachedResearch } from "../research/cache";
 import { assemblePrompt, assembleIllustrationPrompt } from "./prompt";
 import { applyNumberCorrections, type AppliedCorrection } from "./number-guard";
+import { runTruthGates } from "./truth-gate";
+import { buildLedger, citedSources } from "../research/ledger";
 import { planLayout } from "./layout-planner";
 import { renderTextLayer } from "./text-renderer";
 import { compositeInfographic } from "./compositor";
@@ -343,6 +345,7 @@ export async function runPipeline(
   let finalContent = densified;
   let numberCorrections: string[] = [];
   let appliedCorrections: AppliedCorrection[] = [];
+  let truthGates: import("../types").GateResult[] = [];
   let unappliedCorrections: AppliedCorrection[] = [];
   if (!isSelfContained && research.findings.length > 0) {
     onProgress({
@@ -402,11 +405,54 @@ export async function runPipeline(
     }
   }
 
+  // ── Stage 2.8: TRUTH GATES ────────────────────────────────────────────
+  // The last point at which a fault is free to fix. Two mandatory checks:
+  // every printed figure must trace to the claim ledger, and every figure the
+  // user supplied must survive unaltered. These are the product's core claim,
+  // so they run BEFORE a single pixel is paid for.
+  onProgress({
+    status: "validating",
+    progress: 58,
+    message: "Verifying every figure against its source...",
+  });
+
+  const ledger = await buildLedger({
+    userContent: input.content,
+    citations: research.citations,
+  });
+
+  const truth = await runTruthGates(finalContent, ledger);
+  truthGates = truth.gates;
+
+  pipelineTrace.push({
+    stage: "02.8",
+    agent: "TruthGate",
+    result: `${truth.passed ? "PASS" : "BLOCKED"}: ${truth.gates
+      .map(
+        (g) => `${g.gate}=${g.passed ? "OK" : "FAIL"}(${g.score.toFixed(0)}%)`,
+      )
+      .join(", ")} | ledger: ${ledger.entries.length} rows`,
+  });
+
+  if (!truth.passed) {
+    // Fail closed. Rendering an image whose figures cannot be traced is the one
+    // outcome this product exists to prevent — shipping it flagged would still
+    // put an unsourced statistic in front of a client.
+    const detail = truth.gates
+      .filter((g) => !g.passed)
+      .flatMap((g) => g.failures)
+      .slice(0, 6)
+      .join("; ");
+    throw new Error(
+      `Verification failed (${truth.blocking.join(", ")}): ${detail}`,
+    );
+  }
+
   // Stage 3: HYBRID RENDERING — illustration + programmatic text overlay
   // 3a: Plan text layout (deterministic, 0ms)
   onProgress({
     status: "assembling",
-    progress: 57,
+    progress: 59,
     message: "Planning layout...",
   });
   const layout = planLayout(finalContent, aspectRatio);
@@ -522,7 +568,9 @@ export async function runPipeline(
         result: `${gateResults.passed ? "ALL PASS" : "FAILED"}: ${gateResults.gates.map((g) => `${g.gate}=${g.passed ? "OK" : "FAIL"}(${g.score.toFixed(0)}%)`).join(", ")}`,
       });
 
-      qualityScore = computeQualityScore(gateResults.gates);
+      // The truth gates are part of the quality score, not a separate opinion.
+      // A figure's traceability is the accuracy dimension.
+      qualityScore = computeQualityScore([...truthGates, ...gateResults.gates]);
       const badge = formatQualityBadge(qualityScore);
       pipelineTrace.push({
         stage: "05.2",
@@ -605,6 +653,25 @@ export async function runPipeline(
         referenceImages: referenceImages.length,
       },
       credibility,
+      // The claim ledger behind THIS image: how many figures were printed, how many
+      // traced to the user's own data vs a retrieved source, and the sources actually
+      // used — not every URL the research stage happened to touch.
+      claimLedger: {
+        rows: ledger.entries.length,
+        userSupplied: ledger.entries.filter((e) => e.origin === "user").length,
+        researched: ledger.entries.filter((e) => e.origin === "research")
+          .length,
+        sources: citedSources(
+          ledger,
+          ledger.entries.map((e) => e.value),
+        ),
+      },
+      truthGates: truthGates.map((g) => ({
+        gate: g.gate,
+        passed: g.passed,
+        score: g.score,
+        details: g.details,
+      })),
       postGenFlags: postGenFlags.length > 0 ? postGenFlags : undefined,
       numberAudit: numberAuditResult
         ? {
