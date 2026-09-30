@@ -49,34 +49,13 @@ function loadFonts() {
   const fontsDir = join(process.cwd(), "src", "lib", "fonts");
 
   fontsLoaded = [
-    {
-      name: "IBM Plex Mono",
-      data: readFileSync(join(fontsDir, "IBMPlexMono-Regular.woff"))
-        .buffer as ArrayBuffer,
-      weight: 400 as const,
-      style: "normal" as const,
-    },
-    {
-      name: "IBM Plex Mono",
-      data: readFileSync(join(fontsDir, "IBMPlexMono-Bold.woff"))
-        .buffer as ArrayBuffer,
-      weight: 700 as const,
-      style: "normal" as const,
-    },
-    {
-      name: "IBM Plex Sans",
-      data: readFileSync(join(fontsDir, "IBMPlexSans-Regular.woff"))
-        .buffer as ArrayBuffer,
-      weight: 400 as const,
-      style: "normal" as const,
-    },
-    {
-      name: "IBM Plex Sans",
-      data: readFileSync(join(fontsDir, "IBMPlexSans-Bold.woff"))
-        .buffer as ArrayBuffer,
-      weight: 700 as const,
-      style: "normal" as const,
-    },
+    // Arimo is metrically identical to Arial and Apache-2.0 licensed, so the output
+    // has Arial's presentation look while remaining legal to bundle and deploy.
+    // Shipping arial.ttf itself would be a Monotype licence violation.
+    { name: 'Arial', data: readFileSync(join(fontsDir, 'Arimo-Regular.woff')).buffer as ArrayBuffer, weight: 400 as const, style: 'normal' as const },
+    { name: 'Arial', data: readFileSync(join(fontsDir, 'Arimo-Bold.woff')).buffer as ArrayBuffer, weight: 700 as const, style: 'normal' as const },
+    { name: 'Arial Narrow', data: readFileSync(join(fontsDir, 'Arimo-Regular.woff')).buffer as ArrayBuffer, weight: 400 as const, style: 'normal' as const },
+    { name: 'Arial Narrow', data: readFileSync(join(fontsDir, 'Arimo-Bold.woff')).buffer as ArrayBuffer, weight: 700 as const, style: 'normal' as const },
   ];
 
   console.log(`[text-renderer] Loaded ${fontsLoaded.length} font variants`);
@@ -104,6 +83,11 @@ function bandToJSX(b: Band) {
         width: b.width,
         height: b.height,
         backgroundColor: b.color,
+        ...(b.borderColor
+          ? {
+              border: `${b.borderWidth ?? 2}px solid ${b.borderColor}`,
+            }
+          : {}),
         display: "flex",
       },
       children: [],

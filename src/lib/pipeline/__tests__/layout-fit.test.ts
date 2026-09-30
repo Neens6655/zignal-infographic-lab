@@ -20,7 +20,7 @@ const SENTENCE =
 
 /** The budget the fitter itself is working to, mirrored here. */
 function budget(fontSize: number, widthPx: number, sans = true): number {
-  return Math.max(1, Math.floor(widthPx / (fontSize * (sans ? 0.58 : 0.62))));
+  return Math.max(1, Math.floor(widthPx / (fontSize * (sans ? 0.52 : 0.45))));
 }
 
 describe("fitText", () => {
@@ -84,7 +84,7 @@ describe("institutional palette", () => {
 
   it("uses the accessible gold for text, never the decorative one", () => {
     // #D4A84B is decorative only; it fails AA as text on cream.
-    expect(PALETTES.institutional.label).toBe("#A67C32");
+    expect(PALETTES.institutional.label).toBe("#805C1C");
     expect(PALETTES.institutional.label).not.toBe("#D4A84B");
   });
 

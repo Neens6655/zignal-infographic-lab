@@ -161,6 +161,18 @@ export type ProvenanceData = {
     researched: number;
     sources: { url: string; title: string; tier?: 1 | 2 | 3 }[];
   };
+  /** Deterministic pre-render layout gate: legibility, backing, overlap, contrast. */
+  visualCompliance?: {
+    passed: boolean;
+    elements: number;
+    panels: number;
+    smallestFont: number;
+    ellipsisRatio: number;
+    minContrast: number;
+    unbackedText: number;
+    overlaps: number;
+    blockers: number;
+  };
   /** Pre-render mandatory checks: claim grounding and input fidelity. */
   truthGates?: {
     gate: string;

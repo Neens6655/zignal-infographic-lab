@@ -12,10 +12,16 @@ export type TextElement = {
   width: number;
   fontSize: number;
   fontWeight: 400 | 700;
-  fontFamily: "IBM Plex Mono" | "IBM Plex Sans";
+  fontFamily: "Arial" | "Arial Narrow";
   color: string;
   align: "left" | "center" | "right";
   maxLines?: number;
+  /**
+   * What this text IS. The compliance gate needs the role to pick the right
+   * legibility floor — inferring it from font size was circular ("anything 30px or
+   * larger must be at least 34px"), which blocked valid KPI rows and captions.
+   */
+  role?: "title" | "subtitle" | "heading" | "label" | "body" | "kpi" | "caption";
 };
 
 /**
@@ -34,6 +40,9 @@ export type Band = {
   width: number;
   height: number;
   color: string;
+  /** Optional 2px Bauhaus rule around the panel. */
+  borderColor?: string;
+  borderWidth?: number;
 };
 
 export type LayoutPlan = {
@@ -65,6 +74,10 @@ export const PALETTES: Record<
     statLabel: string;
     source: string;
     background: string;
+    /** Fill behind a text panel. */
+    panel: string;
+    /** 2px Bauhaus rule. */
+    border: string;
   }
 > = {
   institutional: {
@@ -72,12 +85,16 @@ export const PALETTES: Record<
     subtitle: "#4A4A4A",
     heading: "#1C1C1C",
     content: "#2E2E2E",
-    // The accessible gold. Decorative #D4A84B is never used as text.
-    label: "#A67C32",
+    // #A67C32 is named "gold-accessible" in the design system but measures 3.78:1
+    // on white and 3.11:1 on cream — it fails WCAG AA (4.5:1) on BOTH surfaces.
+    // #805C1C clears it on both (6.06 / 4.99). Decorative #D4A84B is never text.
+    label: "#805C1C",
     stat: "#1C1C1C",
-    statLabel: "#5A5A5A",
-    source: "#6B6B6B",
+    statLabel: "#4A4A4A",
+    source: "#4A4A4A",
     background: "#F2E8D5",
+    panel: "#FFFFFF",
+    border: "#1C1C1C",
   },
   dark: {
     title: "#FFFFFF",
@@ -87,8 +104,10 @@ export const PALETTES: Record<
     label: "#D4A84B",
     stat: "#FFFFFF",
     statLabel: "#90A4AE",
-    source: "#78909C",
+    source: "#B0C4DE",
     background: "#0D1B2A",
+    panel: "#152A3F",
+    border: "#3A5570",
   },
 };
 
@@ -104,8 +123,10 @@ export const PALETTES: Record<
  * deliberately conservative.
  */
 const CHAR_WIDTH: Record<TextElement["fontFamily"], number> = {
-  "IBM Plex Mono": 0.62, // monospace advance is exactly 0.6; a hair more for safety
-  "IBM Plex Sans": 0.58,
+  // Arial/Arimo average advance in running prose, measured conservatively.
+  // Under-estimating here does not make a tight layout, it makes a clipped one.
+  Arial: 0.52,
+  "Arial Narrow": 0.45,
 };
 
 const LINE_HEIGHT = 1.35;
@@ -123,7 +144,7 @@ function estimateTextHeight(
   fontSize: number,
   widthPx: number,
   maxLines: number | undefined,
-  family: TextElement["fontFamily"] = "IBM Plex Sans",
+  family: TextElement["fontFamily"] = "Arial",
 ): number {
   const cpl = charsPerLine(fontSize, widthPx, family);
   const lines = Math.min(
@@ -151,7 +172,7 @@ export function fitText(
   fontSize: number,
   widthPx: number,
   maxLines: number,
-  family: TextElement["fontFamily"] = "IBM Plex Sans",
+  family: TextElement["fontFamily"] = "Arial",
 ): string | null {
   const clean = text.trim();
   if (!clean) return null;
@@ -187,15 +208,24 @@ function fitLabel(
   fontSize: number,
   widthPx: number,
   maxLines: number,
-  family: TextElement["fontFamily"] = "IBM Plex Sans",
+  family: TextElement["fontFamily"] = "Arial",
 ): string {
   return fitText(text, fontSize, widthPx, maxLines, family) ?? text.trim();
 }
+
+/** Degradation levers the compliance loop can pull when a plan does not pass. */
+export type PlanOptions = {
+  /** Cap the number of panels, so type can stay above the legibility floor. */
+  maxPanels?: number;
+  /** Cap body bullets per panel, to relieve over-truncation and overlap. */
+  maxItemsPerPanel?: number;
+};
 
 export function planLayout(
   content: StructuredContent,
   aspectRatio: string,
   paletteName: PaletteName = "institutional",
+  opts: PlanOptions = {},
 ): LayoutPlan {
   const COLORS = PALETTES[paletteName];
   const dims =
@@ -223,7 +253,7 @@ export function planLayout(
     titleFontSize,
     width - margin * 2,
     2,
-    "IBM Plex Mono",
+    "Arial",
   );
   elements.push({
     text: titleText,
@@ -232,13 +262,20 @@ export function planLayout(
     width: width - margin * 2,
     fontSize: titleFontSize,
     fontWeight: 700,
-    fontFamily: "IBM Plex Mono",
+    fontFamily: "Arial",
     color: COLORS.title,
+    role: "title",
     align: "left",
     maxLines: 2,
   });
   cursor +=
-    estimateTextHeight(titleText, titleFontSize, width - margin * 2, 2, "IBM Plex Mono") + 4;
+    estimateTextHeight(
+      titleText,
+      titleFontSize,
+      width - margin * 2,
+      2,
+      "Arial",
+    ) + 4;
 
   if (content.subtitle) {
     const subFontSize = Math.min(14, Math.round(width / 100));
@@ -255,8 +292,9 @@ export function planLayout(
       width: width - margin * 2,
       fontSize: subFontSize,
       fontWeight: 400,
-      fontFamily: "IBM Plex Sans",
+      fontFamily: "Arial",
       color: COLORS.subtitle,
+      role: "subtitle",
       align: "left",
       maxLines: 1,
     });
@@ -264,180 +302,299 @@ export function planLayout(
       estimateTextHeight(subText, subFontSize, width - margin * 2, 2) + 8;
   }
 
-  // ── CONTENT GRID ───────────────────────────────────────────
-  // Header band spans everything measured above — title + subtitle — so the type on
-  // it is legible whatever the plate does behind it.
+  // -- CONTENT GRID -------------------------------------------
+  // Header band spans everything measured above so the type on it is legible
+  // whatever the plate does behind it.
   bands.push({
     x: 0,
     y: headerTop,
     width,
-    height: Math.ceil(cursor + 6),
+    height: Math.ceil(cursor + 14),
     color: COLORS.background,
   });
 
-  const contentTop = cursor + 10;
-  const footerHeight = 100; // Reserve for stats bar + source
+  const contentTop = cursor + 22;
+  const footerHeight = Math.round(height * 0.11);
   const contentBottom = height - footerHeight;
-  const contentAvailable = contentBottom - contentTop;
 
-  // Grid dimensions
-  const maxCols =
-    sectionCount <= 2
-      ? 2
-      : sectionCount <= 3
-        ? 3
-        : sectionCount <= 6
-          ? 3
-          : sectionCount <= 8
-            ? 4
-            : 5;
-  const rows = Math.ceil(sectionCount / maxCols);
-  const colWidth = Math.round((width - margin * 2) / maxCols);
-  const rowHeight = Math.round(contentAvailable / rows);
-  const textWidth = colWidth - 24;
+  // An institutional page reserves a BAND for the illustration instead of running it
+  // full-bleed behind the type. Overlap then becomes impossible by construction,
+  // rather than something the image model has to be politely asked to avoid.
+  const panelZoneHeight = Math.round((contentBottom - contentTop) * 0.56);
 
-  // Font sizes that scale with available space
-  const headingSize = Math.max(11, Math.min(14, Math.round(textWidth / 25)));
-  const labelSize = Math.max(9, Math.min(11, Math.round(textWidth / 30)));
-  const contentSize = Math.max(8, Math.min(10, Math.round(textWidth / 35)));
+  /**
+   * Type scale derived from the CANVAS, not from column width.
+   *
+   * Sizes used to fall out of `textWidth / 35`, which on a six-column grid produced
+   * 8px body copy on a 1920px canvas - unreadable in print and on screen alike. A
+   * boardroom page says LESS, LARGER.
+   */
+  const k = width / 1920;
+  const headingSize = Math.round(23 * k);
+  const labelSize = Math.round(17 * k);
+  const contentSize = Math.round(16 * k);
 
-  content.sections.forEach((section, i) => {
-    const col = i % maxCols;
-    const row = Math.floor(i / maxCols);
-    const sx = margin + col * colWidth + 12;
-    const cellTop = contentTop + row * rowHeight;
-    let cy = cellTop; // Cell Y cursor
+  // Cap the grid so type stays large. More than four panels on a 16:9 page means
+  // shrinking below the legibility floor, so surplus sections are DROPPED rather
+  // than crushed - the compliance gate treats an undersized glyph as a hard fail.
+  const maxPanels = Math.max(
+    1,
+    Math.min(width >= height ? 4 : 3, opts.maxPanels ?? 99),
+  );
+  const shown = content.sections.slice(0, maxPanels);
+  const cols = Math.max(1, Math.min(shown.length, maxPanels));
+  const gutter = Math.round(18 * k);
+  const panelW = Math.round((width - margin * 2 - gutter * (cols - 1)) / cols);
+  const pad = Math.round(18 * k);
+  const textWidth = panelW - pad * 2;
 
-    // Heading (max 2 lines)
+  // Panel bands are emitted first (so text composites on top) but their height is
+  // only known after the text is laid out. Remember each band's index and patch the
+  // heights in a second pass — otherwise every card is fixed-height and the ones
+  // with less content end up half empty, which is what the first panelled render did.
+  const panelBandIdx: number[] = [];
+  let tallestPanel = 0;
+
+  shown.forEach((section, i) => {
+    const px = margin + i * (panelW + gutter);
+
+    // Opaque panel. This is what stops body copy landing on raw illustration.
+    panelBandIdx.push(bands.length);
+    bands.push({
+      x: px,
+      y: contentTop,
+      width: panelW,
+      height: panelZoneHeight,
+      color: COLORS.panel,
+      borderColor: COLORS.border,
+      borderWidth: 2,
+    });
+
+    let cy = contentTop + pad;
+
+    // Step number - institutional pages are numbered.
+    elements.push({
+      text: String(i + 1).padStart(2, "0"),
+      x: px + pad,
+      y: cy,
+      width: textWidth,
+      fontSize: Math.round(15 * k),
+      fontWeight: 700,
+      fontFamily: "Arial",
+      color: COLORS.label,
+      role: "label",
+      align: "left",
+      maxLines: 1,
+    });
+    cy += Math.round(15 * k * 1.7);
+
     const headingText = fitLabel(
       section.heading,
       headingSize,
       textWidth,
       2,
-      "IBM Plex Mono",
+      "Arial",
     );
     elements.push({
       text: headingText,
-      x: sx,
+      x: px + pad,
       y: cy,
       width: textWidth,
       fontSize: headingSize,
       fontWeight: 700,
-      fontFamily: "IBM Plex Mono",
+      fontFamily: "Arial",
       color: COLORS.heading,
+      role: "heading",
       align: "left",
       maxLines: 2,
     });
-    cy += estimateTextHeight(headingText, headingSize, textWidth, 2, "IBM Plex Mono") + 4;
+    cy +=
+      estimateTextHeight(
+        headingText,
+        headingSize,
+        textWidth,
+        2,
+        "Arial",
+      ) + Math.round(10 * k);
 
-    // Labels (gold metrics — max 3, 1 line each)
-    for (const label of section.labels.slice(0, 3)) {
-      const labelText = fitLabel(label, labelSize, textWidth, 1, 'IBM Plex Mono');
+    // Rule under the heading.
+    bands.push({
+      x: px + pad,
+      y: cy,
+      width: textWidth,
+      height: 2,
+      color: COLORS.border,
+    });
+    cy += Math.round(14 * k);
+
+    for (const label of section.labels.slice(0, 2)) {
+      const labelText = fitLabel(
+        label,
+        labelSize,
+        textWidth,
+        1,
+        "Arial",
+      );
       elements.push({
         text: labelText,
-        x: sx,
+        x: px + pad,
         y: cy,
         width: textWidth,
         fontSize: labelSize,
         fontWeight: 700,
-        fontFamily: "IBM Plex Mono",
+        fontFamily: "Arial",
         color: COLORS.label,
+      role: "label",
         align: "left",
+        maxLines: 1,
       });
-      cy += labelSize * 1.4;
+      cy += Math.round(labelSize * 1.55);
     }
 
-    cy += 3; // Small gap before content
+    cy += Math.round(8 * k);
 
-    // Content items (max 3 items, max 2 lines each — but respect cell boundary)
-    const cellBottom = cellTop + rowHeight - 8;
-    for (const item of section.content.slice(0, 3)) {
-      if (cy + contentSize > cellBottom) break; // Stop if we'd overflow the cell
-      const maxContentLines = Math.min(
-        2,
-        Math.floor((cellBottom - cy) / (contentSize * 1.3)),
+    const panelTextBottom = contentTop + panelZoneHeight - pad;
+    for (const item of section.content.slice(0, opts.maxItemsPerPanel ?? 2)) {
+      const room = Math.floor(
+        (panelTextBottom - cy) / (contentSize * LINE_HEIGHT),
       );
-      if (maxContentLines < 1) break;
-      // fitText returns null when nothing honest fits — skip the bullet entirely
-      // rather than print half a sentence.
-      const itemText = fitText(item, contentSize, textWidth, maxContentLines);
+      if (room < 1) break;
+      const lines = Math.min(4, room);
+      const itemText = fitText(item, contentSize, textWidth, lines);
       if (!itemText) continue;
       elements.push({
         text: itemText,
-        x: sx,
+        x: px + pad,
         y: cy,
         width: textWidth,
         fontSize: contentSize,
         fontWeight: 400,
-        fontFamily: "IBM Plex Sans",
+        fontFamily: "Arial",
         color: COLORS.content,
+        role: "body",
         align: "left",
-        maxLines: maxContentLines,
+        maxLines: lines,
       });
       cy +=
-        estimateTextHeight(itemText, contentSize, textWidth, maxContentLines) +
-        2;
+        estimateTextHeight(itemText, contentSize, textWidth, lines) +
+        Math.round(8 * k);
     }
+
+    tallestPanel = Math.max(tallestPanel, cy - contentTop + pad);
   });
 
-  // ── FOOTER — stats bar + source ────────────────────────────
-  const statsY = contentBottom + 12;
+  // Uniform height across the row — institutional cards align — but sized to the
+  // content actually in them, never to whatever space happens to be free. The first
+  // panelled render used a fixed height and every card was half empty.
+  const fittedPanelHeight = Math.min(
+    panelZoneHeight,
+    Math.max(Math.round(120 * k), tallestPanel),
+  );
+  for (const idx of panelBandIdx) {
+    bands[idx].height = fittedPanelHeight;
+  }
+
+  // -- FOOTER --------------------------------------------------
+  const footerTop = contentBottom + Math.round(10 * k);
+  const footerBandTop = footerTop - Math.round(10 * k);
   bands.push({
     x: 0,
-    y: statsY - 14,
+    y: footerBandTop,
     width,
-    height: height - (statsY - 14),
+    height: height - footerBandTop,
     color: COLORS.background,
   });
-  const statsCount = Math.min(content.statsBar.length, 6);
-  const statWidth = Math.round((width - margin * 2) / Math.max(statsCount, 1));
-
-  content.statsBar.slice(0, 6).forEach((stat, i) => {
-    elements.push({
-      text: fitLabel(stat.value, 20, statWidth - 10, 1, 'IBM Plex Mono'),
-      x: margin + i * statWidth,
-      y: statsY,
-      width: statWidth - 10,
-      fontSize: 20,
-      fontWeight: 700,
-      fontFamily: "IBM Plex Mono",
-      color: COLORS.stat,
-      align: "center",
-    });
-    elements.push({
-      text: fitLabel(stat.label, 10, statWidth - 10, 1),
-      x: margin + i * statWidth,
-      y: statsY + 26,
-      width: statWidth - 10,
-      fontSize: 10,
-      fontWeight: 400,
-      fontFamily: "IBM Plex Sans",
-      color: COLORS.statLabel,
-      align: "center",
-    });
+  bands.push({
+    x: margin,
+    y: footerBandTop,
+    width: width - margin * 2,
+    height: 2,
+    color: COLORS.border,
   });
+
+  /**
+   * A stats bar is a KPI pattern: a large VALUE above a small caption. When the brief
+   * carries no figures, setting categorical words at KPI size is the wrong pattern and
+   * reads as filler. The footer then becomes a SOURCE strip instead, which is what an
+   * institutional reader actually wants in that position.
+   */
+  const numericStats = content.statsBar.filter((s) => /[0-9]/.test(s.value));
+  const useKpiRow = numericStats.length >= 2;
+
+  if (useKpiRow) {
+    const statsCount = Math.min(numericStats.length, 5);
+    const statWidth = Math.round((width - margin * 2) / statsCount);
+    numericStats.slice(0, statsCount).forEach((stat, i) => {
+      elements.push({
+        text: fitLabel(
+          stat.value,
+          Math.round(30 * k),
+          statWidth - 12,
+          1,
+          "Arial",
+        ),
+        x: margin + i * statWidth,
+        y: footerTop + Math.round(8 * k),
+        width: statWidth - 12,
+        fontSize: Math.round(30 * k),
+        fontWeight: 700,
+        fontFamily: "Arial",
+        color: COLORS.stat,
+        role: "kpi",
+        align: "left",
+        maxLines: 1,
+      });
+      elements.push({
+        text: fitLabel(stat.label, Math.round(13 * k), statWidth - 12, 1),
+        x: margin + i * statWidth,
+        // 30px value at 1.35 line-height ends at +48.5, so the caption must clear 48.
+        y: footerTop + Math.round(56 * k),
+        width: statWidth - 12,
+        fontSize: Math.round(13 * k),
+        fontWeight: 400,
+        fontFamily: "Arial",
+        color: COLORS.statLabel,
+        role: "caption",
+        align: "left",
+        maxLines: 1,
+      });
+    });
+  }
 
   if (content.sourceAttribution) {
     elements.push({
-      text: fitLabel(content.sourceAttribution, 9, width - margin * 2, 1),
+      text: fitLabel(
+        content.sourceAttribution,
+        Math.round(14 * k),
+        width - margin * 2,
+        2,
+      ),
       x: margin,
-      y: height - 22,
+      y: useKpiRow
+        ? height - Math.round(36 * k)
+        : footerTop + Math.round(16 * k),
       width: width - margin * 2,
-      fontSize: 9,
+      fontSize: Math.round(14 * k),
       fontWeight: 400,
-      fontFamily: "IBM Plex Sans",
+      fontFamily: "Arial",
       color: COLORS.source,
+      role: "caption",
       align: "left",
+      maxLines: 2,
     });
   }
 
   // ── Illustration zones (no pixel values, no numbers) ───────
+  const illustrationTopFitted =
+    contentTop + fittedPanelHeight + Math.round(20 * k);
+  const illPctTop = Math.round((illustrationTopFitted / height) * 100);
   const illustrationZones = `
-Dark executive background. Subtle topic-related illustrations only.
-TOP STRIP: Dark navy gradient. Mostly empty — title text overlaid.
-MIDDLE GRID: ${sectionCount} visual zones in a ${maxCols}-column, ${rows}-row grid. Place a subtle icon or diagram per zone related to the topic. Keep at very low opacity — white text overlaid.
-BOTTOM STRIP: Dark solid bar for key statistics.
-Palette: navy, dark charcoal, muted gold accents. Everything low-contrast against dark background.
+COMPOSITION - a text layer is composited on top and must never be obscured:
+- TOP ${illPctTop}% of the canvas: keep essentially EMPTY and very pale. Panels of text sit
+  here. A faint grid, a light wash or a hairline rule is welcome; nothing dense, nothing dark.
+- BOTTOM ${100 - illPctTop}%: this is the ILLUSTRATION BAND. Put the diagram here - the single
+  strongest visual that explains the topic, drawn edge to edge across this band.
+- Leave the outermost 3% of every side clear.
 ABSOLUTELY NO TEXT, LABELS, NUMBERS, OR LETTERS OF ANY KIND.`.trim();
 
   return {

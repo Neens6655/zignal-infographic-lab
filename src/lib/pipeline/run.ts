@@ -21,7 +21,9 @@ import { assemblePrompt, assembleIllustrationPrompt } from "./prompt";
 import { applyNumberCorrections, type AppliedCorrection } from "./number-guard";
 import { runTruthGates } from "./truth-gate";
 import { buildLedger, citedSources } from "../research/ledger";
-import { planLayout, type PaletteName } from "./layout-planner";
+import { type PaletteName } from "./layout-planner";
+import { planUntilCompliant } from "./plan-until-compliant";
+import type { ComplianceReport as VisualComplianceReport } from "./visual-compliance";
 
 /** The only styles whose plate is legitimately dark. Everything else is institutional. */
 const DARK_STYLES = new Set(["ui-wireframe", "cyberpunk-neon", "technical-schematic", "chalkboard"]);
@@ -349,6 +351,7 @@ export async function runPipeline(
   let numberCorrections: string[] = [];
   let appliedCorrections: AppliedCorrection[] = [];
   let truthGates: import("../types").GateResult[] = [];
+  let visualCompliance: VisualComplianceReport | undefined;
   let unappliedCorrections: AppliedCorrection[] = [];
   if (!isSelfContained && research.findings.length > 0) {
     onProgress({
@@ -464,7 +467,19 @@ export async function runPipeline(
   const palette: PaletteName = DARK_STYLES.has(analysis.style)
     ? "dark"
     : "institutional";
-  const layout = planLayout(finalContent, aspectRatio, palette);
+  // COMPLIANCE LOOP — plan, measure, degrade, re-measure. Runs before any image
+  // spend, and cannot be outvoted by a score because there is no score here, only
+  // assertions: legibility floor, opaque backing, no overlap, WCAG AA, ellipsis cap.
+  const compliant = planUntilCompliant(finalContent, aspectRatio, palette);
+  const layout = compliant.plan;
+  visualCompliance = compliant.report;
+  for (const a of compliant.attempts) {
+    pipelineTrace.push({
+      stage: "03a.0",
+      agent: "VisualCompliance",
+      result: `${a.maxPanels} panels / ${a.maxItems} items -> ${a.verdict}`,
+    });
+  }
   pipelineTrace.push({
     stage: "03a",
     agent: "LayoutPlanner",
@@ -676,6 +691,15 @@ export async function runPipeline(
           ledger.entries.map((e) => e.value),
         ),
       },
+      visualCompliance: visualCompliance
+        ? {
+            passed: visualCompliance.passed,
+            ...visualCompliance.measured,
+            blockers: visualCompliance.issues.filter(
+              (i) => i.severity === "blocker",
+            ).length,
+          }
+        : undefined,
       truthGates: truthGates.map((g) => ({
         gate: g.gate,
         passed: g.passed,

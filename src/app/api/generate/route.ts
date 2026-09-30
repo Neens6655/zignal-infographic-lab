@@ -133,12 +133,18 @@ export async function POST(request: Request) {
         // wrong, because the content itself is what failed.
         const message = err instanceof Error ? err.message : String(err);
         const isVerification = message.startsWith("Verification failed");
+        const isLayout = message.startsWith("Layout failed visual compliance");
+        const blocked = isVerification || isLayout;
         sendEvent("error", {
-          error: isVerification
-            ? message
-            : "Generation failed. Please try again.",
-          kind: isVerification ? "verification" : "transient",
-          retryable: !isVerification,
+          error: blocked ? message : "Generation failed. Please try again.",
+          kind: isVerification
+            ? "verification"
+            : isLayout
+              ? "layout_compliance"
+              : "transient",
+          // Retrying a compliance block reruns an identical deterministic check and
+          // gets an identical answer. The content must change, not the attempt.
+          retryable: !blocked,
         });
       } finally {
         clearInterval(heartbeat);

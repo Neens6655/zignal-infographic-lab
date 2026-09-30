@@ -24,7 +24,9 @@ const MAX_HEADING_WORDS = 16; // high enough that a COMPLETE heading renders in 
 const MAX_STATS_BAR = 6;
 const MAX_STAT_LABEL_WORDS = 4;
 const MAX_CONTENT_ITEMS = 3; // Rich detail from research
-const MAX_CONTENT_ITEM_CHARS = 80; // Full sentences, not fragments
+// A fitted panel holds roughly four 46-character lines at 16px, so the old cap cut
+// prose that had room to breathe and drove the ellipsis ratio over its gate.
+const MAX_CONTENT_ITEM_CHARS = 180; // Full sentences, not fragments
 const MAX_LABELS_PER_SECTION = 4;
 const MAX_LABEL_CHARS = 50; // "1,300-1,600°C under extreme pressure" fits now
 
