@@ -71,8 +71,8 @@ export function ChatFAB() {
             )}
 
             <motion.div
-              initial={isFullScreen ? { y: '100%' } : { opacity: 0, scale: 0.95, y: 20 }}
-              animate={isFullScreen ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
+              initial={isFullScreen ? { y: '100%' } : { scale: 0.95, y: 20 }}
+              animate={isFullScreen ? { y: 0 } : { scale: 1, y: 0 }}
               exit={isFullScreen ? { y: '100%' } : { opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               layout

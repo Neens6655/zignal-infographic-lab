@@ -65,7 +65,7 @@ function SentinelScene({ mini }: { mini?: boolean }) {
               width={28 - (l === 4 ? 12 : l === 2 ? 6 : 0)}
               height="2"
               fill="#D4A84B"
-              initial={mini ? { opacity: 0.4, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
+              initial={mini ? { opacity: 0.4, scaleX: 1 } : { scaleX: 0 }}
               animate={{ opacity: 0.4, scaleX: 1 }}
               transition={mini ? { duration: 0 } : { delay: p.delay + 1.2 + l * 0.15, duration: 0.4 }}
             />
@@ -93,7 +93,7 @@ function OracleScene({ mini }: { mini?: boolean }) {
           key={r}
           cx="0" cy="0" r={r}
           fill="none" stroke="#5B8DEF" strokeWidth="0.5" strokeDasharray="4 6"
-          initial={mini ? { opacity: 0.1, scale: 1 } : { opacity: 0, scale: 0.5 }}
+          initial={mini ? { opacity: 0.1, scale: 1 } : { scale: 0.5 }}
           animate={{ opacity: [0, 0.15, 0.08], scale: 1 }}
           transition={mini ? { duration: 0 } : { delay: i * 0.3, duration: 1.5 }}
         />
@@ -114,7 +114,7 @@ function OracleScene({ mini }: { mini?: boolean }) {
             <motion.circle
               cx={tx} cy={ty} r="5"
               fill="none" stroke={s.color} strokeWidth="1.5"
-              initial={mini ? { opacity: 0.7, scale: 1 } : { opacity: 0, scale: 0 }}
+              initial={mini ? { opacity: 0.7, scale: 1 } : { scale: 0 }}
               animate={{ opacity: 0.7, scale: 1 }}
               transition={mini ? { duration: 0 } : { delay: 0.8 + i * 0.2, duration: 0.6 }}
             />
@@ -154,7 +154,7 @@ function StrategistScene({ mini }: { mini?: boolean }) {
         return (
           <motion.g
             key={i}
-            initial={mini ? { opacity: isSelected ? 0.9 : 0.4, scale: isSelected ? 1.3 : 0.9, x: l.x, y: l.y } : { opacity: 0, scale: 0.6 }}
+            initial={mini ? { opacity: isSelected ? 0.9 : 0.4, scale: isSelected ? 1.3 : 0.9, x: l.x, y: l.y } : { scale: 0.6 }}
             animate={{
               opacity: isSelected ? 0.9 : [0.6, 0.4],
               scale: isSelected ? 1.3 : [1, 0.9],
@@ -259,7 +259,7 @@ function ArchitectScene({ mini }: { mini?: boolean }) {
       {nodes.map((n, i) => (
         <motion.g
           key={i}
-          initial={mini ? { opacity: 0.8, scale: 1 } : { opacity: 0, scale: 0 }}
+          initial={mini ? { opacity: 0.8, scale: 1 } : { scale: 0 }}
           animate={{ opacity: 0.8, scale: 1 }}
           transition={mini ? { duration: 0 } : { delay: n.level * 0.6 + 0.2, duration: 0.5, ease: 'backOut' }}
         >
@@ -352,7 +352,7 @@ function ComplianceScene({ mini }: { mini?: boolean }) {
           <motion.rect
             x="-32" y={c.y} width="14" height="14"
             fill="none" stroke="#8BC34A" strokeWidth="1.5"
-            initial={mini ? { opacity: 0.6 } : { opacity: 0 }}
+            initial={mini ? { opacity: 0.6 } : { y: 24 } }
             animate={{ opacity: 0.6 }}
             transition={mini ? { duration: 0 } : { delay: c.delay, duration: 0.4 }}
           />
@@ -366,14 +366,14 @@ function ComplianceScene({ mini }: { mini?: boolean }) {
           <motion.rect
             x="-10" y={c.y + 3} width="40" height="2"
             fill="#D4A84B"
-            initial={mini ? { opacity: 0.3, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
+            initial={mini ? { opacity: 0.3, scaleX: 1 } : { scaleX: 0 }}
             animate={{ opacity: 0.3, scaleX: 1 }}
             transition={mini ? { duration: 0 } : { delay: c.delay + 0.2, duration: 0.5 }}
           />
           <motion.rect
             x="-10" y={c.y + 9} width="25" height="2"
             fill="#E8E5E0"
-            initial={mini ? { opacity: 0.15, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
+            initial={mini ? { opacity: 0.15, scaleX: 1 } : { scaleX: 0 }}
             animate={{ opacity: 0.15, scaleX: 1 }}
             transition={mini ? { duration: 0 } : { delay: c.delay + 0.3, duration: 0.5 }}
           />

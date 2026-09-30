@@ -110,7 +110,7 @@ function Section({
       ref={ref}
       id={section.id}
       initial={{ y: 24 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+      animate={isInView ? { y: 0 } : { y: 24 }}
       transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
       className="scroll-mt-28"
     >

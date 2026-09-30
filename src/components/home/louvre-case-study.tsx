@@ -48,7 +48,7 @@ export function LouvreCaseStudy({
           {/* Narrative rail */}
           <div className="lg:col-span-4 order-2 lg:order-1">
             <ScrollReveal>
-              <p className="label-mono text-(--z-gold) mb-4">Case study</p>
+              <p className="label-mono text-(--z-muted) border-l-2 border-(--z-gold) pl-3 mb-4">Case study</p>
               <h2 className="text-3xl sm:text-5xl font-mono font-medium heading-editorial mb-8">
                 Louvre Abu Dhabi,
                 <br />

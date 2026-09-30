@@ -2443,7 +2443,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-7xl px-6 mb-8">
           <motion.p
             initial={false}
-            animate={galleryInView ? { opacity: 1 } : { opacity: 0 }}
+            animate={galleryInView ? { y: 0 } : { y: 24 } }
             transition={{ duration: 0.6 }}
             className="text-[9px] font-mono font-semibold tracking-[0.3em] uppercase text-[#D4A84B] mb-3"
           >
@@ -2452,7 +2452,7 @@ export default function AboutPage() {
           <motion.h2
             initial={{ y: 16 }}
             animate={
-              galleryInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }
+              galleryInView ? { y: 0 } : { y: 16 }
             }
             transition={{ duration: 0.7 }}
             className="text-2xl sm:text-3xl font-mono font-bold text-[#E8E5E0]"
@@ -2484,7 +2484,7 @@ export default function AboutPage() {
               }}
               initial={{ y: 30 }}
               animate={
-                galleryInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
+                galleryInView ? { y: 0 } : { y: 30 }
               }
               transition={{ duration: 0.6, delay: 0.1 + i * 0.08 }}
               whileHover={{ scale: 1.03 }}

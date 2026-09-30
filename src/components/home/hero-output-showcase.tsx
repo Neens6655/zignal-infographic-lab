@@ -69,7 +69,7 @@ export function HeroOutputShowcase() {
               Output — {specimen.title}
             </span>
           </div>
-          <span className="text-[9px] font-mono text-(--z-gold)/70 shrink-0">
+          <span className="text-[9px] font-mono text-(--z-muted) shrink-0">
             2K PNG
           </span>
         </div>
@@ -93,9 +93,9 @@ export function HeroOutputShowcase() {
         {/* Frame footer — provenance line left, specimen tabs right. ONE row. */}
         <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] bg-white/[0.02] pl-4 pr-1">
           <p className="hidden sm:block text-[9px] font-mono uppercase tracking-[0.14em] text-(--z-cream)/60 truncate py-2.5">
-            ~60s <span className="text-(--z-gold)/70">·</span> 22 trusted
-            sources <span className="text-(--z-gold)/70">·</span>{" "}
-            {specimen.style} <span className="text-(--z-gold)/70">·</span> from{" "}
+            ~60s <span className="text-(--z-muted)">·</span> 22 trusted
+            sources <span className="text-(--z-muted)">·</span>{" "}
+            {specimen.style} <span className="text-(--z-muted)">·</span> from{" "}
             {specimen.prompt}
           </p>
           <div

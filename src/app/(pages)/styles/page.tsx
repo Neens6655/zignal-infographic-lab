@@ -138,7 +138,7 @@ const STYLES = [
     id: 'aged-academia',
     name: 'Aged Academia',
     category: 'Scholarly',
-    accent: '#8D6E63',
+    accent: '#A1887F', // #8D6E63 was 4.17:1 as text on the dark card; 5.83:1
     icon: '\u269C',
     desc: 'Sepia tones, aged paper textures, classical engravings. Scholarly elegance for serious subjects.',
     bestFor: 'Research papers, historical analysis, philosophy, literature',
@@ -149,7 +149,7 @@ const STYLES = [
     id: 'corporate-memphis',
     name: 'Corporate Memphis',
     category: 'Corporate',
-    accent: '#9C27B0',
+    accent: '#BA68C8', // #9C27B0 was 3.06:1 as text on the dark card; 5.42:1
     icon: '\u25B3',
     desc: 'Flat geometric characters with minimal detail. The Silicon Valley deck aesthetic \u2014 clean, recognizable, scalable.',
     bestFor: 'SaaS products, company decks, onboarding materials, blog posts',
@@ -160,7 +160,7 @@ const STYLES = [
     id: 'origami',
     name: 'Origami',
     category: 'Artistic',
-    accent: '#E91E63',
+    accent: '#F06292', // #E91E63 was 4.44:1 as text on the dark card; 6.31:1
     icon: '\u25C6',
     desc: 'Paper-folded 3D forms with crisp edges and subtle shadows. Geometric elegance that suggests precision and craft.',
     bestFor: 'Design topics, architecture, mathematics, art & creativity',
@@ -215,7 +215,7 @@ const STYLES = [
     id: 'knolling',
     name: 'Knolling',
     category: 'Organized',
-    accent: '#607D8B',
+    accent: '#90A4AE', // #607D8B was 4.41:1 as text on the dark card; 7.45:1
     icon: '\u22A1',
     desc: 'Top-down flat-lay arrangement. Every object orthogonal, perfectly organized. Satisfying visual order.',
     bestFor: 'Product showcases, inventory lists, comparison grids, tool roundups',
@@ -637,7 +637,7 @@ function StaggerCard({ children, index }: { children: React.ReactNode; index: nu
     <motion.div
       ref={ref}
       initial={{ y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      animate={isInView ? { y: 0 } : { y: 30 }}
       transition={{ duration: 0.5, delay: (index % 6) * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
       {children}
@@ -780,7 +780,7 @@ function FeaturedStyleCard({ style, index }: { style: (typeof STYLES)[number]; i
     <motion.div
       ref={ref}
       initial={{ y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+      animate={isInView ? { y: 0 } : { y: 40 }}
       transition={{ duration: 0.6, delay: index * 0.12 }}
     >
       <StyleCard style={style} large />

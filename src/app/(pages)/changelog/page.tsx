@@ -344,7 +344,7 @@ function Hero() {
         <div>
           <motion.p
             initial={{ y: 8 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
+            animate={inView ? { y: 0 } : {}}
             transition={{ duration: 0.5 }}
             className="text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-5"
           >
@@ -356,7 +356,7 @@ function Hero() {
               <motion.span
                 key={i}
                 initial={{ y: 20 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
+                animate={inView ? { y: 0 } : {}}
                 transition={{
                   duration: 0.4,
                   delay: 0.15 + i * 0.04,
@@ -383,7 +383,7 @@ function Hero() {
 
           <motion.p
             initial={false}
-            animate={inView ? { opacity: 1 } : {}}
+            animate={inView ? { y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.7 }}
             className="text-base sm:text-lg text-white/50 max-w-md font-sans"
           >
@@ -394,7 +394,7 @@ function Hero() {
         {/* Growth illustration */}
         <motion.div
           initial={{ x: 20 }}
-          animate={inView ? { opacity: 1, x: 0 } : {}}
+          animate={inView ? { x: 0 } : {}}
           transition={{ delay: 0.4, duration: 0.7 }}
           className="shrink-0"
         >
@@ -417,7 +417,7 @@ function VersionCard({ version, index }: { version: Version; index: number }) {
     <motion.div
       ref={ref}
       initial={{ x: -40 }}
-      animate={isInView ? { opacity: 1, x: 0 } : {}}
+      animate={isInView ? { x: 0 } : {}}
       transition={{
         duration: 0.6,
         delay: index * 0.1,
@@ -481,7 +481,7 @@ function VersionCard({ version, index }: { version: Version; index: number }) {
             {/* Version icon */}
             <motion.div
               initial={{ scale: 0.8 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              animate={isInView ? { scale: 1 } : {}}
               transition={{ delay: index * 0.1 + 0.2, duration: 0.4 }}
               className="shrink-0"
             >
@@ -549,7 +549,7 @@ function BulletItem({
   return (
     <motion.li
       initial={{ x: -16 }}
-      animate={parentInView ? { opacity: 1, x: 0 } : {}}
+      animate={parentInView ? { x: 0 } : {}}
       transition={{
         duration: 0.35,
         delay: 0.3 + index * 0.06,
@@ -617,7 +617,7 @@ function WhatsNext() {
     <motion.div
       ref={ref}
       initial={{ y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
+      animate={inView ? { y: 0 } : {}}
       transition={{ duration: 0.6 }}
       className="mt-20 border-t border-white/[0.06] pt-16"
     >
@@ -637,7 +637,7 @@ function WhatsNext() {
           <motion.div
             key={item.label}
             initial={{ y: 16 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
+            animate={inView ? { y: 0 } : {}}
             transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
             className="p-5 border border-dashed border-white/[0.08] bg-white/[0.01]"
           >

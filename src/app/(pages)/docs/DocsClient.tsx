@@ -438,7 +438,7 @@ function Reveal({
     <motion.div
       ref={ref}
       initial={{ y: 32 }}
-      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 32 }}
+      animate={inView ? { y: 0 } : { y: 32 }}
       transition={{ duration: 0.6, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
       className={className}
     >
@@ -808,7 +808,7 @@ function HeroPipelineFlow() {
           <div key={stage.label} className="flex items-center shrink-0">
             <motion.div
               initial={{ scale: 0.6 }}
-              animate={inView ? { opacity: 1, scale: 1 } : {}}
+              animate={inView ? { scale: 1 } : {}}
               transition={{ duration: 0.5, delay: i * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="flex flex-col items-center"
             >
@@ -836,7 +836,7 @@ function HeroPipelineFlow() {
               <motion.div
                 className="flex items-center mx-0.5 sm:mx-1.5"
                 initial={false}
-                animate={inView ? { opacity: 1 } : {}}
+                animate={inView ? { y: 0 } : {}}
                 transition={{ delay: 0.3 + i * 0.1 }}
               >
                 <svg width="24" height="2" className="hidden sm:block">
@@ -938,7 +938,7 @@ function PipelineSection() {
             <div key={agent.agent} className="flex items-start">
               <motion.button
                 initial={{ y: 32 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                animate={isInView ? { y: 0 } : {}}
                 transition={{ duration: 0.5, delay: i * 0.12 }}
                 onClick={() => setExpandedIdx(expandedIdx === i ? null : i)}
                 className="relative group flex flex-col items-center w-[130px] shrink-0 cursor-pointer transition-all duration-300"

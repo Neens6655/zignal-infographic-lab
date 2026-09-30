@@ -109,7 +109,7 @@ export function OutputGallery({
           <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
             <button
               onClick={scrollToGenerator}
-              className="inline-flex items-center gap-2 text-[11px] font-mono font-bold text-(--z-gold) hover:text-(--z-gold-dim) transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
+              className="inline-flex items-center gap-2 text-[11px] font-mono font-bold text-(--z-light-text) underline underline-offset-4 decoration-2 decoration-(--z-gold) hover:decoration-(--z-light-text) transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--z-gold)"
             >
               Generate yours — free
               <ArrowRight className="h-3 w-3" />
@@ -129,7 +129,7 @@ export function OutputGallery({
       <div id="examples" className="mt-20 sm:mt-28">
         <div className="mx-auto max-w-7xl px-6 mb-8">
           <ScrollReveal>
-            <p className="label-mono text-(--z-gold) mb-3">Art & Technique</p>
+            <p className="label-mono text-(--z-light-muted) border-l-2 border-(--z-gold) pl-3 mb-3">Art &amp; Technique</p>
             <h3 className="text-2xl sm:text-4xl font-mono font-medium heading-editorial text-(--z-light-text) max-w-2xl">
               Six visual languages, one engine.
             </h3>
