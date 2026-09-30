@@ -20,6 +20,8 @@ export type PipelineInput = {
   quality?: string;
   language?: string;
   simplify?: boolean;
+  /** Explanatory format: panel-grid | stepped-process | annotated-diagram. */
+  format?: string;
 };
 
 export type PipelineResult = {

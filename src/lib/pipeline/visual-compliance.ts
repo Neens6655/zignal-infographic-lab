@@ -25,6 +25,7 @@
  * pipeline can degrade the plan and re-check rather than shipping something sub-par
  * or giving up.
  */
+import { avgCharWidth } from "./layout-planner";
 import type { LayoutPlan, TextElement, Band } from "./layout-planner";
 
 // ── Thresholds ────────────────────────────────────────────────────────
@@ -118,15 +119,13 @@ export function contrastRatio(fg: string, bg: string): number {
  * beneath it, producing 58 phantom overlaps on a layout with none. Estimate the lines
  * the text really needs, capped by maxLines.
  */
-const CHAR_W: Record<TextElement["fontFamily"], number> = {
-  Arial: 0.52,
-  "Arial Narrow": 0.45,
-};
 
 function elementBox(el: TextElement, lineHeight = 1.35) {
   const cpl = Math.max(
     1,
-    Math.floor(el.width / (el.fontSize * CHAR_W[el.fontFamily])),
+    Math.floor(
+      el.width / (el.fontSize * avgCharWidth(el.text ?? "", el.fontFamily)),
+    ),
   );
   const needed = Math.max(1, Math.ceil((el.text?.length ?? 0) / cpl));
   const lines = Math.min(el.maxLines ?? 1, needed);
@@ -288,16 +287,22 @@ export function checkVisualCompliance(plan: LayoutPlan): ComplianceReport {
 
   // 5. Over-truncation. Honest ellipses beat amputation, but a page mostly made of
   //    them means the content was cut rather than written.
-  const prose = els.filter(
-    (e) => e.role === "body" && e.text.length > 24,
-  );
+  const prose = els.filter((e) => e.role === "body" && e.text.length > 24);
   const cut = prose.filter((e) => e.text.trimEnd().endsWith("…"));
   const ellipsisRatio = prose.length > 0 ? cut.length / prose.length : 0;
-  if (ellipsisRatio > MAX_ELLIPSIS_RATIO) {
+  // A ratio needs a sample. With two prose blocks, one honest ellipsis is 50% and
+  // would block a page that is not over-truncated at all. Below four blocks, judge
+  // the COUNT instead: more than one cut sentence is the real signal.
+  const overTruncated =
+    prose.length >= 4 ? ellipsisRatio > MAX_ELLIPSIS_RATIO : cut.length > 1;
+  if (overTruncated) {
     issues.push({
       check: "over-truncation",
       severity: "blocker",
-      detail: `${cut.length}/${prose.length} prose blocks end in an ellipsis (cap ${Math.round(MAX_ELLIPSIS_RATIO * 100)}%)`,
+      detail:
+        prose.length >= 4
+          ? `${cut.length}/${prose.length} prose blocks end in an ellipsis (cap ${Math.round(MAX_ELLIPSIS_RATIO * 100)}%)`
+          : `${cut.length} of ${prose.length} prose blocks are cut (max 1 on a short page)`,
       repair: "fewer_lines",
     });
   }

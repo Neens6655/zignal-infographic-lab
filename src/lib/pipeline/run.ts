@@ -22,13 +22,18 @@ import { applyNumberCorrections, type AppliedCorrection } from "./number-guard";
 import { runTruthGates } from "./truth-gate";
 import { buildLedger, citedSources } from "../research/ledger";
 import { type PaletteName } from "./layout-planner";
-import { planUntilCompliant } from "./plan-until-compliant";
+import {
+  planUntilCompliant,
+  LAYOUT_FORMATS,
+  type LayoutFormat,
+} from "./plan-until-compliant";
 import type { ComplianceReport as VisualComplianceReport } from "./visual-compliance";
 
 /** The only styles whose plate is legitimately dark. Everything else is institutional. */
 const DARK_STYLES = new Set(["ui-wireframe", "cyberpunk-neon", "technical-schematic", "chalkboard"]);
 import { renderTextLayer } from "./text-renderer";
 import { compositeInfographic } from "./compositor";
+import { checkPlate } from "./plate-check";
 import {
   crossVerifyClaims,
   computeCredibilityScore,
@@ -470,14 +475,24 @@ export async function runPipeline(
   // COMPLIANCE LOOP — plan, measure, degrade, re-measure. Runs before any image
   // spend, and cannot be outvoted by a score because there is no score here, only
   // assertions: legibility floor, opaque backing, no overlap, WCAG AA, ellipsis cap.
-  const compliant = planUntilCompliant(finalContent, aspectRatio, palette);
+  const format = (
+    LAYOUT_FORMATS as readonly string[]
+  ).includes(input.format ?? "")
+    ? (input.format as LayoutFormat)
+    : "panel-grid";
+  const compliant = planUntilCompliant(
+    finalContent,
+    aspectRatio,
+    palette,
+    format,
+  );
   const layout = compliant.plan;
   visualCompliance = compliant.report;
   for (const a of compliant.attempts) {
     pipelineTrace.push({
       stage: "03a.0",
       agent: "VisualCompliance",
-      result: `${a.maxPanels} panels / ${a.maxItems} items -> ${a.verdict}`,
+      result: `${format} | ${a.maxPanels} panels / ${a.maxItems} items -> ${a.verdict}`,
     });
   }
   pipelineTrace.push({
@@ -512,27 +527,57 @@ export async function runPipeline(
     message: "Rendering illustration + text layers...",
   });
 
+
+  /**
+   * Render the plate, then LOOK AT IT. A model that has been told to keep areas pale
+   * can take that literally and return a near-empty field; the layout gate measures
+   * the plan and cannot see it. One re-roll with a firmer brief, then accept whatever
+   * comes back rather than burn the render budget.
+   */
+  async function renderPlate(): Promise<string | null> {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const prompt =
+        attempt === 1
+          ? illustrationPrompt
+          : `${illustrationPrompt}
+
+IMPORTANT: the previous attempt came back almost blank. Draw a BOLD, fully realised diagram that fills its permitted area with clear shapes, icons and connectors. Restraint applies to the palette, never to the amount drawn.`;
+      try {
+        const img = await geminiGenerateImage(
+          prompt,
+          aspectRatio,
+          referenceImages,
+          analysis.style,
+          undefined,
+          true,
+        );
+        const plate = await checkPlate(img);
+        pipelineTrace.push({
+          stage: "04a." + attempt,
+          agent: "PlateCheck",
+          result: `ink=${plate.inkStdev} coverage=${plate.coverage} -> ${plate.ok ? "OK" : plate.reason}`,
+        });
+        if (plate.ok) return img;
+        if (attempt === 2) {
+          postGenFlags.push(`Illustration is nearly blank (${plate.reason})`);
+          return img;
+        }
+      } catch (err) {
+        console.error(
+          "[Renderer] Illustration failed:",
+          err instanceof Error ? err.message : err,
+        );
+        if (attempt === 2) {
+          postGenFlags.push("Illustration generation failed — using solid background");
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+
   const [illustrationBase64, textLayerPng] = await Promise.all([
-    geminiGenerateImage(
-      illustrationPrompt,
-      aspectRatio,
-      referenceImages,
-      analysis.style,
-      undefined,
-      // textFree: this is a BACKGROUND PLATE. Satori composites every glyph on top.
-      // Without this the wrapper appended "copy all text exactly / min 14pt / spell
-      // every word correctly" to a prompt that says ABSOLUTELY NO TEXT seven times.
-      true,
-    ).catch((err) => {
-      console.error(
-        "[Renderer] Illustration failed, will use solid background:",
-        err instanceof Error ? err.message : err,
-      );
-      postGenFlags.push(
-        "Illustration generation failed — using solid background",
-      );
-      return null;
-    }),
+    renderPlate(),
     renderTextLayer(layout),
   ]);
 

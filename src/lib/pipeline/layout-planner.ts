@@ -21,7 +21,8 @@ export type TextElement = {
    * legibility floor — inferring it from font size was circular ("anything 30px or
    * larger must be at least 34px"), which blocked valid KPI rows and captions.
    */
-  role?: "title" | "subtitle" | "heading" | "label" | "body" | "kpi" | "caption";
+  role?:
+    "title" | "subtitle" | "heading" | "label" | "body" | "kpi" | "caption";
 };
 
 /**
@@ -40,9 +41,13 @@ export type Band = {
   width: number;
   height: number;
   color: string;
-  /** Optional 2px Bauhaus rule around the panel. */
+  /** Optional rule around the shape. */
   borderColor?: string;
   borderWidth?: number;
+  /** Half the width makes a circle — used for numbered step badges. */
+  borderRadius?: number;
+  /** Degrees. Rotated thin rects give chevrons and angled leader lines. */
+  rotate?: number;
 };
 
 export type LayoutPlan = {
@@ -129,24 +134,50 @@ const CHAR_WIDTH: Record<TextElement["fontFamily"], number> = {
   "Arial Narrow": 0.45,
 };
 
-const LINE_HEIGHT = 1.35;
+/**
+ * Average glyph advance for a SPECIFIC string, not just its family.
+ *
+ * A single per-family constant tuned on mixed-case prose under-measures ALL CAPS by
+ * roughly 25%. That is why an uppercase callout heading measured as one line, was
+ * allotted one line of space, and then rendered as two — overlapping the body text
+ * beneath it. The compliance gate shared the same constant, so it reported zero
+ * overlaps on a page that visibly had them: the instrument was blind in exactly the
+ * way the layout was wrong.
+ */
+export function avgCharWidth(
+  text: string,
+  family: "Arial" | "Arial Narrow",
+): number {
+  const base = family === "Arial Narrow" ? 0.45 : 0.52;
+  const letters = text.replace(/[^A-Za-z]/g, "");
+  if (letters.length === 0) return base;
+  const upper = letters.replace(/[^A-Z]/g, "").length / letters.length;
+  // Fully uppercase runs ~1.26x the mixed-case average.
+  return base * (1 + 0.26 * upper);
+}
+
+export const LINE_HEIGHT = 1.35;
 
 function charsPerLine(
   fontSize: number,
   widthPx: number,
   family: TextElement["fontFamily"],
+  text = "",
 ): number {
-  return Math.max(1, Math.floor(widthPx / (fontSize * CHAR_WIDTH[family])));
+  return Math.max(
+    1,
+    Math.floor(widthPx / (fontSize * avgCharWidth(text, family))),
+  );
 }
 
-function estimateTextHeight(
+export function estimateTextHeight(
   text: string,
   fontSize: number,
   widthPx: number,
   maxLines: number | undefined,
   family: TextElement["fontFamily"] = "Arial",
 ): number {
-  const cpl = charsPerLine(fontSize, widthPx, family);
+  const cpl = charsPerLine(fontSize, widthPx, family, text);
   const lines = Math.min(
     maxLines || 99,
     Math.max(1, Math.ceil(text.length / cpl)),
@@ -177,7 +208,7 @@ export function fitText(
   const clean = text.trim();
   if (!clean) return null;
 
-  const maxChars = charsPerLine(fontSize, widthPx, family) * maxLines;
+  const maxChars = charsPerLine(fontSize, widthPx, family, clean) * maxLines;
   if (clean.length <= maxChars) return clean;
 
   // 2. Sentence boundary inside budget.
@@ -203,7 +234,7 @@ export function fitText(
 }
 
 /** Headings and labels must never be dropped, so they fall back to a hard clamp. */
-function fitLabel(
+export function fitLabel(
   text: string,
   fontSize: number,
   widthPx: number,
@@ -314,7 +345,7 @@ export function planLayout(
   });
 
   const contentTop = cursor + 22;
-  const footerHeight = Math.round(height * 0.11);
+  const footerHeight = Math.round(height * 0.13);
   const contentBottom = height - footerHeight;
 
   // An institutional page reserves a BAND for the illustration instead of running it
@@ -409,13 +440,8 @@ export function planLayout(
       maxLines: 2,
     });
     cy +=
-      estimateTextHeight(
-        headingText,
-        headingSize,
-        textWidth,
-        2,
-        "Arial",
-      ) + Math.round(10 * k);
+      estimateTextHeight(headingText, headingSize, textWidth, 2, "Arial") +
+      Math.round(10 * k);
 
     // Rule under the heading.
     bands.push({
@@ -428,13 +454,7 @@ export function planLayout(
     cy += Math.round(14 * k);
 
     for (const label of section.labels.slice(0, 2)) {
-      const labelText = fitLabel(
-        label,
-        labelSize,
-        textWidth,
-        1,
-        "Arial",
-      );
+      const labelText = fitLabel(label, labelSize, textWidth, 1, "Arial");
       elements.push({
         text: labelText,
         x: px + pad,
@@ -444,7 +464,7 @@ export function planLayout(
         fontWeight: 700,
         fontFamily: "Arial",
         color: COLORS.label,
-      role: "label",
+        role: "label",
         align: "left",
         maxLines: 1,
       });
@@ -595,6 +615,8 @@ COMPOSITION - a text layer is composited on top and must never be obscured:
 - BOTTOM ${100 - illPctTop}%: this is the ILLUSTRATION BAND. Put the diagram here - the single
   strongest visual that explains the topic, drawn edge to edge across this band.
 - Leave the outermost 3% of every side clear.
+- The ENTIRE canvas background must be exactly ${COLORS.background}, flat and edge to
+  edge. No white cards, panels or tiles behind the drawing.
 ABSOLUTELY NO TEXT, LABELS, NUMBERS, OR LETTERS OF ANY KIND.`.trim();
 
   return {

@@ -28,6 +28,27 @@ import {
   type ComplianceReport,
 } from "./visual-compliance";
 import type { StructuredContent } from "./types";
+import { planSteppedProcess } from "./formats/stepped-process";
+import { planAnnotatedDiagram } from "./formats/annotated-diagram";
+
+/**
+ * The explanatory FORMATS. Four variants of one brief should differ by HOW they
+ * explain, not by palette — a reader takes something different from a stepped process
+ * than from an annotated diagram, and nothing at all from the same page in a new colour.
+ */
+export type LayoutFormat = "panel-grid" | "stepped-process" | "annotated-diagram";
+
+export const LAYOUT_FORMATS: LayoutFormat[] = [
+  "panel-grid",
+  "stepped-process",
+  "annotated-diagram",
+];
+
+const PLANNERS = {
+  "panel-grid": planLayout,
+  "stepped-process": planSteppedProcess,
+  "annotated-diagram": planAnnotatedDiagram,
+} as const;
 
 export type CompliantPlan = {
   plan: LayoutPlan;
@@ -61,13 +82,15 @@ export function planUntilCompliant(
   content: StructuredContent,
   aspectRatio: string,
   palette: PaletteName,
+  format: LayoutFormat = 'panel-grid',
 ): CompliantPlan {
+  const plannerFor = PLANNERS[format] ?? planLayout;
   const attempts: CompliantPlan["attempts"] = [];
   let last: { plan: LayoutPlan; report: ComplianceReport } | null = null;
 
   for (let i = 0; i < LADDER.length; i++) {
     const rung = LADDER[i];
-    const plan = planLayout(content, aspectRatio, palette, {
+    const plan = plannerFor(content, aspectRatio, palette, {
       maxPanels: rung.maxPanels,
       maxItemsPerPanel: rung.maxItems,
     });
@@ -80,7 +103,7 @@ export function planUntilCompliant(
     last = { plan, report };
 
     console.log(
-      `[compliance] attempt ${i + 1}/${LADDER.length} (${rung.maxPanels} panels, ${rung.maxItems} items): ${formatCompliance(report)}`,
+      `[compliance:${format}] attempt ${i + 1}/${LADDER.length} (${rung.maxPanels} panels, ${rung.maxItems} items): ${formatCompliance(report)}`,
     );
 
     if (report.passed) {
@@ -100,7 +123,7 @@ export function planUntilCompliant(
   const report = last!.report;
   const blockers = report.issues.filter((i) => i.severity === "blocker");
   throw new LayoutNotCompliantError(
-    `Layout failed visual compliance after ${attempts.length} attempt(s): ` +
+    `Layout failed visual compliance (${format}) after ${attempts.length} attempt(s): ` +
       blockers
         .slice(0, 4)
         .map((b) => `${b.check} — ${b.detail}`)

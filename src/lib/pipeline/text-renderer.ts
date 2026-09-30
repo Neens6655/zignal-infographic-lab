@@ -84,10 +84,10 @@ function bandToJSX(b: Band) {
         height: b.height,
         backgroundColor: b.color,
         ...(b.borderColor
-          ? {
-              border: `${b.borderWidth ?? 2}px solid ${b.borderColor}`,
-            }
+          ? { border: `${b.borderWidth ?? 2}px solid ${b.borderColor}` }
           : {}),
+        ...(b.borderRadius ? { borderRadius: b.borderRadius } : {}),
+        ...(b.rotate ? { transform: `rotate(${b.rotate}deg)` } : {}),
         display: "flex",
       },
       children: [],

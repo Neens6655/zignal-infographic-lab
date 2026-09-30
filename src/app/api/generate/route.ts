@@ -91,6 +91,7 @@ export async function POST(request: Request) {
             aspect_ratio: body.aspect_ratio || "16:9",
             quality: body.quality || "normal",
             language: body.language || "en",
+            format: body.format,
             simplify: body.simplify,
           },
           (progress) => {
