@@ -16,7 +16,7 @@ import Link from "next/link";
    ═══════════════════════════════════════════════════════════════ */
 
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 32 },
+  hidden: { y: 32 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
@@ -142,8 +142,8 @@ function HeroInfographicSVG() {
       ].map((kpi) => (
         <motion.g
           key={kpi.label}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.6, delay: kpi.delay }}
         >
           <rect
@@ -247,8 +247,8 @@ function HeroInfographicSVG() {
 
       {/* === Phase 5: Logo stamp (3.5s) === */}
       <motion.g
-        initial={{ opacity: 0, scale: 0.5 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ scale: 0.5 }}
+        animate={{ scale: 1 }}
         transition={{ duration: 0.5, delay: 3.5, ease: [0.22, 1, 0.36, 1] }}
         style={{ transformOrigin: "325px 495px" }}
       >
@@ -2300,8 +2300,8 @@ export default function AboutPage() {
             {/* Left — Text */}
             <div>
               <motion.p
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ x: -20 }}
+                animate={{ x: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
                 className="text-[10px] font-mono font-semibold tracking-[0.3em] uppercase text-[#D4A84B] mb-6"
               >
@@ -2365,8 +2365,8 @@ export default function AboutPage() {
               />
 
               <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ y: 20 }}
+                animate={{ y: 0 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
                 className="text-lg sm:text-xl text-white/50 leading-relaxed max-w-lg font-sans mb-10"
               >
@@ -2375,8 +2375,8 @@ export default function AboutPage() {
               </motion.p>
 
               <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ y: 16 }}
+                animate={{ y: 0 }}
                 transition={{ duration: 0.6, delay: 1.0 }}
               >
                 <Link
@@ -2391,8 +2391,8 @@ export default function AboutPage() {
             {/* Right — Animated infographic SVG */}
             <motion.div
               className="relative"
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ scale: 0.92 }}
+              animate={{ scale: 1 }}
               transition={{ duration: 1.2, delay: 0.3 }}
             >
               <div className="relative w-full max-w-md mx-auto lg:max-w-none">
@@ -2462,7 +2462,7 @@ export default function AboutPage() {
             Showcase
           </motion.p>
           <motion.h2
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ y: 16 }}
             animate={
               galleryInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }
             }
@@ -2494,7 +2494,7 @@ export default function AboutPage() {
                 width: 280,
                 scrollSnapAlign: "start",
               }}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ y: 30 }}
               animate={
                 galleryInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
               }
@@ -2529,7 +2529,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-5xl px-6 text-center">
           <motion.p
             initial={false}
-            whileInView={{ opacity: 1 }}
+            whileInView={{ y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 0.6 }}
             className="font-sans text-lg sm:text-xl md:text-2xl text-white/50 leading-[2.2] sm:leading-[2.4]"
@@ -2550,7 +2550,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-3xl px-6">
           <motion.p
             initial={false}
-            whileInView={{ opacity: 1 }}
+            whileInView={{ y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
             className="text-[9px] font-mono font-semibold tracking-[0.3em] uppercase text-[#D4A84B] mb-6"
           >
@@ -2559,7 +2559,7 @@ export default function AboutPage() {
 
           <motion.div
             initial={false}
-            whileInView={{ opacity: 1, y: 0 }}
+            whileInView={{ y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 0.8 }}
             className="relative pl-6 sm:pl-8 border-l-2 border-[#D4A84B]/30"
@@ -2581,7 +2581,7 @@ export default function AboutPage() {
           <motion.div
             className="mt-10 flex items-center gap-6"
             initial={false}
-            whileInView={{ opacity: 1 }}
+            whileInView={{ y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
@@ -2621,7 +2621,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-7xl px-6 text-center">
           <motion.div
             initial={false}
-            whileInView={{ opacity: 1, y: 0 }}
+            whileInView={{ y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 0.7 }}
           >

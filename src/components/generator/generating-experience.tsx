@@ -469,8 +469,8 @@ function StepFlow({ currentStageId }: { currentStageId: string }) {
           <div key={stage.id} className="flex items-center flex-1 min-w-0">
             {/* Step card */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ y: 10 }}
+              animate={{ y: 0 }}
               transition={{ delay: i * 0.08 }}
               className={`relative flex flex-col items-center w-full p-3 border transition-all duration-700 ${
                 isCurrent
@@ -577,8 +577,8 @@ export function GeneratingExperience({ progress, message }: Props) {
       {/* Top: Agent heading */}
       <motion.div
         key={currentStageId}
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ y: -10 }}
+        animate={{ y: 0 }}
         className="text-center mb-4"
       >
         <span className="text-[10px] font-mono tracking-[0.3em] text-(--z-gold)/70 uppercase">

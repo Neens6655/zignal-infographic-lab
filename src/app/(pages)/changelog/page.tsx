@@ -311,7 +311,7 @@ function GrowthIllustration() {
           r="3"
           stroke="#D4A84B"
           strokeWidth="1.5"
-          initial={{ opacity: 0, scale: 0 }}
+          initial={{ scale: 0 }}
           animate={{ opacity: 0.6, scale: 1 }}
           transition={{ delay: 0.8 + i * 0.12 }}
         />
@@ -346,7 +346,7 @@ function Hero() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-8">
         <div>
           <motion.p
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ y: 8 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5 }}
             className="text-[10px] font-mono font-semibold tracking-[0.2em] uppercase text-[#D4A84B] mb-5"
@@ -358,7 +358,7 @@ function Hero() {
             {chars.map((char, i) => (
               <motion.span
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ y: 20 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
                 transition={{
                   duration: 0.4,
@@ -396,7 +396,7 @@ function Hero() {
 
         {/* Growth illustration */}
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
+          initial={{ x: 20 }}
           animate={inView ? { opacity: 1, x: 0 } : {}}
           transition={{ delay: 0.4, duration: 0.7 }}
           className="shrink-0"
@@ -419,7 +419,7 @@ function VersionCard({ version, index }: { version: Version; index: number }) {
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, x: -40 }}
+      initial={{ x: -40 }}
       animate={isInView ? { opacity: 1, x: 0 } : {}}
       transition={{
         duration: 0.6,
@@ -483,7 +483,7 @@ function VersionCard({ version, index }: { version: Version; index: number }) {
           <div className="flex items-start gap-4 mb-4">
             {/* Version icon */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ scale: 0.8 }}
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
               transition={{ delay: index * 0.1 + 0.2, duration: 0.4 }}
               className="shrink-0"
@@ -551,7 +551,7 @@ function BulletItem({
 
   return (
     <motion.li
-      initial={{ opacity: 0, x: -16 }}
+      initial={{ x: -16 }}
       animate={parentInView ? { opacity: 1, x: 0 } : {}}
       transition={{
         duration: 0.35,
@@ -619,7 +619,7 @@ function WhatsNext() {
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ y: 30 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6 }}
       className="mt-20 border-t border-white/[0.06] pt-16"
@@ -639,7 +639,7 @@ function WhatsNext() {
         {upcoming.map((item, i) => (
           <motion.div
             key={item.label}
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ y: 16 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
             className="p-5 border border-dashed border-white/[0.08] bg-white/[0.01]"

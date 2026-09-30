@@ -340,8 +340,8 @@ export default function Home() {
           <Nav />
           <main className="flex-1 flex items-center justify-center px-4 sm:px-8 py-12">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
               className="w-full max-w-6xl relative"
             >
@@ -410,8 +410,8 @@ export default function Home() {
           <Nav />
           <main className="flex-1 flex items-center justify-center px-6 py-12">
             <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ y: 8 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4 }}
               className="w-full max-w-xl border-2 border-(--z-brick)/60 bg-(--z-brick)/10 px-6 py-8 space-y-5"
             >
@@ -685,16 +685,16 @@ export default function Home() {
             {/* Headline band — overlaps the artifact's top-left */}
             <div className="relative z-20 max-w-4xl lg:-mb-12">
               <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ y: 20 }}
+                animate={{ y: 0 }}
                 transition={{ delay: 0.15, duration: 0.6 }}
                 className="label-mono text-(--z-gold) mb-3 sm:mb-5"
               >
                 The Infographic Engine
               </motion.p>
               <motion.h1
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ y: 30 }}
+                animate={{ y: 0 }}
                 transition={{
                   delay: 0.3,
                   duration: 0.8,
@@ -733,8 +733,8 @@ export default function Home() {
               </motion.p>
               <motion.div
                 ref={generatorRef}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ y: 30 }}
+                animate={{ y: 0 }}
                 transition={{ delay: 0.55, duration: 0.8 }}
                 className="w-full"
               >

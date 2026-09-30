@@ -325,8 +325,8 @@ export function ResultViewer({
 
       {/* ── Celebration header ── */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ y: -10 }}
+        animate={{ y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
         className="text-center"
       >
@@ -347,7 +347,7 @@ export function ResultViewer({
           style={{ boxShadow: 'inset 0 0 80px rgba(212, 168, 75, 0.35), 0 0 40px rgba(212, 168, 75, 0.15)' }}
         />
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ scale: 0.9 }}
           animate={{ opacity: imageLoaded ? 1 : 0.3, scale: imageLoaded ? 1 : 0.9 }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           className="relative overflow-hidden border border-(--border) glow-gold cursor-zoom-in"
@@ -381,8 +381,8 @@ export function ResultViewer({
           {badges.map((badge, i) => (
             <motion.span
               key={badge.label}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ y: 8 }}
+              animate={{ y: 0 }}
               transition={{ delay: 0.7 + i * 0.12 }}
               className={`inline-flex items-center px-3 py-1 text-[10px] font-mono border ${badge.bg} ${badge.text} ${badge.border}`}
             >
@@ -395,8 +395,8 @@ export function ResultViewer({
       {/* ── Topic tags ── */}
       {provenance?.topics && provenance.topics.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
           transition={{ delay: 0.85 }}
           className="flex flex-wrap gap-1.5 justify-center"
         >
@@ -414,8 +414,8 @@ export function ResultViewer({
       {/* ── Content Sources ── */}
       {provenance?.contentSources && provenance.contentSources.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
           transition={{ delay: 0.86 }}
           className="w-full max-w-md mx-auto space-y-1.5"
         >
@@ -436,8 +436,8 @@ export function ResultViewer({
       {/* ── Compliance badge ── */}
       {provenance?.compliance && (
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
           transition={{ delay: 0.88 }}
           className="flex items-center justify-center"
         >
@@ -457,8 +457,8 @@ export function ResultViewer({
       {/* ── Certificate button ── */}
       {provenance && (
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 8 }}
+          animate={{ y: 0 }}
           transition={{ delay: 0.9 }}
           className="flex items-center justify-center gap-3"
         >
@@ -483,8 +483,8 @@ export function ResultViewer({
 
       {/* ── Download + Export ── */}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ y: 12 }}
+        animate={{ y: 0 }}
         transition={{ delay: 0.9 }}
         className="space-y-3"
       >
@@ -514,8 +514,8 @@ export function ResultViewer({
           <AnimatePresence>
             {showExport && (
               <motion.div
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ y: -4 }}
+                animate={{ y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.15 }}
                 className="absolute top-full left-0 right-0 z-20 mt-1 border border-(--border) bg-(--z-surface) divide-y divide-white/[0.04]"
@@ -644,8 +644,8 @@ export function ResultViewer({
               return (
                 <motion.button
                   key={s.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ y: 8 }}
+                  animate={{ y: 0 }}
                   transition={{ delay: 1.15 + i * 0.03 }}
                   onClick={() => onRegenerateWithStyle(s.id)}
                   className={`group relative text-left p-3 border transition-all ${

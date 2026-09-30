@@ -76,8 +76,8 @@ export function ImageResultMessage({ message, onRegenerate }: Props) {
             <AnimatePresence>
               {showExport && (
                 <motion.div
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ y: 4 }}
+                  animate={{ y: 0 }}
                   exit={{ opacity: 0, y: 4 }}
                   className="absolute bottom-full left-0 mb-1.5 bg-(--z-surface) border border-white/[0.08] z-50"
                 >

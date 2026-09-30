@@ -81,7 +81,7 @@ const sections = [
     content: (
       <p>
         For privacy inquiries, contact us at{' '}
-        <a href="mailto:privacy@zgnal.ai" className="text-[#D4A84B] hover:underline">
+        <a href="mailto:privacy@zgnal.ai" className="text-[#D4A84B] underline underline-offset-2 hover:no-underline">
           privacy@zgnal.ai
         </a>
         .
@@ -109,7 +109,7 @@ function Section({
     <motion.section
       ref={ref}
       id={section.id}
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ y: 24 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
       transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
       className="scroll-mt-28"
@@ -132,8 +132,8 @@ export default function PrivacyPage() {
     <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
       {/* Hero */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ y: 20 }}
+        animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
         className="max-w-3xl mb-10"
       >
@@ -148,8 +148,8 @@ export default function PrivacyPage() {
 
       {/* TL;DR Box */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ y: 16 }}
+        animate={{ y: 0 }}
         transition={{ duration: 0.5, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
         className="max-w-3xl border-2 border-[#D4A84B]/30 bg-[#D4A84B]/4 p-6 mb-16"
       >
@@ -182,7 +182,7 @@ export default function PrivacyPage() {
           {/* Contact callout */}
           <motion.div
             initial={false}
-            whileInView={{ opacity: 1, y: 0 }}
+            whileInView={{ y: 0 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.5 }}
             className="border-2 border-[#D4A84B]/30 p-8 mt-16"
@@ -192,7 +192,7 @@ export default function PrivacyPage() {
             </p>
             <p className="text-sm text-white/60 leading-relaxed">
               For privacy-related inquiries, reach out to{' '}
-              <a href="mailto:privacy@zgnal.ai" className="text-[#D4A84B] hover:underline font-mono">
+              <a href="mailto:privacy@zgnal.ai" className="text-[#D4A84B] underline underline-offset-2 hover:no-underline font-mono">
                 privacy@zgnal.ai
               </a>
             </p>

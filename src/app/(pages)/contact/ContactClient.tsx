@@ -23,7 +23,7 @@ const SUBJECTS = ["General", "Technical Support", "Partnership", "Feedback"] as 
 /*  Reusable animation variants                                        */
 /* ------------------------------------------------------------------ */
 const fadeUp = {
-  hidden: { opacity: 0, y: 32 },
+  hidden: { y: 32 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
@@ -361,7 +361,7 @@ export default function ContactClient() {
             />
 
             <motion.p
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ y: 16 }}
               animate={heroInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.3, duration: 0.6 }}
               className="text-[10px] font-mono font-semibold tracking-[0.25em] uppercase text-[#D4A84B] mb-5"
@@ -370,7 +370,7 @@ export default function ContactClient() {
             </motion.p>
 
             <motion.h1
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ y: 24 }}
               animate={heroInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.45, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="text-5xl sm:text-7xl font-mono font-bold text-white leading-[1.05] mb-6"
@@ -379,7 +379,7 @@ export default function ContactClient() {
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ y: 16 }}
               animate={heroInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.6, duration: 0.6 }}
               className="text-base sm:text-lg text-white/50 max-w-xl font-sans leading-relaxed"
@@ -392,7 +392,7 @@ export default function ContactClient() {
           {/* Right: Geometric Illustration */}
           <motion.div
             className="hidden lg:block lg:w-[45%]"
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ scale: 0.9 }}
             animate={heroInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
           >
@@ -455,7 +455,7 @@ export default function ContactClient() {
                       {/* Gold triangle indicator on focus */}
                       <motion.div
                         className="absolute right-0 bottom-0"
-                        initial={{ opacity: 0, scale: 0 }}
+                        initial={{ scale: 0 }}
                         animate={focused === "name" ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
                         transition={{ duration: 0.2 }}
                       >
@@ -498,7 +498,7 @@ export default function ContactClient() {
                       />
                       <motion.div
                         className="absolute right-0 bottom-0"
-                        initial={{ opacity: 0, scale: 0 }}
+                        initial={{ scale: 0 }}
                         animate={focused === "email" ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
                         transition={{ duration: 0.2 }}
                       >
@@ -548,7 +548,7 @@ export default function ContactClient() {
                       </span>
                       <motion.div
                         className="absolute right-0 bottom-0"
-                        initial={{ opacity: 0, scale: 0 }}
+                        initial={{ scale: 0 }}
                         animate={focused === "subject" ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
                         transition={{ duration: 0.2 }}
                       >
@@ -591,7 +591,7 @@ export default function ContactClient() {
                       />
                       <motion.div
                         className="absolute right-0 bottom-0"
-                        initial={{ opacity: 0, scale: 0 }}
+                        initial={{ scale: 0 }}
                         animate={focused === "message" ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
                         transition={{ duration: 0.2 }}
                       >
@@ -634,8 +634,8 @@ export default function ContactClient() {
                 /* ---------------------------------------------------- */
                 <motion.div
                   key="success"
-                  initial={{ opacity: 0, rotateY: 90 }}
-                  animate={{ opacity: 1, rotateY: 0 }}
+                  initial={{ rotateY: 90 }}
+                  animate={{ rotateY: 0 }}
                   transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
                   className="flex flex-col items-center justify-center py-20 text-center"
                   style={{ perspective: 800 }}
@@ -667,16 +667,16 @@ export default function ContactClient() {
                   </motion.div>
 
                   <motion.h2
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ y: 12 }}
+                    animate={{ y: 0 }}
                     transition={{ delay: 0.5, duration: 0.5 }}
                     className="text-2xl sm:text-3xl font-mono font-bold text-white mb-4"
                   >
                     Message sent.
                   </motion.h2>
                   <motion.p
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ y: 12 }}
+                    animate={{ y: 0 }}
                     transition={{ delay: 0.65, duration: 0.5 }}
                     className="text-base text-white/50 font-sans max-w-sm"
                   >
@@ -707,7 +707,7 @@ export default function ContactClient() {
           <div ref={linksRef} className="w-full lg:w-[45%]">
             {/* Response-time badge */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ y: 20 }}
               animate={linksInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5 }}
               className="flex items-center gap-3 mb-10 p-4 border border-white/[0.06] bg-white/[0.02]"
@@ -778,7 +778,7 @@ export default function ContactClient() {
       {/* ============================================================ */}
       <section ref={bottomRef} className="relative z-10 mx-auto max-w-7xl px-6 pb-28">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ y: 20 }}
           animate={bottomInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
           className="border-t border-white/[0.06] pt-12"

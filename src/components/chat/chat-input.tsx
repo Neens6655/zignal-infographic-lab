@@ -125,8 +125,8 @@ export function ChatInput({ onSend, isGenerating }: Props) {
       <AnimatePresence>
         {extracting && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            initial={{ height: 0 }}
+            animate={{ height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             className="flex items-center gap-1.5 pb-1.5 text-[10px] font-mono text-(--z-gold)/70"
           >
@@ -140,8 +140,8 @@ export function ChatInput({ onSend, isGenerating }: Props) {
       <AnimatePresence>
         {isListening && interimTranscript && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            initial={{ height: 0 }}
+            animate={{ height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             className="pb-1.5 text-[11px] text-(--z-gold)/70 font-mono italic truncate"
           >
@@ -164,8 +164,8 @@ export function ChatInput({ onSend, isGenerating }: Props) {
           <AnimatePresence>
             {showAttach && (
               <motion.div
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ y: 4 }}
+                animate={{ y: 0 }}
                 exit={{ opacity: 0, y: 4 }}
                 className="absolute bottom-full left-0 mb-1 bg-(--z-surface) border border-white/[0.08] z-50"
               >

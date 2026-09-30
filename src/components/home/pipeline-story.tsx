@@ -112,7 +112,7 @@ export function PipelineStory({
                   <motion.div
                     key={stage.num}
                     initial={false}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    whileInView={{ y: 0 }}
                     viewport={{ once: true, margin: "-50px" }}
                     transition={{ delay: i * 0.08, duration: 0.6 }}
                   >
@@ -191,8 +191,8 @@ export function PipelineStory({
                       <AnimatePresence>
                         {isActive && (
                           <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
+                            initial={{ height: 0 }}
+                            animate={{ height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"

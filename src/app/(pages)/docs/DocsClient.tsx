@@ -437,7 +437,7 @@ function Reveal({
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 32 }}
+      initial={{ y: 32 }}
       animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 32 }}
       transition={{ duration: 0.6, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
       className={className}
@@ -807,7 +807,7 @@ function HeroPipelineFlow() {
         {stages.map((stage, i) => (
           <div key={stage.label} className="flex items-center shrink-0">
             <motion.div
-              initial={{ opacity: 0, scale: 0.6 }}
+              initial={{ scale: 0.6 }}
               animate={inView ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.5, delay: i * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="flex flex-col items-center"
@@ -937,7 +937,7 @@ function PipelineSection() {
           {PIPELINE_STAGES.map((agent, i) => (
             <div key={agent.agent} className="flex items-start">
               <motion.button
-                initial={{ opacity: 0, y: 32 }}
+                initial={{ y: 32 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: i * 0.12 }}
                 onClick={() => setExpandedIdx(expandedIdx === i ? null : i)}
@@ -980,7 +980,7 @@ function PipelineSection() {
                     />
                   </svg>
                   <motion.div
-                    initial={{ opacity: 0, x: -4 }}
+                    initial={{ x: -4 }}
                     animate={isInView ? { opacity: 0.5, x: 0 } : {}}
                     transition={{ delay: 0.6 + i * 0.12 }}
                     className="text-[#D4A84B] -ml-1.5 text-xs"
@@ -1044,8 +1044,8 @@ function PipelineSection() {
         {expandedIdx !== null && (
           <motion.div
             key={expandedIdx}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            initial={{ height: 0 }}
+            animate={{ height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="overflow-hidden"
@@ -1228,8 +1228,8 @@ export default function DocsClient() {
         {/*  HERO                                                            */}
         {/* ================================================================ */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ y: 40 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="mb-20 relative"
         >

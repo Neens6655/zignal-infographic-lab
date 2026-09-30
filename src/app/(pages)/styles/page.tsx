@@ -636,7 +636,7 @@ function StaggerCard({ children, index }: { children: React.ReactNode; index: nu
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ y: 30 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
       transition={{ duration: 0.5, delay: (index % 6) * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
@@ -779,7 +779,7 @@ function FeaturedStyleCard({ style, index }: { style: (typeof STYLES)[number]; i
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ y: 40 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
       transition={{ duration: 0.6, delay: index * 0.12 }}
     >
@@ -839,24 +839,24 @@ export default function StylesPage() {
 
         <div className="relative z-10 mx-auto max-w-6xl px-6 pt-20 pb-8 sm:pt-28 sm:pb-12">
           <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 12 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.5 }}
             className="text-[10px] font-mono font-semibold tracking-[0.25em] uppercase text-[#D4A84B] mb-5"
           >
             Style Gallery
           </motion.p>
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 20 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
             className="text-5xl sm:text-6xl lg:text-7xl font-mono font-bold text-white leading-[0.95] mb-4"
           >
             20 visual styles.
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ y: 16 }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.6, delay: 0.25 }}
             className="text-base sm:text-lg font-mono text-white/50 max-w-xl"
           >
@@ -906,7 +906,7 @@ export default function StylesPage() {
       <div className="mx-auto max-w-6xl px-6 pt-16 sm:pt-20 pb-10">
         <motion.div
           initial={false}
-          whileInView={{ opacity: 1, y: 0 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.5 }}
           className="mb-8"
@@ -928,7 +928,7 @@ export default function StylesPage() {
       <div className="mx-auto max-w-6xl px-6 pt-8 pb-16 sm:pb-24">
         <motion.div
           initial={false}
-          whileInView={{ opacity: 1, y: 0 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.5 }}
           className="mb-6"
@@ -990,8 +990,8 @@ export default function StylesPage() {
               <AnimatePresence key={style.id} mode="popLayout">
                 <motion.div
                   layout
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={{ scale: 0.96 }}
+                  animate={{ scale: 1 }}
                   exit={{ opacity: 0, scale: 0.96 }}
                   transition={{ duration: 0.3 }}
                 >
@@ -1016,7 +1016,7 @@ export default function StylesPage() {
         <div className="mx-auto max-w-6xl px-6 py-16 sm:py-24 text-center">
           <motion.div
             initial={false}
-            whileInView={{ opacity: 1, y: 0 }}
+            whileInView={{ y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 0.6 }}
           >
