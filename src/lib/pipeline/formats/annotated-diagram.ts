@@ -72,7 +72,10 @@ export function planAnnotatedDiagram(
   const elements: TextElement[] = [];
   const bands: Band[] = [];
 
-  bands.push({ x: 0, y: 0, width, height, color: C.background });
+  // NOT a full-canvas band. Painting the whole page opaque covers the illustration
+  // completely — the exact bug already fixed once in stepped-process and
+  // reintroduced here. Only the header strip, the two callout columns and the foot
+  // get an opaque backing; the central diagram zone stays clear.
 
   // ── HEADER: title, kicker, rule ──────────────────────────────────────
   const titleSize = Math.round(40 * k);
@@ -132,6 +135,30 @@ export function planAnnotatedDiagram(
     0,
     Math.max(2, Math.min(SLOTS.length, opts.maxPanels ?? SLOTS.length)),
   );
+
+  // Opaque backing for the text regions only.
+  bands.push({ x: 0, y: 0, width, height: bodyTop, color: C.background });
+  bands.push({
+    x: 0,
+    y: bodyTop,
+    width: margin + colW + Math.round(13 * k),
+    height: bodyBottom - bodyTop,
+    color: C.background,
+  });
+  bands.push({
+    x: width - margin - colW - Math.round(13 * k),
+    y: bodyTop,
+    width: margin + colW + Math.round(13 * k),
+    height: bodyBottom - bodyTop,
+    color: C.background,
+  });
+  bands.push({
+    x: 0,
+    y: bodyBottom,
+    width,
+    height: height - bodyBottom,
+    color: C.background,
+  });
 
   const labelSize = Math.round(17 * k);
   const bodySize = Math.round(15 * k);

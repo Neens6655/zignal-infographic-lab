@@ -20,6 +20,7 @@ import { getCachedResearch, setCachedResearch } from "../research/cache";
 import { assemblePrompt, assembleIllustrationPrompt } from "./prompt";
 import { applyNumberCorrections, type AppliedCorrection } from "./number-guard";
 import { runTruthGates } from "./truth-gate";
+import { checkSpelling, applySpellFixes } from "./spell-gate";
 import { buildLedger, citedSources } from "../research/ledger";
 import { type PaletteName } from "./layout-planner";
 import {
@@ -357,6 +358,8 @@ export async function runPipeline(
   let appliedCorrections: AppliedCorrection[] = [];
   let truthGates: import("../types").GateResult[] = [];
   let visualCompliance: VisualComplianceReport | undefined;
+  // Declared early: stages before rendering (spell gate) also record flags.
+  const postGenFlags: string[] = [];
   let unappliedCorrections: AppliedCorrection[] = [];
   if (!isSelfContained && research.findings.length > 0) {
     onProgress({
@@ -413,6 +416,30 @@ export async function runPipeline(
         progress: 57,
         message: `Numbers: ${numberAuditResult.confidenceLevel} (${conflictCount} corrections)`,
       });
+    }
+  }
+
+  // ── Stage 2.75: SPELL GATE ────────────────────────────────────────────
+  // Typesetting the text ourselves guarantees the glyphs match the data; it cannot
+  // make the data right. A live render titled "GEQFENCING" proved it — rendered
+  // flawlessly, at 40px, as the first thing a reader sees.
+  const spellIssues = checkSpelling(finalContent, input.content);
+  if (spellIssues.length > 0) {
+    const repaired = applySpellFixes(finalContent, spellIssues);
+    finalContent = repaired.content;
+    pipelineTrace.push({
+      stage: "02.75",
+      agent: "SpellGate",
+      result: `${spellIssues.length} suspect headline word(s), ${repaired.fixed.length} corrected: ${repaired.fixed
+        .map((f) => `${f.found}->${f.expected}`)
+        .join(", ")}`,
+    });
+    for (const issue of spellIssues) {
+      if (!repaired.fixed.includes(issue)) {
+        postGenFlags.push(
+          `Possible typo in ${issue.field}: "${issue.found}"`,
+        );
+      }
     }
   }
 
@@ -518,7 +545,6 @@ export async function runPipeline(
   const references = [`styles/${analysis.style}.md`];
 
   // 3c: Render text layer + generate illustration IN PARALLEL
-  let postGenFlags: string[] = [];
   let qualityScore = computeQualityScore([]);
 
   onProgress({
