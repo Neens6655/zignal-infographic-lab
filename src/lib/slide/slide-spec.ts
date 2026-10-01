@@ -152,6 +152,54 @@ Return ONLY this JSON:
   "citationIdx": [1, 11, 12]
 }`;
 
+
+/** The shape the structurer returns, before it is accepted as a SlideSpec. */
+export type DraftSpec = Omit<SlideSpec, "sources"> & { citationIdx?: number[] };
+
+/**
+ * The review gate, as a pure function so it can be tested on the real path.
+ *
+ * The first version of this logic lived inline in buildSlideSpec and was "fixed" by a
+ * script that announced success without checking — the old code stayed, two live runs
+ * died on phantoms (">$30 billion", "2030,"), and the test I wrote passed because it
+ * exercised a helper nothing called. This function IS the gate; test this.
+ */
+export async function reviewSpec(j: DraftSpec, ledger: ClaimLedger): Promise<string[]> {
+  const problems: string[] = [];
+
+  // Gate 1: the title must be a conclusion.
+  for (const p of checkActionTitle(j.actionTitle)) problems.push(`actionTitle: ${p}`);
+
+  // Gate 2: every key figure must be grounded in the research ledger — compared
+  // through the SAME extractor the ledger used, never a bare digit regex.
+  const figures = Array.isArray(j.keyFigures) ? j.keyFigures : [];
+  if (figures.length < 2) problems.push(`keyFigures: need 2-4, got ${figures.length}`);
+  for (const f of figures) {
+    if (!(await figureIsGrounded(ledger, f.value))) {
+      problems.push(
+        `keyFigures: "${f.value}" is not in the research — remove it or replace it with a figure that is`,
+      );
+    }
+  }
+
+  // Gate 3: a title that cites a number must cite a grounded one. Years are not
+  // claims. The extractor returns clean values, so "2030," and "2028." no longer
+  // masquerade as figures.
+  const titleClaims = await extractNumericalClaims(j.actionTitle);
+  for (const c of titleClaims) {
+    if (/^(19|20)\d{2}$/.test(c.value)) continue;
+    if (!isGrounded(ledger, c.value)) {
+      problems.push(`actionTitle: the figure "${c.raw}" is not in the research`);
+    }
+  }
+  // Years written as bare tokens may not reach the extractor at all; nothing to do.
+
+  const evidence = Array.isArray(j.evidence) ? j.evidence : [];
+  if (evidence.length < 2) problems.push(`evidence: need 3-4 points, got ${evidence.length}`);
+
+  return problems;
+}
+
 export async function buildSlideSpec(
   topic: string,
   research: ResearchResult,
@@ -187,46 +235,16 @@ export async function buildSlideSpec(
       text = await geminiGenerate(TEXT_MODEL, prompt);
     }
 
-    const j = parseJson<
-      Omit<SlideSpec, "sources"> & { citationIdx?: number[] }
-    >(text);
+    const j = parseJson<DraftSpec>(text);
     if (!j || !j.actionTitle) {
       lastProblems = ["structurer returned no parseable JSON"];
       feedback = lastProblems.join("\n");
       continue;
     }
 
-    const problems: string[] = [];
-
-    // Gate 1: the title must be a conclusion.
-    for (const p of checkActionTitle(j.actionTitle))
-      problems.push(`actionTitle: ${p}`);
-
-    // Gate 2: every key figure must be grounded in the research ledger.
+    const problems = await reviewSpec(j, ledger);
     const figures = Array.isArray(j.keyFigures) ? j.keyFigures : [];
-    if (figures.length < 2)
-      problems.push(`keyFigures: need 2-4, got ${figures.length}`);
-    for (const f of figures) {
-      const core = String(f.value).match(/\d[\d,.]*/)?.[0];
-      if (!core || !isGrounded(ledger, core)) {
-        problems.push(
-          `keyFigures: "${f.value}" is not in the research — remove it or replace it with a figure that is`,
-        );
-      }
-    }
-
-    // Gate 3: a title that cites a number must cite a grounded one.
-    for (const m of j.actionTitle.matchAll(/\d[\d,.]*/g)) {
-      if (!isGrounded(ledger, m[0]) && !/^(19|20)\d{2}$/.test(m[0])) {
-        problems.push(
-          `actionTitle: the figure "${m[0]}" is not in the research`,
-        );
-      }
-    }
-
     const evidence = Array.isArray(j.evidence) ? j.evidence : [];
-    if (evidence.length < 2)
-      problems.push(`evidence: need 3-4 points, got ${evidence.length}`);
 
     if (problems.length === 0) {
       const idx = (j.citationIdx ?? []).filter(
