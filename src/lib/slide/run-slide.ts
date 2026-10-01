@@ -79,7 +79,11 @@ export type LoopResult = {
     | "max_iterations"
     | "max_usd"
     | "max_minutes"
-    | "stop_file";
+    | "stop_file"
+    | "error:quota"
+    | "error:auth"
+    | "error:rate_limit"
+    | "error:transient";
   spend: { usd: number; minutes: number; iterations: number };
   ceiling: Ceiling;
 };
@@ -309,6 +313,10 @@ export async function runSlideLoop(
   let stoppedBecause: LoopResult["stoppedBecause"] = "all_passed";
   let iteration = 0;
 
+  // Every external error is classified and the partial record is written before the
+  // error propagates. Run 7 died on an OpenRouter 403 (the key's spend cap) with no
+  // report.json — five iterations of evidence lost to an unhandled throw.
+  try {
   while (iteration < ceiling.maxIterations) {
     iteration++;
     const todo = SLIDE_VARIANTS.filter((v) => !passed.has(v));
@@ -366,6 +374,27 @@ export async function runSlideLoop(
       stoppedBecause = "max_iterations";
       break;
     }
+  }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const kind: "quota" | "auth" | "rate_limit" | "transient" =
+      /403|limit exceeded|insufficient|quota/i.test(msg)
+        ? "quota"
+        : /401|unauthori[sz]ed|invalid.*key/i.test(msg)
+          ? "auth"
+          : /429|rate.?limit/i.test(msg)
+            ? "rate_limit"
+            : "transient";
+    stoppedBecause = `error:${kind}`;
+    console.error(`[slide] STOPPED on external error (${kind}): ${msg.slice(0, 200)}`);
+    const partial: LoopResult = {
+      topic, spec, outDir, iterations: iteration, results,
+      passedVariants: [...passed], stoppedBecause,
+      spend: { usd: Number(usd.toFixed(3)), minutes: Number(minutes().toFixed(1)), iterations: iteration },
+      ceiling,
+    };
+    writeFileSync(join(outDir, "report.json"), JSON.stringify(partial, null, 2));
+    throw err;
   }
 
   const out: LoopResult = {
