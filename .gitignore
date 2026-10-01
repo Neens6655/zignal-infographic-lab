@@ -62,3 +62,6 @@ dist/
 test-results/
 playwright-report/
 blob-report/
+
+# generated slide/infographic output — reproducible from spec.json + research.json
+renders/
