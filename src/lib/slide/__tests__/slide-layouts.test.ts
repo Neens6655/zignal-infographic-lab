@@ -106,3 +106,11 @@ describe("illustration rectangles", () => {
     }
   });
 });
+
+describe("one brief per rect", () => {
+  it.each(SLIDE_VARIANTS)("%s", (v) => {
+    const plan = SLIDE_LAYOUTS[v](SPEC);
+    expect(plan.illustrationBriefs?.length).toBe(plan.illustrationRects?.length);
+    for (const b of plan.illustrationBriefs ?? []) expect(b).toContain("DRAW EXACTLY THIS");
+  });
+});

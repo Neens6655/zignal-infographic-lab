@@ -34,6 +34,8 @@ export type BlindExtraction = {
   source: string;
   textInIllustration: boolean;
   fiveSecondClarity: number; // 1-5, the reader's own estimate
+  illustrationDescribes: string;
+  illustrationMeaning: number; // 1-5
   raw: string;
 };
 
@@ -42,6 +44,7 @@ export type BlindReaderReport = {
   score: number; // 0-100
   mandatory: {
     claimMatches: boolean;
+    illustrationMeaningful: boolean;
     figuresRead: { figure: string; read: boolean }[];
     noPlateText: boolean;
   };
@@ -115,7 +118,9 @@ Answer strictly from what you can read on the slide, as JSON:
   "figures": ["every number with its unit that you can read, e.g. '467 MW', '1.9 GW', '$7bn'"],
   "source": "the source line if any, else ''",
   "text_in_illustration": true or false — are there words, labels or numbers drawn INSIDE the picture/diagram itself, as opposed to the typeset text around it? Look carefully at the illustration area.,
-  "five_second_clarity": 1-5 — could a busy executive get the point in five seconds? 5 = instantly, 1 = no idea
+  "five_second_clarity": 1-5 — could a busy executive get the point in five seconds? 5 = instantly, 1 = no idea,
+  "illustration_describes": "one sentence: what does the illustration/diagram (not the typeset text) actually show?",
+  "illustration_meaning": 1-5 — does the illustration itself convey a comparison, change, flow or structure that supports the slide's point? 5 = it carries the point on its own, 3 = clearly related, 1 = decorative filler, generic tech imagery, or unrelated
 }`,
           },
           {
@@ -134,6 +139,8 @@ Answer strictly from what you can read on the slide, as JSON:
     source?: string;
     text_in_illustration?: boolean;
     five_second_clarity?: number;
+    illustration_describes?: string;
+    illustration_meaning?: number;
   }>(text);
 
   return {
@@ -145,6 +152,8 @@ Answer strictly from what you can read on the slide, as JSON:
       1,
       Math.min(5, Number(j?.five_second_clarity ?? 1)),
     ),
+    illustrationDescribes: String(j?.illustration_describes ?? ""),
+    illustrationMeaning: Math.max(1, Math.min(5, Number(j?.illustration_meaning ?? 1))),
     raw: text,
     cost,
   };
@@ -184,7 +193,7 @@ A reader who saw only the slide (no other context) summarised it as:
 
 Does the READ summary convey the INTENDED conclusion — same subject, same direction, and the same magnitude if one is stated?
 
-MATCH if the reader got the conclusion, even if they ALSO mention supporting detail from the rest of the slide (drivers, other markets, operators, evidence). A slide carries evidence; a reader who absorbs it is reading well, not wrongly. Extra information is never a reason to fail.
+MATCH if the reader got the conclusion, even if they ALSO mention supporting detail from the rest of the slide (drivers, other markets, operators, evidence). A slide carries evidence; a reader who absorbs it is reading well, not wrongly. Extra information is never a reason to fail. Differences of tense or hedging ("grew" vs "is projected to reach", "will" vs "targets") are wording, not conclusion — never a reason to fail.
 
 NO MATCH only if the conclusion itself is missing, reversed, or vague: a different subject, the opposite direction, a materially different magnitude, or a topic-only summary ("this is about data centres") with no conclusion.
 
@@ -240,22 +249,38 @@ export async function blindReaderTest(
     );
   }
 
+  // The illustration must mean something. Run 8 passed 4/4 with generic server-and-
+  // arrow art that said nothing about the claim; the reader never looked at it.
+  const illustrationMeaningful = extraction.illustrationMeaning >= 3;
+  if (!illustrationMeaningful) {
+    defects.push(
+      `Illustration does not carry the point (${extraction.illustrationMeaning}/5). Reader saw: "${extraction.illustrationDescribes}". Draw the subject in the brief literally — the comparison or change must be visible in the picture itself.`,
+    );
+  }
+
   // Score: mandatory items dominate; clarity is the tie-breaker.
   const figureShare = figuresRead.length
     ? figuresRead.filter((f) => f.read).length / figuresRead.length
     : 1;
   const score = Math.round(
-    (grade.claimMatches ? 45 : 0) +
-      figureShare * 30 +
+    (grade.claimMatches ? 40 : 0) +
+      figureShare * 25 +
       (noPlateText ? 10 : 0) +
-      ((extraction.fiveSecondClarity - 1) / 4) * 15,
+      ((extraction.fiveSecondClarity - 1) / 4) * 10 +
+      ((extraction.illustrationMeaning - 1) / 4) * 15,
   );
 
   const passed =
-    grade.claimMatches && allFiguresRead && noPlateText && score >= PASS_SCORE;
+    grade.claimMatches &&
+    allFiguresRead &&
+    noPlateText &&
+    illustrationMeaningful &&
+    score >= PASS_SCORE;
 
   console.log(
-    `[blind-reader] ${passed ? "PASS" : "FAIL"} ${score}/100 | claim=${grade.claimMatches ? "OK" : "MISS"} figures=${figuresRead.filter((f) => f.read).length}/${figuresRead.length} plateText=${noPlateText ? "none" : "FOUND"} clarity=${extraction.fiveSecondClarity}/5` +
+    `[blind-reader] ${passed ? "PASS" : "FAIL"} ${score}/100 | claim=${grade.claimMatches ? "OK" : "MISS"} figures=${figuresRead.filter((f) => f.read).length}/${figuresRead.length} plateText=${noPlateText ? "none" : "FOUND"} clarity=${extraction.fiveSecondClarity}/5 meaning=${extraction.illustrationMeaning}/5` +
+      (illustrationMeaningful ? "" : `
+[blind-reader]   illustration: "${extraction.illustrationDescribes}"`) +
       (grade.claimMatches ? "" : `
 [blind-reader]   read: "${extraction.claim}"
 [blind-reader]   why: ${grade.reasoning}`),
@@ -264,7 +289,7 @@ export async function blindReaderTest(
   return {
     passed,
     score,
-    mandatory: { claimMatches: grade.claimMatches, figuresRead, noPlateText },
+    mandatory: { claimMatches: grade.claimMatches, illustrationMeaningful, figuresRead, noPlateText },
     clarity: extraction.fiveSecondClarity,
     extraction,
     defects,

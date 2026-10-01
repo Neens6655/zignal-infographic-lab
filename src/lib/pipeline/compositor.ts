@@ -59,28 +59,33 @@ export async function compositeInfographic(
 }
 
 /**
- * Cut a plate to its permitted rectangles. Everything outside them becomes the
- * ground colour. This is what makes "the illustration never touches the text" a
- * property of the pipeline rather than a request to the model — which, in run 7,
- * drew under the key figures on every single attempt regardless of the brief.
+ * Place plates INSIDE their rectangles. Each image is scaled to fit entirely within
+ * its rect (contain) and centred; everything else is the ground colour. The model's
+ * whole canvas becomes the slide's box, so nothing it draws can be cut — run 8 passed
+ * 4/4 with every illustration amputated at the top by the old crop.
  */
-export async function maskPlate(
-  plateBase64: string,
-  rects: { x: number; y: number; w: number; h: number }[],
+export async function placePlates(
+  plates: { image: string; rect: { x: number; y: number; w: number; h: number } }[],
   width: number,
   height: number,
   ground: string,
 ): Promise<string> {
-  const plate = sharp(Buffer.from(plateBase64, 'base64')).resize(width, height, { fit: 'cover' });
-  const plateBuf = await plate.png().toBuffer();
   const pieces: sharp.OverlayOptions[] = [];
-  for (const r of rects) {
-    const left = Math.max(0, Math.min(width - 1, Math.round(r.x)));
-    const top = Math.max(0, Math.min(height - 1, Math.round(r.y)));
-    const w = Math.max(1, Math.min(width - left, Math.round(r.w)));
-    const h = Math.max(1, Math.min(height - top, Math.round(r.h)));
-    const piece = await sharp(plateBuf).extract({ left, top, width: w, height: h }).png().toBuffer();
-    pieces.push({ input: piece, left, top });
+  for (const { image, rect } of plates) {
+    const w = Math.max(1, Math.round(rect.w));
+    const h = Math.max(1, Math.round(rect.h));
+    const fitted = await sharp(Buffer.from(image, 'base64'))
+      .resize(w, h, { fit: 'inside', withoutEnlargement: false })
+      .png()
+      .toBuffer();
+    const meta = await sharp(fitted).metadata();
+    const pw = meta.width ?? w;
+    const ph = meta.height ?? h;
+    pieces.push({
+      input: fitted,
+      left: Math.round(rect.x + (w - pw) / 2),
+      top: Math.round(rect.y + (h - ph) / 2),
+    });
   }
   const out = await sharp({
     create: { width, height, channels: 4, background: hexToRgba(ground) },
@@ -89,6 +94,18 @@ export async function maskPlate(
     .png()
     .toBuffer();
   return out.toString('base64');
+}
+
+/** The aspect ratio the model should compose for, nearest to the rect's own. */
+export function nearestAspect(w: number, h: number): string {
+  const r = w / Math.max(1, h);
+  const table: [string, number][] = [
+    ['21:9', 21 / 9], ['16:9', 16 / 9], ['3:2', 1.5], ['4:3', 4 / 3],
+    ['1:1', 1], ['3:4', 0.75], ['2:3', 2 / 3], ['9:16', 9 / 16],
+  ];
+  let best = table[0];
+  for (const t of table) if (Math.abs(Math.log(r / t[1])) < Math.abs(Math.log(r / best[1]))) best = t;
+  return best[0];
 }
 
 function hexToRgba(hex: string): { r: number; g: number; b: number; alpha: number } {

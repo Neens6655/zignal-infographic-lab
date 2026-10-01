@@ -43,9 +43,10 @@ describe("plate visibility through the live composite path", () => {
     const withoutPlate = await compositeInfographic(null, textPng, plan.width, plan.height, plan.backgroundColor);
     expect(withPlate).not.toBe(withoutPlate);
 
-    // Sample the illustration zone (right half, mid-height): it must be red.
+    // Sample the centre of the layout's own illustration rectangle: it must be red.
+    const r = plan.illustrationRects![0];
     const px = await sharp(Buffer.from(withPlate, "base64"))
-      .extract({ left: Math.round(plan.width * 0.75), top: Math.round(plan.height * 0.5), width: 1, height: 1 })
+      .extract({ left: Math.round(r.x + r.w / 2), top: Math.round(r.y + r.h / 2), width: 1, height: 1 })
       .raw()
       .toBuffer();
     expect(px[0], "red channel").toBeGreaterThan(180);

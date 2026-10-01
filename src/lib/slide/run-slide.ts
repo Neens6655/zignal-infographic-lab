@@ -15,13 +15,12 @@
  *     contains the words 'system logic'" are both things the next brief can act on.
  */
 import { mkdirSync, writeFileSync, existsSync } from "fs";
-import sharp from "sharp";
 import { join } from "path";
 import { researchContent } from "../pipeline/research";
 import type { ResearchResult } from "../pipeline/types";
 import { renderImage, type RenderResult } from "../pipeline/image-model";
 import { renderTextLayer } from "../pipeline/text-renderer";
-import { compositeInfographic, maskPlate } from "../pipeline/compositor";
+import { compositeInfographic, placePlates, nearestAspect } from "../pipeline/compositor";
 import {
   checkVisualCompliance,
   formatCompliance,
@@ -100,102 +99,83 @@ export async function researchTopic(topic: string): Promise<ResearchResult> {
 
 // ── One variant, one attempt ──────────────────────────────────────────
 
-/**
- * Ink inside each permitted rectangle. Measured on the masked plate, so a model that
- * drew a fine diagram in the wrong place scores as blank — which, for the slide, it is.
- * Every rectangle must carry a drawing: a flow with one empty lane is a failed render.
- */
-async function checkPlateInRects(
-  shownBase64: string,
-  plan: LayoutPlan,
-): Promise<{ ok: boolean; reason: string }> {
-  const rects = plan.illustrationRects ?? [];
-  if (rects.length === 0) {
-    const r = await checkPlate(shownBase64);
-    return { ok: r.ok, reason: r.reason ?? "" };
-  }
-  const buf = Buffer.from(shownBase64, "base64");
-  const empty: string[] = [];
-  for (let i = 0; i < rects.length; i++) {
-    const r = rects[i];
-    const piece = await sharp(buf)
-      .extract({ left: r.x, top: r.y, width: r.w, height: r.h })
-      .png()
-      .toBuffer();
-    const ink = await checkPlate(piece.toString("base64"));
-    if (!ink.ok) empty.push(`zone ${i + 1}: ${ink.reason}`);
-  }
-  return { ok: empty.length === 0, reason: empty.join("; ") };
-}
-
-async function renderPlate(
+async function renderOnePlate(
   brief: string,
+  rect: { x: number; y: number; w: number; h: number },
   priorDefects: string[],
-  plan: LayoutPlan,
+  label: string,
 ): Promise<{ image: string | null; textFound: string[]; cost: number }> {
   let cost = 0;
   let prompt = brief;
   if (priorDefects.length) {
     prompt += `\n\nTHE PREVIOUS ATTEMPT FAILED REVIEW. Correct exactly these:\n${priorDefects.map((d) => `- ${d}`).join("\n")}`;
   }
-
+  const aspect = nearestAspect(rect.w, rect.h);
   let textFound: string[] = [];
   for (let attempt = 1; attempt <= 3; attempt++) {
     let r: RenderResult;
     try {
-      r = await renderImage(prompt, { aspectRatio: "16:9" });
+      r = await renderImage(prompt, { aspectRatio: aspect });
     } catch (err) {
-      console.error(
-        "[slide] plate render failed:",
-        err instanceof Error ? err.message : err,
-      );
+      console.error(`[slide:${label}] plate render failed:`, err instanceof Error ? err.message : err);
       return { image: null, textFound, cost };
     }
     cost += r.costUsd ?? 0;
 
-    // Cut to the permitted rectangles FIRST. Every check below runs on the plate as it
-    // will actually appear; whatever the model drew elsewhere is gone.
-    const shown = plan.illustrationRects?.length
-      ? await maskPlate(
-          r.imageBase64,
-          plan.illustrationRects,
-          plan.width,
-          plan.height,
-          plan.textGround ?? plan.backgroundColor,
-        )
-      : r.imageBase64;
-
-    // Blank first. Told to keep everything outside its zone pure white, the model
-    // returned near-empty canvases five times in a row and every one composited as a
-    // white slide — which the blind reader then PASSED, because a missing diagram does
-    // not hurt comprehension. Ink and coverage are measured before anything else.
-    const ink = await checkPlateInRects(shown, plan);
+    // Blank first. The whole image is the drawing now, so ink is measured on it directly.
+    const ink = await checkPlate(r.imageBase64);
     if (!ink.ok) {
-      prompt += `
-
-REJECTED: the previous image was almost blank (${ink.reason}). The diagram must be BOLD and fully drawn — fill its permitted zone edge to edge with clear shapes, icons and connectors. Restraint applies to the palette, never to how much is drawn.`;
+      prompt += `\n\nREJECTED: the previous image was almost blank (${ink.reason}). Fill the canvas edge to edge with clear shapes, icons and connectors.`;
       continue;
     }
-    // Under the text. The layouts promise the plate is flat white outside its zones;
-    // this is where that promise is measured.
-    if (plan.textGround) {
-      const ground = await checkPlateGround(shown, plan);
-      if (!ground.ok) {
-        prompt += `
-
-REJECTED: the previous image had drawing where the slide's text goes (${ground.offenders.map((o) => `"${o.text}"`).join(", ")}). Keep EVERYTHING outside the permitted zone pure, flat white — no shapes, shading, lines or background there.`;
-        continue;
-      }
-    }
-    const check = await checkPlateForText(shown);
+    const check = await checkPlateForText(r.imageBase64);
     cost += check.costUsd;
-    if (!check.hasText) return { image: shown, textFound: [], cost };
-
+    if (!check.hasText) return { image: r.imageBase64, textFound: [], cost };
     textFound = check.examples;
     prompt += `\n\nREJECTED: the previous image contained readable text (${check.examples.join(", ")}). Draw it again with NO text, letters or numbers anywhere — not on screens, signs, charts or labels. Shapes and icons only.`;
   }
-  // Both attempts had text. Return the last one, flagged — the reader test will fail it.
   return { image: null, textFound, cost };
+}
+
+/**
+ * One plate per illustration rectangle, each rendered at the rectangle's own aspect
+ * ratio and fitted INSIDE it. The model's canvas is the slide's box: nothing it draws
+ * can be cut, and nothing it draws can reach the text. Every rect must carry a
+ * drawing — a flow with one empty lane is a failed render.
+ */
+async function renderPlate(
+  plan: LayoutPlan,
+  priorDefects: string[],
+  label: string,
+): Promise<{ image: string | null; textFound: string[]; cost: number }> {
+  const rects = plan.illustrationRects ?? [];
+  const briefs = plan.illustrationBriefs ?? [];
+  if (rects.length === 0 || briefs.length !== rects.length) {
+    throw new Error(`[slide:${label}] layout has ${rects.length} rects and ${briefs.length} briefs`);
+  }
+  const parts = await Promise.all(
+    rects.map((rect, i) => renderOnePlate(briefs[i], rect, priorDefects, `${label}#${i + 1}`)),
+  );
+  const cost = parts.reduce((a, p) => a + p.cost, 0);
+  const textFound = parts.flatMap((p) => p.textFound);
+  const missing = parts.map((p, i) => (p.image ? -1 : i + 1)).filter((i) => i > 0);
+  if (missing.length) {
+    console.warn(`[slide:${label}] plate missing for rect(s) ${missing.join(", ")}`);
+    return { image: null, textFound, cost };
+  }
+  const image = await placePlates(
+    parts.map((p, i) => ({ image: p.image as string, rect: rects[i] })),
+    plan.width,
+    plan.height,
+    plan.textGround ?? plan.backgroundColor,
+  );
+  // By construction the rects are clear of the text (tested). Measure it anyway; a
+  // failure here is a layout bug and must never be retried into the ceiling.
+  if (plan.textGround) {
+    const ground = await checkPlateGround(image, plan);
+    if (!ground.ok) throw new PlateHiddenError(`${label}: plate overlaps text — ${ground.offenders.map((o) => o.text).join(", ")}`);
+  }
+  return { image, textFound: [], cost };
 }
 
 export async function renderVariant(
@@ -217,7 +197,7 @@ export async function renderVariant(
   }
 
   const [plate, textPng] = await Promise.all([
-    renderPlate(plan.illustrationZones, priorDefects, plan),
+    renderPlate(plan, priorDefects, variant),
     renderTextLayer(plan),
   ]);
   cost += plate.cost;

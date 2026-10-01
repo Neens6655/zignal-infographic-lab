@@ -164,13 +164,15 @@ function chrome(spec: SlideSpec): Ctx {
 
 type Rect = { x: number; y: number; w: number; h: number };
 
-function finish(ctx: Ctx, illustrationZones: string, rects: Rect[]): LayoutPlan {
+function finish(ctx: Ctx, rects: Rect[], briefs: string[]): LayoutPlan {
+  if (briefs.length !== rects.length) throw new Error("finish: one brief per rect");
   return {
     width: W,
     height: H,
     bands: ctx.bands,
     elements: ctx.elements,
-    illustrationZones,
+    illustrationZones: briefs.join("\n\n"),
+    illustrationBriefs: briefs,
     backgroundColor: SLIDE_PALETTE.background,
     textGround: SLIDE_PALETTE.background,
     illustrationRects: rects.map((r) => ({
@@ -216,18 +218,12 @@ function visual(spec: SlideSpec, i: number): string {
   return b[i % Math.max(1, b.length)] || b[0] || "an abstract diagram of connected nodes and flows";
 }
 
-function zoneBrief(
-  zone: { x: number; y: number; w: number; h: number },
-  subject: string,
-): string {
+function plateBrief(subject: string): string {
   return `DRAW EXACTLY THIS: ${subject}
-Draw that and nothing else — no generic server-cloud-chip process art, no decorative extras. The picture must show the comparison or relationship in the subject line so clearly that a viewer could describe it back without being told.
+Draw that and nothing else — no generic server-cloud-chip process art, no decorative extras. The picture must show the comparison, change, flow or structure in the subject line so clearly that a viewer could describe it back without being told.
 
-COMPOSITION — this is a consulting slide. The illustration is a SUPPORTING diagram, not the hero.
-- Draw ONLY inside the area described here, in words: ${region(zone)}.
-- Everywhere else must be flat, pure WHITE (#FFFFFF). Typeset text sits there and must stay legible.
-- The diagram must be BOLD and fully realised, filling its zone edge to edge with clear shapes, icons and connectors. A sparse or near-empty zone is a failed render. Restraint applies to the PALETTE, never to how much is drawn.
-- Style: clean flat vector, thin consistent line weight, restrained palette of navy #1B3A6B, slate grey and one muted accent on white. No gradients, no glow, no 3D, no photographic texture. Think: a diagram from a McKinsey or BCG report.
+This image is ONE panel on a consulting slide; the typeset text lives outside it. Fill the canvas edge to edge with the diagram — a sparse or near-empty canvas is a failed render. Restraint applies to the PALETTE, never to how much is drawn.
+Style: clean flat vector, thin consistent line weight, restrained palette of navy #1B3A6B, slate grey and one muted accent on a pure white background. No gradients, no glow, no 3D, no photographic texture. Think: a diagram from a McKinsey or BCG report.
 ABSOLUTELY NO TEXT, LABELS, NUMBERS, OR LETTERS OF ANY KIND — the slide's own typesetting provides every word.`;
 }
 
@@ -239,8 +235,9 @@ export function layoutCentered(spec: SlideSpec): LayoutPlan {
   const hero = spec.keyFigures[0];
   const rest = spec.keyFigures.slice(1, 4);
 
-  const heroSize = 150;
-  const heroY = bodyTop + 30;
+  // Hero figure centred across the slide.
+  const heroSize = 112;
+  const heroY = bodyTop + 10;
   elements.push({
     text: hero.value,
     x: M,
@@ -254,13 +251,13 @@ export function layoutCentered(spec: SlideSpec): LayoutPlan {
     maxLines: 1,
     role: "kpi",
   });
-  const labelY = heroY + Math.ceil(heroSize * 1.35) + 6;
+  const labelY = heroY + Math.ceil(heroSize * 1.35) + 4;
   elements.push({
-    text: fitLabel(hero.label, 22, W - M * 2, 1, FONT),
+    text: fitLabel(hero.label, 20, W - M * 2, 1, FONT),
     x: M,
     y: labelY,
     width: W - M * 2,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 400,
     fontFamily: FONT,
     color: SLIDE_PALETTE.grey,
@@ -269,66 +266,57 @@ export function layoutCentered(spec: SlideSpec): LayoutPlan {
     role: "caption",
   });
 
-  // Supporting figures in a centred row.
-  const rowY = labelY + 70;
-  if (rest.length) {
-    const cellW = 360;
-    const totalW = cellW * rest.length;
-    const startX = Math.round((W - totalW) / 2);
-    rest.forEach((f, i) => {
-      const x = startX + i * cellW;
-      if (i > 0)
-        bands.push({
-          x: x - 1,
-          y: rowY + 6,
-          width: 1,
-          height: 70,
-          color: SLIDE_PALETTE.rule,
-        });
-      elements.push({
-        text: f.value,
-        x,
-        y: rowY,
-        width: cellW,
-        fontSize: 44,
-        fontWeight: 700,
-        fontFamily: FONT,
-        color: SLIDE_PALETTE.ink,
-        align: "center",
-        maxLines: 1,
-        role: "kpi",
+  // Below the hero: supporting figures stacked on the left, the illustration on the
+  // right. The old bottom strip was 9:1 — no image model composes for that, and the
+  // crop cut every diagram's top off. A proper rectangle gets a proper picture.
+  const rowTop = labelY + Math.ceil(20 * 1.35) + 36;
+  const leftW = 560;
+  const rowH = 96;
+  rest.forEach((f, i) => {
+    const y = rowTop + i * rowH;
+    if (i > 0)
+      bands.push({
+        x: M,
+        y: y - 14,
+        width: leftW,
+        height: 1,
+        color: SLIDE_PALETTE.rule,
       });
-      elements.push({
-        text: fitLabel(f.label, 15, cellW - 24, 1, FONT),
-        x: x + 12,
-        y: rowY + Math.ceil(44 * 1.35) + 6,
-        width: cellW - 24,
-        fontSize: 15,
-        fontWeight: 400,
-        fontFamily: FONT,
-        color: SLIDE_PALETTE.grey,
-        align: "center",
-        maxLines: 1,
-        role: "caption",
-      });
+    elements.push({
+      text: f.value,
+      x: M,
+      y,
+      width: leftW,
+      fontSize: 40,
+      fontWeight: 700,
+      fontFamily: FONT,
+      color: SLIDE_PALETTE.ink,
+      align: "left",
+      maxLines: 1,
+      role: "kpi",
     });
-  }
+    elements.push({
+      text: fitLabel(f.label, 15, leftW, 1, FONT),
+      x: M,
+      y: y + Math.ceil(40 * 1.35) + 2,
+      width: leftW,
+      fontSize: 15,
+      fontWeight: 400,
+      fontFamily: FONT,
+      color: SLIDE_PALETTE.grey,
+      align: "left",
+      maxLines: 1,
+      role: "caption",
+    });
+  });
 
-  // Illustration band along the bottom of the body.
-  const zone = {
-    x: M,
-    y: rowY + 150,
-    w: W - M * 2,
-    h: Math.max(140, bodyBottom - (rowY + 150)),
+  const rect: Rect = {
+    x: M + leftW + 80,
+    y: rowTop - 10,
+    w: W - M - (M + leftW + 80),
+    h: bodyBottom - (rowTop - 10),
   };
-  return finish(
-    ctx,
-    zoneBrief(
-      zone,
-      `a wide, low horizontal diagram: ${visual(spec, 0)}`,
-    ),
-    [zone],
-  );
+  return finish(ctx, [rect], [plateBrief(visual(spec, 0))]);
 }
 
 // ── ACROSS: figures as nodes on a horizontal line ─────────────────────
@@ -431,14 +419,7 @@ export function layoutAcross(spec: SlideSpec): LayoutPlan {
     w: W - M * 2 - colW * 2 - 80,
     h: bodyBottom - evY + 10,
   };
-  return finish(
-    ctx,
-    zoneBrief(
-      zone,
-      `a compact diagram: ${visual(spec, 1)}`,
-    ),
-    [zone],
-  );
+  return finish(ctx, [zone], [plateBrief(`a compact diagram: ${visual(spec, 1)}`)]);
 }
 
 // ── BOXES: framework of evidence cards ────────────────────────────────
@@ -548,14 +529,7 @@ export function layoutBoxes(spec: SlideSpec): LayoutPlan {
     w: W - M * 2 - cardsW - 48,
     h: bodyBottom - cardsTop,
   };
-  return finish(
-    ctx,
-    zoneBrief(
-      zone,
-      `a vertical diagram: ${visual(spec, 2)}`,
-    ),
-    [zone],
-  );
+  return finish(ctx, [zone], [plateBrief(`a vertical diagram: ${visual(spec, 2)}`)]);
 }
 
 // ── FLOW: numbered steps with chevrons and a vignette per step ────────
@@ -703,24 +677,18 @@ export function layoutFlow(spec: SlideSpec): LayoutPlan {
     }
   });
 
-  // Vignette lane band between headings and captions.
+  // Vignette lane band between headings and captions: one plate per lane, each
+  // fitted inside its own rectangle, so no vignette can cross into its neighbour.
   const laneTop = badgeY + badgeD + 22 + 21 * 1.35 * 2 + 24;
   const laneBottom = bodyBottom - 15 * 1.35 * 3 - 30;
-  const laneBrief = steps.map((_, i) => `  ${ordinalLane(i, n)}: ${visual(spec, i)}`)
-    .join("\n");
-  const zones = `COMPOSITION — a consulting slide. The canvas is divided into ${['two','three','four','five'][n - 2] ?? 'several'} equal vertical columns.
-- Draw ONLY in a horizontal band through the middle of the canvas, below the headings and above the captions; the top and bottom of the canvas stay flat, pure white.
-- One self-contained vignette per lane, centred in its lane, with a clear gutter between lanes. Never let a vignette cross into its neighbour:
-${laneBrief}
-- Style: clean flat vector, thin consistent line weight, navy #1B3A6B and slate grey on white. No gradients, no glow, no 3D.
-ABSOLUTELY NO TEXT, LABELS, NUMBERS, OR LETTERS OF ANY KIND.`;
   const laneRects: Rect[] = steps.map((_, i) => ({
     x: M + laneW * i + 16,
     y: laneTop,
     w: laneW - 32,
     h: laneBottom - laneTop,
   }));
-  return finish(ctx, zones, laneRects);
+  const laneBriefs = steps.map((_, i) => plateBrief(`a single self-contained vignette: ${visual(spec, i)}`));
+  return finish(ctx, laneRects, laneBriefs);
 }
 
 export const SLIDE_LAYOUTS: Record<SlideVariant, (s: SlideSpec) => LayoutPlan> =

@@ -73,6 +73,8 @@ export type LayoutPlan = {
    * Prose in `illustrationZones` asks; these rectangles enforce.
    */
   illustrationRects?: { x: number; y: number; w: number; h: number }[];
+  /** One brief per rect. The model's canvas IS the rect; the image is fitted inside. */
+  illustrationBriefs?: string[];
 };
 
 /**
