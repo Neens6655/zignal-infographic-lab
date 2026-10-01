@@ -116,6 +116,17 @@ function elementToJSX(el: TextElement) {
         lineHeight: LINE_HEIGHT,
         color: el.color,
         textAlign: el.align,
+        // Satori: textAlign does NOT move a text node inside a flex container — the
+        // node is shrink-to-fit, so it sat flush-left on every "centred" element
+        // (the hero figure, the step numbers inside their circles) and no gate saw
+        // it, because the gates measure planned geometry, not pixels. justifyContent
+        // positions the block; textAlign then applies within it once it wraps.
+        justifyContent:
+          el.align === "center"
+            ? "center"
+            : el.align === "right"
+              ? "flex-end"
+              : "flex-start",
         overflow: "hidden",
         // Always allow wrapping. `nowrap` on single-line elements is what produced
         // mid-word amputation with no ellipsis, because Satori has no

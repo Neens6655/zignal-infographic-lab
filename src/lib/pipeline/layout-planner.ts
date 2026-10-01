@@ -58,6 +58,15 @@ export type LayoutPlan = {
   elements: TextElement[];
   illustrationZones: string;
   backgroundColor: string;
+  /**
+   * When set, the plate is contractually flat this colour everywhere outside its
+   * illustration zones, so text with no band behind it is backed by this colour.
+   * The contract is enforced at render time by `checkPlateGround`, which samples
+   * the plate under every text box and rejects a plate that drew there. Without
+   * it, unbacked text is a blocker — and a full-canvas band is NOT the answer: it
+   * hides the illustration (three times, now).
+   */
+  textGround?: string;
 };
 
 /**

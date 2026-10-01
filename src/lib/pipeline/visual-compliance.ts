@@ -120,7 +120,7 @@ export function contrastRatio(fg: string, bg: string): number {
  * the text really needs, capped by maxLines.
  */
 
-function elementBox(el: TextElement, lineHeight = 1.35) {
+export function elementBox(el: TextElement, lineHeight = 1.35) {
   const cpl = Math.max(
     1,
     Math.floor(
@@ -218,7 +218,9 @@ export function checkVisualCompliance(plan: LayoutPlan): ComplianceReport {
   let unbacked = 0;
   let minContrast = Infinity;
   for (const el of els) {
-    const band = backingBand(el, bands);
+    const band =
+      backingBand(el, bands) ??
+      (plan.textGround ? { color: plan.textGround } : undefined);
     if (!band) {
       unbacked++;
       issues.push({

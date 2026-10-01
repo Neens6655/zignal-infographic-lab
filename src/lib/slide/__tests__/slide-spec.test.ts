@@ -111,6 +111,20 @@ describe("reviewSpec — the run-1 and run-2 phantoms, on the real gate", () => 
     expect(problems.some((p) => p.includes("812 MW"))).toBe(true);
   });
 
+  it("rejects a visual brief that asks for labels or quoted words", async () => {
+    const problems = await reviewSpec(
+      draft({
+        visualBriefs: [
+          "two piles of coins, the first pile labelled 'KSA' larger than the second labelled 'UAE'",
+          "a map outline with two highlighted regions",
+          "a timeline of three growing bars",
+        ],
+      }),
+      await ledger(),
+    );
+    expect(problems.some((p) => p.includes("labels or quoted words"))).toBe(true);
+  });
+
   it("rejects a topic label as the title", async () => {
     const problems = await reviewSpec(
       draft({ actionTitle: "GCC Data Centre Capacity: Market Overview" }),

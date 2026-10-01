@@ -33,7 +33,19 @@ import {
 } from "./slide-layouts";
 import { checkPlateForText } from "./plate-text-check";
 import { checkPlate } from "../pipeline/plate-check";
+import { checkPlateGround } from "./plate-ground-check";
+import type { LayoutPlan } from "../pipeline/layout-planner";
 import { blindReaderTest, type BlindReaderReport } from "./blind-reader";
+
+/** The text layer hid the illustration. Code bug; classified, never swallowed. */
+export class PlateHiddenError extends Error {
+  readonly kind = "layout_defect" as const;
+  constructor(variant: string) {
+    super(
+      `[slide:${variant}] the illustration is not visible in the composite — an opaque band in the text layer covers the canvas`,
+    );
+  }
+}
 
 export type Ceiling = {
   maxIterations: number;
@@ -81,6 +93,7 @@ export async function researchTopic(topic: string): Promise<ResearchResult> {
 async function renderPlate(
   brief: string,
   priorDefects: string[],
+  plan: LayoutPlan,
 ): Promise<{ image: string | null; textFound: string[]; cost: number }> {
   let cost = 0;
   let prompt = brief;
@@ -113,6 +126,17 @@ async function renderPlate(
 REJECTED: the previous image was almost blank (${ink.reason}). The diagram must be BOLD and fully drawn — fill its permitted zone edge to edge with clear shapes, icons and connectors. Restraint applies to the palette, never to how much is drawn.`;
       continue;
     }
+    // Under the text. The layouts promise the plate is flat white outside its zones;
+    // this is where that promise is measured.
+    if (plan.textGround) {
+      const ground = await checkPlateGround(r.imageBase64, plan);
+      if (!ground.ok) {
+        prompt += `
+
+REJECTED: the previous image had drawing where the slide's text goes (${ground.offenders.map((o) => `"${o.text}"`).join(", ")}). Keep EVERYTHING outside the permitted zone pure, flat white — no shapes, shading, lines or background there.`;
+        continue;
+      }
+    }
     const check = await checkPlateForText(r.imageBase64);
     cost += check.costUsd;
     if (!check.hasText) return { image: r.imageBase64, textFound: [], cost };
@@ -143,7 +167,7 @@ export async function renderVariant(
   }
 
   const [plate, textPng] = await Promise.all([
-    renderPlate(plan.illustrationZones, priorDefects),
+    renderPlate(plan.illustrationZones, priorDefects, plan),
     renderTextLayer(plan),
   ]);
   cost += plate.cost;
@@ -155,6 +179,23 @@ export async function renderVariant(
     plan.height,
     plan.backgroundColor,
   );
+
+  // Prove the plate reached the output. If the composite with the plate is
+  // byte-identical to the composite without it, the text layer is covering the whole
+  // canvas and nothing downstream can see the illustration. That is a layout bug, not
+  // something another render fixes — so it aborts instead of becoming a defect string.
+  if (plate.image) {
+    const withoutPlate = await compositeInfographic(
+      null,
+      textPng,
+      plan.width,
+      plan.height,
+      plan.backgroundColor,
+    );
+    if (withoutPlate === composite) {
+      throw new PlateHiddenError(variant);
+    }
+  }
 
   const idx = SLIDE_VARIANTS.indexOf(variant) + 1;
   const file = join(

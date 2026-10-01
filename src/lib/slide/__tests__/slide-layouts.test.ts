@@ -68,3 +68,15 @@ describe("flow — carries the numbers", () => {
   });
 });
 
+describe("no band may cover the canvas", () => {
+  // Third occurrence of the same bug: an opaque full-size band in the text layer hid
+  // the illustration in every run while every score was computed on the text alone.
+  it.each(SLIDE_VARIANTS)("%s has no band covering most of the slide", (v) => {
+    const plan = SLIDE_LAYOUTS[v](SPEC);
+    const canvas = plan.width * plan.height;
+    const offenders = plan.bands.filter(
+      (b) => b.color !== "transparent" && (b.width * b.height) / canvas > 0.5,
+    );
+    expect(offenders, JSON.stringify(offenders)).toHaveLength(0);
+  });
+});

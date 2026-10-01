@@ -251,7 +251,10 @@ export async function blindReaderTest(
     grade.claimMatches && allFiguresRead && noPlateText && score >= PASS_SCORE;
 
   console.log(
-    `[blind-reader] ${passed ? "PASS" : "FAIL"} ${score}/100 | claim=${grade.claimMatches ? "OK" : "MISS"} figures=${figuresRead.filter((f) => f.read).length}/${figuresRead.length} plateText=${noPlateText ? "none" : "FOUND"} clarity=${extraction.fiveSecondClarity}/5`,
+    `[blind-reader] ${passed ? "PASS" : "FAIL"} ${score}/100 | claim=${grade.claimMatches ? "OK" : "MISS"} figures=${figuresRead.filter((f) => f.read).length}/${figuresRead.length} plateText=${noPlateText ? "none" : "FOUND"} clarity=${extraction.fiveSecondClarity}/5` +
+      (grade.claimMatches ? "" : `
+[blind-reader]   read: "${extraction.claim}"
+[blind-reader]   why: ${grade.reasoning}`),
   );
 
   return {

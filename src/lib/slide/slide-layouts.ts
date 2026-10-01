@@ -59,9 +59,15 @@ type Ctx = {
 // ── Shared chrome ─────────────────────────────────────────────────────
 
 function chrome(spec: SlideSpec): Ctx {
-  const bands: Band[] = [
-    { x: 0, y: 0, width: W, height: H, color: SLIDE_PALETTE.background },
-  ];
+  // NO full-canvas band. The text layer composites OVER the plate, so an opaque
+  // canvas-sized band here hides the illustration completely — which it did, in six
+  // runs, while every gate scored the text and the compositor's output stayed
+  // byte-identical across iterations. The white ground comes from the plate itself
+  // (the model is told to keep everything outside its zone pure white) and from the
+  // compositor's solid fallback when there is no plate. Third occurrence of this bug
+  // class (stepped-process, annotated-diagram, now slides); the layouts test now
+  // forbids any band covering most of the canvas.
+  const bands: Band[] = [];
   const elements: TextElement[] = [];
 
   elements.push({
@@ -164,6 +170,7 @@ function finish(ctx: Ctx, illustrationZones: string): LayoutPlan {
     elements: ctx.elements,
     illustrationZones,
     backgroundColor: SLIDE_PALETTE.background,
+    textGround: SLIDE_PALETTE.background,
   };
 }
 

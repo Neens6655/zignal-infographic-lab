@@ -145,7 +145,7 @@ RULES OF THE HOUSE
 2. KEY FIGURES: 2-4 numbers that prove the title. Each with a 2-5 word label. Values exactly as they appear in the research, with units.
 3. EVIDENCE: 3-4 supporting points. Each heading is 3-6 words; each body is ONE complete sentence of 12-25 words. Executive register: specific, no adjectives doing the work of data.
 4. STEPS: if the claim is a process or sequence, 3-5 steps of 3-8 words each. Otherwise an empty array.
-5. VISUAL BRIEFS: 3-5 short noun-phrase descriptions of what an illustrator should DRAW to support the slide — objects, relative sizes, arrows, groupings. NO words, labels, numbers or captions in them. Describe pictures, not sentences.
+5. VISUAL BRIEFS: 3-5 short noun-phrase descriptions of what an illustrator should DRAW to support the slide — objects, relative sizes, arrows, groupings. NO words, labels, numbers, captions or quoted text in them — never 'labelled X'. Describe shapes, sizes and arrangement only.
    BAD:  "Saudi pipeline signals convergence"
    GOOD: "two server racks side by side, the right one taller, a rising dashed arrow from the left rack toward the right"
 6. COHERENCE: the FIRST key figure and the FIRST evidence point must directly support the action title's direction. If the title says one market will overtake another, lead with the evidence for the overtaking, not with the incumbent's lead. A reader who sees only the first figure and first heading must reach the title's conclusion.
@@ -219,6 +219,10 @@ export async function reviewSpec(j: DraftSpec, ledger: ClaimLedger): Promise<str
   for (const b of briefs) {
     if (/\d/.test(String(b))) problems.push(`visualBriefs: "${b}" contains a number — describe the picture, not the data`);
     const lower = String(b).toLowerCase();
+    // "two piles of coins, the first labelled 'KSA'" — the model obeys and draws the word.
+    if (/(label+ed|labels?|captioned|titled|reading|the words?|text|lettering)|['"‘’“”]/.test(lower)) {
+      problems.push(`visualBriefs: "${b}" asks for labels or quoted words — the model will draw them; describe shapes and sizes only`);
+    }
     if ([j.actionTitle, ...evidence.map((e) => e.heading)].some((t) => t && lower.includes(String(t).toLowerCase().slice(0, 24)))) {
       problems.push(`visualBriefs: "${b}" repeats slide text — the model will draw those words`);
     }
