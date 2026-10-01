@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence, useInView } from "motion/react";
+import { motion, AnimatePresence, useInView, useReducedMotion } from "motion/react";
 
 /* ─── Constants ─── */
 
@@ -354,12 +354,18 @@ function FloatingShapes() {
 function AnimatedCounter({ target }: { target: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
-  const [count, setCount] = useState(0);
+  /* Starts at the TRUE value. Starting at 0 puts a false number in the server HTML
+     and leaves it there for anyone whose observer never fires — /about shipped
+     "0 styles. 0 layouts. 0 trusted sources." for exactly this reason. The count-up
+     is an enhancement, gated on motion preference. */
+  const [count, setCount] = useState(target);
   const hasAnimated = useRef(false);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
-    if (isInView && !hasAnimated.current) {
+    if (isInView && !hasAnimated.current && !reduce) {
       hasAnimated.current = true;
+      setCount(0);
       const duration = 2000;
       const startTime = performance.now();
 
@@ -374,7 +380,7 @@ function AnimatedCounter({ target }: { target: number }) {
       };
       requestAnimationFrame(animate);
     }
-  }, [isInView, target]);
+  }, [isInView, target, reduce]);
 
   return (
     <span ref={ref} className="tabular-nums">
@@ -623,9 +629,7 @@ function PricingCard({
             tier is already signalled by a dashed border, muted colour, a rule through
             each excluded feature and screen-reader text; it does not also need to be
             unreadable. */}
-        <div className="pt-6">
-          {geometry}
-        </div>
+        <div className="pt-6">{geometry}</div>
 
         {/* Content */}
         <div className="px-8 pb-8">
@@ -654,15 +658,19 @@ function PricingCard({
                 key={feature}
                 className="flex items-start gap-3 text-sm font-mono"
                 style={{
-                  // The dimmed state marks a feature this tier does NOT include. At
-                  // 0.3 alpha it measured 1.5:1 — a reader could not tell what they
-                  // were missing. It also signalled exclusion by dimness ALONE, which
-                  // is a colour-only cue. Now legible, and marked by a rule through
-                  // the text so the meaning survives without relying on contrast.
+                  // `dimmed` means THIS TIER IS NOT YET AVAILABLE — it is set on the
+                  // two "Coming Soon" cards. It does NOT mean the feature is excluded.
+                  //
+                  // I previously read it as exclusion and struck these lines through,
+                  // which told a visitor that Pro does not include API access. The
+                  // contrast gate passed that happily, because the defect was in the
+                  // MEANING, not the pixels. Only reading the rendered page caught it.
+                  //
+                  // These are the features the tier WILL have. They read normally;
+                  // the badge and the dashed border carry "not yet available".
                   color: dimmed
-                    ? "rgba(255,255,255,0.55)"
+                    ? "rgba(255,255,255,0.62)"
                     : "rgba(255,255,255,0.72)",
-                  textDecoration: dimmed ? "line-through" : undefined,
                 }}
               >
                 <span
@@ -670,13 +678,10 @@ function PricingCard({
                   aria-hidden="true"
                   style={{
                     backgroundColor: dimmed
-                      ? "rgba(255,255,255,0.4)"
+                      ? "rgba(255,255,255,0.45)"
                       : accentColor,
                   }}
                 />
-                <span className="sr-only">
-                  {dimmed ? "Not included: " : "Included: "}
-                </span>
                 {feature}
               </li>
             ))}

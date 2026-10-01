@@ -7,6 +7,7 @@ import {
   useScroll,
   useTransform,
   useMotionValueEvent,
+  useReducedMotion,
   type Variants,
 } from "motion/react";
 import Link from "next/link";
@@ -126,7 +127,7 @@ function HeroInfographicSVG() {
           fillOpacity="0.4"
           fontSize="10"
           fontFamily="'IBM Plex Mono', monospace"
-                  >
+        >
           {label.text}
         </motion.text>
       ))}
@@ -222,7 +223,7 @@ function HeroInfographicSVG() {
         fontFamily="'IBM Plex Mono', monospace"
         fontWeight="bold"
         letterSpacing="0.08em"
-              >
+      >
         GLOBAL AI MARKET OVERVIEW
       </motion.text>
 
@@ -278,7 +279,7 @@ function HeroInfographicSVG() {
         fillOpacity="0.2"
         fontSize="7"
         fontFamily="'IBM Plex Sans', sans-serif"
-              >
+      >
         Sources: Statista, Grand View Research, Bloomberg
       </motion.text>
 
@@ -2214,12 +2215,28 @@ function InlineCounter({
 }) {
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.1 });
-  const [display, setDisplay] = useState(0);
+  const reduce = useReducedMotion();
+
+  /**
+   * Starts at the TRUE value, not at zero.
+   *
+   * This counted up from 0 only once an IntersectionObserver fired, so the server
+   * rendered "0 styles. 0 layouts. 0+ combinations. 0 trusted sources. Generated in
+   * 0s." — and that is what a full-page capture showed, because the observer had not
+   * run. A decorative animation was making the page state something false about the
+   * product, and it would have stayed false for anyone whose JS failed.
+   *
+   * The count-up is now an ENHANCEMENT: the correct number is in the HTML, and the
+   * animation rewinds and replays it only when motion is allowed and the element is
+   * actually seen.
+   */
+  const [display, setDisplay] = useState(value);
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!isInView || reduce) return;
     const duration = 1600;
     const start = performance.now();
+    setDisplay(0);
     const step = (now: number) => {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
@@ -2228,7 +2245,7 @@ function InlineCounter({
       if (progress < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
-  }, [isInView, value]);
+  }, [isInView, value, reduce]);
 
   return (
     <span
@@ -2265,8 +2282,16 @@ export default function AboutPage() {
   const galleryRef = useRef<HTMLDivElement>(null);
   const galleryInView = useInView(galleryRef, { once: true, amount: 0.05 });
 
+  // overflow-x-clip on the root below, NOT overflow-hidden.
+  // `overflow: hidden` on an ancestor makes it a scroll container, and a
+  // `position: sticky` descendant then sticks to THAT box rather than the viewport.
+  // The 500vh scrollytelling pipeline further down has a sticky panel, which
+  // therefore scrolled away after one screen and left roughly 3,500px — about 47% of
+  // this page — rendering as blank black. Every gate passed it: the markup was all
+  // present, the contrast was fine, nothing errored. `overflow-x: clip` contains
+  // horizontal bleed without creating a scroll container, so sticky works.
   return (
-    <div className="relative min-h-screen bg-[#0A0A0B] overflow-hidden">
+    <div className="relative min-h-screen bg-[#0A0A0B] overflow-x-clip">
       {/* ═══ Dot Grid Background ═══ */}
       <div
         className="fixed inset-0 pointer-events-none z-0"
@@ -2401,9 +2426,7 @@ export default function AboutPage() {
           </div>
 
           {/* Scroll indicator */}
-          <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-                      >
+          <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
             <p className="font-mono text-[9px] text-white/50 tracking-[0.2em] uppercase">
               Scroll
             </p>
@@ -2443,7 +2466,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-7xl px-6 mb-8">
           <motion.p
             initial={false}
-            animate={galleryInView ? { y: 0 } : { y: 24 } }
+            animate={galleryInView ? { y: 0 } : { y: 24 }}
             transition={{ duration: 0.6 }}
             className="text-[9px] font-mono font-semibold tracking-[0.3em] uppercase text-[#D4A84B] mb-3"
           >
@@ -2451,9 +2474,7 @@ export default function AboutPage() {
           </motion.p>
           <motion.h2
             initial={{ y: 16 }}
-            animate={
-              galleryInView ? { y: 0 } : { y: 16 }
-            }
+            animate={galleryInView ? { y: 0 } : { y: 16 }}
             transition={{ duration: 0.7 }}
             className="text-2xl sm:text-3xl font-mono font-bold text-[#E8E5E0]"
           >
@@ -2483,9 +2504,7 @@ export default function AboutPage() {
                 scrollSnapAlign: "start",
               }}
               initial={{ y: 30 }}
-              animate={
-                galleryInView ? { y: 0 } : { y: 30 }
-              }
+              animate={galleryInView ? { y: 0 } : { y: 30 }}
               transition={{ duration: 0.6, delay: 0.1 + i * 0.08 }}
               whileHover={{ scale: 1.03 }}
             >
