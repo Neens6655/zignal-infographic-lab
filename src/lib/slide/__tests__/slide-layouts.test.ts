@@ -29,6 +29,11 @@ const SPEC: SlideSpec = {
     { heading: "Power, not land, is the constraint", body: "Grid allocation and cooling capacity, not real estate, determine how fast announced sites come online." },
   ],
   steps: ["Secure grid allocation", "Break ground on hyperscale sites", "Commission in phases", "Scale to 2030 target"],
+  visualBriefs: [
+    "two server racks side by side, the right one taller, a rising dashed arrow between them",
+    "a map outline with two highlighted regions and a cluster of small building icons in each",
+    "a horizontal timeline of three growing bars",
+  ],
   sourceLine: "Source: vision2030.ai; pwc.com; agbi.com (2025–26)",
   sources: [],
 };

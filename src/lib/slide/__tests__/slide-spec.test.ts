@@ -47,6 +47,11 @@ function draft(over: Partial<DraftSpec> = {}): DraftSpec {
       },
     ],
     steps: [],
+    visualBriefs: [
+      "two server racks side by side, the right one taller, a rising dashed arrow between them",
+      "a map outline with two highlighted regions and a cluster of small building icons in each",
+      "a horizontal timeline of three growing bars",
+    ],
     sourceLine: "Source: pwc.com (2025–26)",
     ...over,
   };

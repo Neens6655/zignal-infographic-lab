@@ -41,6 +41,14 @@ export type SlideSpec = {
   evidence: Evidence[];
   /** 3-5 steps for the flow variant. Empty when the claim is not a process. */
   steps: string[];
+  /**
+   * What to DRAW, as noun phrases a vector illustrator could act on — never slide
+   * text. The model copies any sentence it is given into the image; the first run
+   * rendered the lane headings verbatim. "a small server rack beside a much larger
+   * one, a dashed arrow from small to large" is a brief; "Saudi pipeline signals
+   * convergence" is a caption.
+   */
+  visualBriefs: string[];
   /** "Source: vision2030.ai; PwC; HUMAIN (2025–26)" */
   sourceLine: string;
   sources: { url: string; title: string }[];
@@ -137,8 +145,12 @@ RULES OF THE HOUSE
 2. KEY FIGURES: 2-4 numbers that prove the title. Each with a 2-5 word label. Values exactly as they appear in the research, with units.
 3. EVIDENCE: 3-4 supporting points. Each heading is 3-6 words; each body is ONE complete sentence of 12-25 words. Executive register: specific, no adjectives doing the work of data.
 4. STEPS: if the claim is a process or sequence, 3-5 steps of 3-8 words each. Otherwise an empty array.
-5. SOURCE LINE: "Source: " followed by the 2-4 publisher domains you actually drew from, semicolon-separated, then the year range in brackets.
-6. TRACKER: 2-4 words, uppercase, naming the theme.
+5. VISUAL BRIEFS: 3-5 short noun-phrase descriptions of what an illustrator should DRAW to support the slide — objects, relative sizes, arrows, groupings. NO words, labels, numbers or captions in them. Describe pictures, not sentences.
+   BAD:  "Saudi pipeline signals convergence"
+   GOOD: "two server racks side by side, the right one taller, a rising dashed arrow from the left rack toward the right"
+6. COHERENCE: the FIRST key figure and the FIRST evidence point must directly support the action title's direction. If the title says one market will overtake another, lead with the evidence for the overtaking, not with the incumbent's lead. A reader who sees only the first figure and first heading must reach the title's conclusion.
+7. SOURCE LINE: "Source: " followed by the 2-4 publisher domains you actually drew from, semicolon-separated, then the year range in brackets.
+8. TRACKER: 2-4 words, uppercase, naming the theme.
 
 Return ONLY this JSON:
 {
@@ -148,13 +160,17 @@ Return ONLY this JSON:
   "keyFigures": [{"value": "467 MW", "label": "Saudi live capacity, Q1 2026"}],
   "evidence": [{"heading": "...", "body": "..."}],
   "steps": [],
+  "visualBriefs": ["..."],
   "sourceLine": "Source: ...",
   "citationIdx": [1, 11, 12]
 }`;
 
 
 /** The shape the structurer returns, before it is accepted as a SlideSpec. */
-export type DraftSpec = Omit<SlideSpec, "sources"> & { citationIdx?: number[] };
+export type DraftSpec = Omit<SlideSpec, "sources" | "visualBriefs"> & {
+  visualBriefs?: string[];
+  citationIdx?: number[];
+};
 
 /**
  * The review gate, as a pure function so it can be tested on the real path.
@@ -196,6 +212,17 @@ export async function reviewSpec(j: DraftSpec, ledger: ClaimLedger): Promise<str
 
   const evidence = Array.isArray(j.evidence) ? j.evidence : [];
   if (evidence.length < 2) problems.push(`evidence: need 3-4 points, got ${evidence.length}`);
+
+  // Gate 4: visual briefs exist and describe pictures, not slide text.
+  const briefs = Array.isArray(j.visualBriefs) ? j.visualBriefs : [];
+  if (briefs.length < 2) problems.push(`visualBriefs: need 3-5 drawing descriptions, got ${briefs.length}`);
+  for (const b of briefs) {
+    if (/\d/.test(String(b))) problems.push(`visualBriefs: "${b}" contains a number — describe the picture, not the data`);
+    const lower = String(b).toLowerCase();
+    if ([j.actionTitle, ...evidence.map((e) => e.heading)].some((t) => t && lower.includes(String(t).toLowerCase().slice(0, 24)))) {
+      problems.push(`visualBriefs: "${b}" repeats slide text — the model will draw those words`);
+    }
+  }
 
   return problems;
 }
@@ -270,6 +297,7 @@ export async function buildSlideSpec(
           .slice(0, 4)
           .map((e) => ({ heading: String(e.heading), body: String(e.body) })),
         steps: Array.isArray(j.steps) ? j.steps.slice(0, 5).map(String) : [],
+        visualBriefs: Array.isArray(j.visualBriefs) ? j.visualBriefs.slice(0, 5).map(String) : [],
         sourceLine: String(j.sourceLine || "").trim(),
         sources: used.map((c) => ({ url: c.url, title: c.title || c.url })),
       };

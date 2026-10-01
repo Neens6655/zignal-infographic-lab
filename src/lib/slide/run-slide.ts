@@ -32,6 +32,7 @@ import {
   type SlideVariant,
 } from "./slide-layouts";
 import { checkPlateForText } from "./plate-text-check";
+import { checkPlate } from "../pipeline/plate-check";
 import { blindReaderTest, type BlindReaderReport } from "./blind-reader";
 
 export type Ceiling = {
@@ -88,7 +89,7 @@ async function renderPlate(
   }
 
   let textFound: string[] = [];
-  for (let attempt = 1; attempt <= 2; attempt++) {
+  for (let attempt = 1; attempt <= 3; attempt++) {
     let r: RenderResult;
     try {
       r = await renderImage(prompt, { aspectRatio: "16:9" });
@@ -101,6 +102,17 @@ async function renderPlate(
     }
     cost += r.costUsd ?? 0;
 
+    // Blank first. Told to keep everything outside its zone pure white, the model
+    // returned near-empty canvases five times in a row and every one composited as a
+    // white slide — which the blind reader then PASSED, because a missing diagram does
+    // not hurt comprehension. Ink and coverage are measured before anything else.
+    const ink = await checkPlate(r.imageBase64);
+    if (!ink.ok) {
+      prompt += `
+
+REJECTED: the previous image was almost blank (${ink.reason}). The diagram must be BOLD and fully drawn — fill its permitted zone edge to edge with clear shapes, icons and connectors. Restraint applies to the palette, never to how much is drawn.`;
+      continue;
+    }
     const check = await checkPlateForText(r.imageBase64);
     cost += check.costUsd;
     if (!check.hasText) return { image: r.imageBase64, textFound: [], cost };
@@ -154,8 +166,13 @@ export async function renderVariant(
   const blind = await blindReaderTest(composite, spec);
   cost += blind.costUsd;
 
+  // A slide with no illustration must never pass. The blind reader scores comprehension,
+  // and a blank plate does not hurt comprehension — two slides passed at 96/100 with
+  // pure white where the diagram belonged. The visual is part of the deliverable.
+  const plateMissing = plate.image === null;
+  if (plateMissing) blind.defects.push("illustration is missing — the plate was blank or rejected");
   const passed =
-    blind.passed && compliance.passed && plate.textFound.length === 0;
+    blind.passed && compliance.passed && plate.textFound.length === 0 && !plateMissing;
   const seconds = Math.round((Date.now() - t0) / 1000);
   console.log(
     `[slide:${variant}] iter ${iteration} ${passed ? "PASS" : "FAIL"} ${blind.score}/100 in ${seconds}s ($${cost.toFixed(3)})`,

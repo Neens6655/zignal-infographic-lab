@@ -169,6 +169,17 @@ function finish(ctx: Ctx, illustrationZones: string): LayoutPlan {
 
 const pct = (v: number, of: number) => Math.round((v / of) * 100);
 
+/**
+ * The drawing instruction for a zone. Comes from the spec's visualBriefs — noun
+ * phrases describing a picture — and NEVER from slide text. The first live run put
+ * the lane headings in the brief and the model rendered them verbatim into the
+ * illustration, as text, which the slide then had to reject.
+ */
+function visual(spec: SlideSpec, i: number): string {
+  const b = spec.visualBriefs ?? [];
+  return b[i % Math.max(1, b.length)] || b[0] || "an abstract diagram of connected nodes and flows";
+}
+
 function zoneBrief(
   zone: { x: number; y: number; w: number; h: number },
   subject: string,
@@ -177,6 +188,7 @@ function zoneBrief(
 - Draw ONLY inside horizontal ${pct(zone.x, W)}%–${pct(zone.x + zone.w, W)}% and vertical ${pct(zone.y, H)}%–${pct(zone.y + zone.h, H)}% of the canvas.
 - Everywhere else must be flat, pure WHITE (#FFFFFF). Typeset text sits there and must stay legible.
 - Subject: ${subject}
+- The diagram must be BOLD and fully realised, filling its zone edge to edge with clear shapes, icons and connectors. A sparse or near-empty zone is a failed render. Restraint applies to the PALETTE, never to how much is drawn.
 - Style: clean flat vector, thin consistent line weight, restrained palette of navy #1B3A6B, slate grey and one muted accent on white. No gradients, no glow, no 3D, no photographic texture. Think: a diagram from a McKinsey or BCG report.
 ABSOLUTELY NO TEXT, LABELS, NUMBERS, OR LETTERS OF ANY KIND — the slide's own typesetting provides every word.`;
 }
@@ -275,7 +287,7 @@ export function layoutCentered(spec: SlideSpec): LayoutPlan {
     ctx,
     zoneBrief(
       zone,
-      `a wide, low horizontal diagram summarising: ${spec.subtitle || spec.actionTitle}`,
+      `a wide, low horizontal diagram: ${visual(spec, 0)}`,
     ),
   );
 }
@@ -384,7 +396,7 @@ export function layoutAcross(spec: SlideSpec): LayoutPlan {
     ctx,
     zoneBrief(
       zone,
-      `a compact diagram of the sequence: ${spec.subtitle || spec.actionTitle}`,
+      `a compact diagram: ${visual(spec, 1)}`,
     ),
   );
 }
@@ -500,7 +512,7 @@ export function layoutBoxes(spec: SlideSpec): LayoutPlan {
     ctx,
     zoneBrief(
       zone,
-      `a vertical diagram illustrating: ${spec.subtitle || spec.actionTitle}`,
+      `a vertical diagram: ${visual(spec, 2)}`,
     ),
   );
 }
@@ -604,11 +616,7 @@ export function layoutFlow(spec: SlideSpec): LayoutPlan {
   // Vignette lane band between headings and captions.
   const laneTop = badgeY + badgeD + 22 + 21 * 1.35 * 2 + 24;
   const laneBottom = bodyBottom - 15 * 1.35 * 3 - 30;
-  const laneBrief = steps
-    .map(
-      (s, i) =>
-        `  LANE ${i + 1} (horizontal ${pct(M + laneW * i, W)}%–${pct(M + laneW * (i + 1), W)}%): ${s}`,
-    )
+  const laneBrief = steps.map((_, i) => `  LANE ${i + 1} (horizontal ${pct(M + laneW * i, W)}%–${pct(M + laneW * (i + 1), W)}%): ${visual(spec, i)}`)
     .join("\n");
   const zones = `COMPOSITION — a consulting slide. The canvas is divided into ${n} equal vertical LANES.
 - Draw ONLY within vertical ${pct(laneTop, H)}%–${pct(laneBottom, H)}%. Everywhere else is flat, pure WHITE (#FFFFFF).
