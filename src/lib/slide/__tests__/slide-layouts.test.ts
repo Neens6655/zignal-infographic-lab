@@ -7,7 +7,7 @@
  * them at test cost, with figures of the shape the structurer actually emits.
  */
 import { describe, it, expect } from "vitest";
-import { SLIDE_LAYOUTS, SLIDE_VARIANTS } from "../slide-layouts";
+import { SLIDE_LAYOUTS, SLIDE_VARIANTS, layoutFlow } from "../slide-layouts";
 import { checkVisualCompliance } from "../../pipeline/visual-compliance";
 import type { SlideSpec } from "../slide-spec";
 
@@ -58,3 +58,13 @@ describe("slide layouts pass the hygiene gate", () => {
     expect(r.passed, r.issues.map((i) => i.detail).join("\n")).toBe(true);
   });
 });
+
+describe("flow — carries the numbers", () => {
+  it("places every key figure on the slide (run-4: >120 MW was missing 8/8, structurally)", () => {
+    const texts = layoutFlow(SPEC).elements.map((e) => e.text);
+    for (const f of SPEC.keyFigures) {
+      expect(texts, `missing figure ${f.value}`).toContain(f.value);
+    }
+  });
+});
+

@@ -175,6 +175,27 @@ const pct = (v: number, of: number) => Math.round((v / of) * 100);
  * the lane headings in the brief and the model rendered them verbatim into the
  * illustration, as text, which the slide then had to reject.
  */
+/**
+ * Positions in prose. The model transcribes anything that looks like a label into
+ * the picture — it rendered "LANE 1 | (5%-35%) | LANE 2" verbatim — so geometry is
+ * described without numerals or uppercase tokens.
+ */
+function region(z: { x: number; y: number; w: number; h: number }): string {
+  const cx = (z.x + z.w / 2) / W;
+  const cy = (z.y + z.h / 2) / H;
+  const horiz = z.w / W > 0.8 ? 'spanning the full width' : cx < 0.4 ? 'on the left side' : cx > 0.6 ? 'on the right side' : 'in the centre';
+  const vert = z.h / H > 0.6 ? 'from just under the heading to just above the footer' : cy < 0.4 ? 'in the upper part' : cy > 0.6 ? 'in the lower part' : 'in the middle';
+  return `${horiz}, ${vert} of the canvas, leaving the surrounding margin plain white`;
+}
+
+function ordinalLane(i: number, n: number): string {
+  const names = ['leftmost column', 'second column from the left', 'middle column', 'second column from the right', 'rightmost column'];
+  if (n === 2) return i === 0 ? 'left column' : 'right column';
+  if (n === 3) return ['left column', 'middle column', 'right column'][i];
+  if (n === 4) return ['leftmost column', 'second column from the left', 'second column from the right', 'rightmost column'][i];
+  return names[i] ?? `column ${i + 1}`;
+}
+
 function visual(spec: SlideSpec, i: number): string {
   const b = spec.visualBriefs ?? [];
   return b[i % Math.max(1, b.length)] || b[0] || "an abstract diagram of connected nodes and flows";
@@ -185,7 +206,7 @@ function zoneBrief(
   subject: string,
 ): string {
   return `COMPOSITION — this is a consulting slide. The illustration is a SUPPORTING diagram, not the hero.
-- Draw ONLY inside horizontal ${pct(zone.x, W)}%–${pct(zone.x + zone.w, W)}% and vertical ${pct(zone.y, H)}%–${pct(zone.y + zone.h, H)}% of the canvas.
+- Draw ONLY inside the area described here, in words: ${region(zone)}.
 - Everywhere else must be flat, pure WHITE (#FFFFFF). Typeset text sits there and must stay legible.
 - Subject: ${subject}
 - The diagram must be BOLD and fully realised, filling its zone edge to edge with clear shapes, icons and connectors. A sparse or near-empty zone is a failed render. Restraint applies to the PALETTE, never to how much is drawn.
@@ -530,7 +551,56 @@ export function layoutFlow(spec: SlideSpec): LayoutPlan {
   const innerW = W - M * 2;
   const laneW = innerW / n;
   const badgeD = 56;
-  const badgeY = bodyTop;
+
+  // Figure strip FIRST. Run 4: the blind reader reported 3/4 figures on all eight flow
+  // attempts, every time the same one — structurally, because this layout never placed
+  // the key figures at all. A process slide still carries the numbers behind its title.
+  const figs = spec.keyFigures.slice(0, 4);
+  const stripCell = Math.round(innerW / Math.max(1, figs.length));
+  const kpiSize = 34;
+  const capSize = 14;
+  figs.forEach((f, i) => {
+    const x = M + i * stripCell;
+    elements.push({
+      text: f.value,
+      x,
+      y: bodyTop,
+      width: stripCell - 20,
+      fontSize: kpiSize,
+      fontWeight: 700,
+      fontFamily: FONT,
+      color: SLIDE_PALETTE.accent,
+      align: "left",
+      maxLines: 1,
+      role: "kpi",
+    });
+    elements.push({
+      text: fitLabel(f.label, capSize, stripCell - 20, 1, FONT),
+      x,
+      y: bodyTop + Math.ceil(kpiSize * 1.35) + 4,
+      width: stripCell - 20,
+      fontSize: capSize,
+      fontWeight: 400,
+      fontFamily: FONT,
+      color: SLIDE_PALETTE.grey,
+      align: "left",
+      maxLines: 1,
+      role: "caption",
+    });
+  });
+  const stripH = figs.length
+    ? Math.ceil(kpiSize * 1.35) + 4 + Math.ceil(capSize * 1.35) + 30
+    : 0;
+  if (figs.length) {
+    bands.push({
+      x: M,
+      y: bodyTop + stripH - 16,
+      width: innerW,
+      height: 1,
+      color: SLIDE_PALETTE.rule,
+    });
+  }
+  const badgeY = bodyTop + stripH;
 
   steps.forEach((s, i) => {
     const lx = M + laneW * i;
@@ -616,10 +686,10 @@ export function layoutFlow(spec: SlideSpec): LayoutPlan {
   // Vignette lane band between headings and captions.
   const laneTop = badgeY + badgeD + 22 + 21 * 1.35 * 2 + 24;
   const laneBottom = bodyBottom - 15 * 1.35 * 3 - 30;
-  const laneBrief = steps.map((_, i) => `  LANE ${i + 1} (horizontal ${pct(M + laneW * i, W)}%–${pct(M + laneW * (i + 1), W)}%): ${visual(spec, i)}`)
+  const laneBrief = steps.map((_, i) => `  ${ordinalLane(i, n)}: ${visual(spec, i)}`)
     .join("\n");
-  const zones = `COMPOSITION — a consulting slide. The canvas is divided into ${n} equal vertical LANES.
-- Draw ONLY within vertical ${pct(laneTop, H)}%–${pct(laneBottom, H)}%. Everywhere else is flat, pure WHITE (#FFFFFF).
+  const zones = `COMPOSITION — a consulting slide. The canvas is divided into ${['two','three','four','five'][n - 2] ?? 'several'} equal vertical columns.
+- Draw ONLY in a horizontal band through the middle of the canvas, below the headings and above the captions; the top and bottom of the canvas stay flat, pure white.
 - One self-contained vignette per lane, centred in its lane, with a clear gutter between lanes. Never let a vignette cross into its neighbour:
 ${laneBrief}
 - Style: clean flat vector, thin consistent line weight, navy #1B3A6B and slate grey on white. No gradients, no glow, no 3D.
