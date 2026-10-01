@@ -131,7 +131,21 @@ function elementToJSX(el: TextElement) {
 
 // ── Main render function ─────────────────────────────────────
 
-export async function renderTextLayer(layout: LayoutPlan): Promise<Buffer> {
+// resvg-wasm holds one instance and is NOT re-entrant: two concurrent renders
+// panic with "recursive use of an object detected which would lead to unsafe
+// aliasing in rust". The slide loop renders four variants in parallel, which is the
+// first time this module was ever called concurrently. Serialise every render through
+// a promise chain; callers still await as before, they just take turns.
+let renderQueue: Promise<unknown> = Promise.resolve();
+
+export function renderTextLayer(layout: LayoutPlan): Promise<Buffer> {
+  const run = renderQueue.then(() => renderTextLayerUnsafe(layout));
+  // Keep the chain alive whether this render succeeds or fails.
+  renderQueue = run.catch(() => undefined);
+  return run;
+}
+
+async function renderTextLayerUnsafe(layout: LayoutPlan): Promise<Buffer> {
   await ensureWasm();
   const fonts = loadFonts();
   const start = Date.now();

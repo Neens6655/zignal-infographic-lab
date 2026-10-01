@@ -204,7 +204,7 @@ export function layoutCentered(spec: SlideSpec): LayoutPlan {
     maxLines: 1,
     role: "kpi",
   });
-  const labelY = heroY + heroSize * 1.2 + 6;
+  const labelY = heroY + Math.ceil(heroSize * 1.35) + 6;
   elements.push({
     text: fitLabel(hero.label, 22, W - M * 2, 1, FONT),
     x: M,
@@ -251,7 +251,7 @@ export function layoutCentered(spec: SlideSpec): LayoutPlan {
       elements.push({
         text: fitLabel(f.label, 15, cellW - 24, 1, FONT),
         x: x + 12,
-        y: rowY + 58,
+        y: rowY + Math.ceil(44 * 1.35) + 6,
         width: cellW - 24,
         fontSize: 15,
         fontWeight: 400,
@@ -417,7 +417,7 @@ export function layoutBoxes(spec: SlideSpec): LayoutPlan {
     elements.push({
       text: fitLabel(f.label, 15, stripCell - 20, 1, FONT),
       x,
-      y: stripY + 52,
+      y: stripY + Math.ceil(40 * 1.35) + 6,
       width: stripCell - 20,
       fontSize: 15,
       fontWeight: 400,

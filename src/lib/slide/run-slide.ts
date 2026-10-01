@@ -192,6 +192,9 @@ export async function runSlideLoop(
 
   // Once: research and spec.
   const research = await researchTopic(topic);
+  // Persist BEFORE the spec gate. When the gate rejects a figure, the question is
+  // always "was it in the research?" — and until now the research was gone by then.
+  writeFileSync(join(outDir, 'research.json'), JSON.stringify(research, null, 2));
   const { spec, attempts } = await buildSlideSpec(topic, research);
   console.log(`[slide] spec accepted after ${attempts} attempt(s)`);
   writeFileSync(join(outDir, "spec.json"), JSON.stringify(spec, null, 2));
