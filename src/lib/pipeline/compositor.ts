@@ -58,6 +58,39 @@ export async function compositeInfographic(
   return base64;
 }
 
+/**
+ * Cut a plate to its permitted rectangles. Everything outside them becomes the
+ * ground colour. This is what makes "the illustration never touches the text" a
+ * property of the pipeline rather than a request to the model — which, in run 7,
+ * drew under the key figures on every single attempt regardless of the brief.
+ */
+export async function maskPlate(
+  plateBase64: string,
+  rects: { x: number; y: number; w: number; h: number }[],
+  width: number,
+  height: number,
+  ground: string,
+): Promise<string> {
+  const plate = sharp(Buffer.from(plateBase64, 'base64')).resize(width, height, { fit: 'cover' });
+  const plateBuf = await plate.png().toBuffer();
+  const pieces: sharp.OverlayOptions[] = [];
+  for (const r of rects) {
+    const left = Math.max(0, Math.min(width - 1, Math.round(r.x)));
+    const top = Math.max(0, Math.min(height - 1, Math.round(r.y)));
+    const w = Math.max(1, Math.min(width - left, Math.round(r.w)));
+    const h = Math.max(1, Math.min(height - top, Math.round(r.h)));
+    const piece = await sharp(plateBuf).extract({ left, top, width: w, height: h }).png().toBuffer();
+    pieces.push({ input: piece, left, top });
+  }
+  const out = await sharp({
+    create: { width, height, channels: 4, background: hexToRgba(ground) },
+  })
+    .composite(pieces)
+    .png()
+    .toBuffer();
+  return out.toString('base64');
+}
+
 function hexToRgba(hex: string): { r: number; g: number; b: number; alpha: number } {
   const h = hex.replace('#', '');
   return {

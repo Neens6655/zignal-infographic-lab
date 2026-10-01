@@ -8,6 +8,7 @@
  */
 import { describe, it, expect } from "vitest";
 import { SLIDE_LAYOUTS, SLIDE_VARIANTS, layoutFlow } from "../slide-layouts";
+import { elementBox } from "../../pipeline/visual-compliance";
 import { checkVisualCompliance } from "../../pipeline/visual-compliance";
 import type { SlideSpec } from "../slide-spec";
 
@@ -78,5 +79,30 @@ describe("no band may cover the canvas", () => {
       (b) => b.color !== "transparent" && (b.width * b.height) / canvas > 0.5,
     );
     expect(offenders, JSON.stringify(offenders)).toHaveLength(0);
+  });
+});
+
+describe("illustration rectangles", () => {
+  // The guarantee that replaces "please keep the text area white": the plate is cut
+  // to these rectangles, so if none of them intersects a text box the illustration
+  // cannot touch the text. Run 7: the model drew under the key figures on every
+  // attempt of every variant.
+  it.each(SLIDE_VARIANTS)("%s: every rect is inside the canvas and clear of every text box", (v) => {
+    const plan = SLIDE_LAYOUTS[v](SPEC);
+    const rects = plan.illustrationRects ?? [];
+    expect(rects.length, "at least one rect").toBeGreaterThan(0);
+    for (const r of rects) {
+      expect(r.x).toBeGreaterThanOrEqual(0);
+      expect(r.y).toBeGreaterThanOrEqual(0);
+      expect(r.x + r.w).toBeLessThanOrEqual(plan.width);
+      expect(r.y + r.h).toBeLessThanOrEqual(plan.height);
+      expect(r.w * r.h, "rect has area").toBeGreaterThan(10000);
+      for (const el of plan.elements) {
+        if (!el.text?.trim()) continue;
+        const b = elementBox(el);
+        const hit = !(b.x2 <= r.x || r.x + r.w <= b.x1 || b.y2 <= r.y || r.y + r.h <= b.y1);
+        expect(hit, `${v}: rect ${JSON.stringify(r)} intersects "${el.text.slice(0, 30)}" ${JSON.stringify(b)}`).toBe(false);
+      }
+    }
   });
 });

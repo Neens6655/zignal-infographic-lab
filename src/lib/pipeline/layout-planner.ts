@@ -67,6 +67,12 @@ export type LayoutPlan = {
    * hides the illustration (three times, now).
    */
   textGround?: string;
+  /**
+   * Where the illustration is allowed, in pixels. The plate is CUT to these before
+   * compositing, so whatever the model draws elsewhere never reaches the slide.
+   * Prose in `illustrationZones` asks; these rectangles enforce.
+   */
+  illustrationRects?: { x: number; y: number; w: number; h: number }[];
 };
 
 /**

@@ -182,7 +182,11 @@ export async function gradeAgainstSpec(
 A reader who saw only the slide (no other context) summarised it as:
   READ: "${extraction.claim}"
 
-Does the READ summary convey the same conclusion as the INTENDED claim — same subject, same direction, same magnitude if one is stated? Minor wording differences are fine; a different conclusion, a missing direction, or a vague topic-only summary ("this is about data centres") is NOT a match.
+Does the READ summary convey the INTENDED conclusion — same subject, same direction, and the same magnitude if one is stated?
+
+MATCH if the reader got the conclusion, even if they ALSO mention supporting detail from the rest of the slide (drivers, other markets, operators, evidence). A slide carries evidence; a reader who absorbs it is reading well, not wrongly. Extra information is never a reason to fail.
+
+NO MATCH only if the conclusion itself is missing, reversed, or vague: a different subject, the opposite direction, a materially different magnitude, or a topic-only summary ("this is about data centres") with no conclusion.
 
 Answer as JSON: {"matches": true/false, "reasoning": "one sentence"}`,
       },

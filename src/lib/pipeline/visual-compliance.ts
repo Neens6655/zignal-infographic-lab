@@ -145,7 +145,7 @@ function overlaps(
 }
 
 /** The opaque band a text element sits on, if any. Later bands paint over earlier. */
-function backingBand(el: TextElement, bands: Band[]): Band | undefined {
+export function backingBand(el: TextElement, bands: Band[]): Band | undefined {
   const box = elementBox(el);
   const cx = (box.x1 + box.x2) / 2;
   const cy = (box.y1 + box.y2) / 2;

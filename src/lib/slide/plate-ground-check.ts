@@ -7,7 +7,7 @@
  */
 import sharp from "sharp";
 import type { LayoutPlan } from "../pipeline/layout-planner";
-import { elementBox } from "../pipeline/visual-compliance";
+import { elementBox, backingBand } from "../pipeline/visual-compliance";
 import { avgCharWidth } from "../pipeline/layout-planner";
 
 /**
@@ -52,6 +52,8 @@ export async function checkPlateGround(
   const offenders: GroundReport["offenders"] = [];
   for (const el of plan.elements) {
     if (!el.text?.trim()) continue;
+    // Text on an opaque band (a step badge, a card) does not rely on the ground.
+    if (backingBand(el, plan.bands ?? [])) continue;
     const b = inkBox(el);
     const x1 = Math.max(0, Math.floor(b.x1));
     const y1 = Math.max(0, Math.floor(b.y1));

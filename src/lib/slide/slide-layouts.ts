@@ -162,7 +162,9 @@ function chrome(spec: SlideSpec): Ctx {
   return { bands, elements, bodyTop, bodyBottom: sourceY - 40 };
 }
 
-function finish(ctx: Ctx, illustrationZones: string): LayoutPlan {
+type Rect = { x: number; y: number; w: number; h: number };
+
+function finish(ctx: Ctx, illustrationZones: string, rects: Rect[]): LayoutPlan {
   return {
     width: W,
     height: H,
@@ -171,6 +173,12 @@ function finish(ctx: Ctx, illustrationZones: string): LayoutPlan {
     illustrationZones,
     backgroundColor: SLIDE_PALETTE.background,
     textGround: SLIDE_PALETTE.background,
+    illustrationRects: rects.map((r) => ({
+      x: Math.round(r.x),
+      y: Math.round(r.y),
+      w: Math.round(r.w),
+      h: Math.round(r.h),
+    })),
   };
 }
 
@@ -212,10 +220,12 @@ function zoneBrief(
   zone: { x: number; y: number; w: number; h: number },
   subject: string,
 ): string {
-  return `COMPOSITION — this is a consulting slide. The illustration is a SUPPORTING diagram, not the hero.
+  return `DRAW EXACTLY THIS: ${subject}
+Draw that and nothing else — no generic server-cloud-chip process art, no decorative extras. The picture must show the comparison or relationship in the subject line so clearly that a viewer could describe it back without being told.
+
+COMPOSITION — this is a consulting slide. The illustration is a SUPPORTING diagram, not the hero.
 - Draw ONLY inside the area described here, in words: ${region(zone)}.
 - Everywhere else must be flat, pure WHITE (#FFFFFF). Typeset text sits there and must stay legible.
-- Subject: ${subject}
 - The diagram must be BOLD and fully realised, filling its zone edge to edge with clear shapes, icons and connectors. A sparse or near-empty zone is a failed render. Restraint applies to the PALETTE, never to how much is drawn.
 - Style: clean flat vector, thin consistent line weight, restrained palette of navy #1B3A6B, slate grey and one muted accent on white. No gradients, no glow, no 3D, no photographic texture. Think: a diagram from a McKinsey or BCG report.
 ABSOLUTELY NO TEXT, LABELS, NUMBERS, OR LETTERS OF ANY KIND — the slide's own typesetting provides every word.`;
@@ -317,6 +327,7 @@ export function layoutCentered(spec: SlideSpec): LayoutPlan {
       zone,
       `a wide, low horizontal diagram: ${visual(spec, 0)}`,
     ),
+    [zone],
   );
 }
 
@@ -426,6 +437,7 @@ export function layoutAcross(spec: SlideSpec): LayoutPlan {
       zone,
       `a compact diagram: ${visual(spec, 1)}`,
     ),
+    [zone],
   );
 }
 
@@ -542,6 +554,7 @@ export function layoutBoxes(spec: SlideSpec): LayoutPlan {
       zone,
       `a vertical diagram: ${visual(spec, 2)}`,
     ),
+    [zone],
   );
 }
 
@@ -701,7 +714,13 @@ export function layoutFlow(spec: SlideSpec): LayoutPlan {
 ${laneBrief}
 - Style: clean flat vector, thin consistent line weight, navy #1B3A6B and slate grey on white. No gradients, no glow, no 3D.
 ABSOLUTELY NO TEXT, LABELS, NUMBERS, OR LETTERS OF ANY KIND.`;
-  return finish(ctx, zones);
+  const laneRects: Rect[] = steps.map((_, i) => ({
+    x: M + laneW * i + 16,
+    y: laneTop,
+    w: laneW - 32,
+    h: laneBottom - laneTop,
+  }));
+  return finish(ctx, zones, laneRects);
 }
 
 export const SLIDE_LAYOUTS: Record<SlideVariant, (s: SlideSpec) => LayoutPlan> =
