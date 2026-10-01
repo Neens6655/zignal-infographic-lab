@@ -23,6 +23,7 @@ import {
   type ClaimLedger,
 } from "../research/ledger";
 import type { ResearchResult } from "../pipeline/types";
+import { extractNumericalClaims } from "../research/verify";
 
 export type KeyFigure = { value: string; label: string };
 export type Evidence = { heading: string; body: string };
@@ -85,6 +86,23 @@ export function checkActionTitle(title: string): string[] {
       `only ${words.length} words — a conclusion needs a subject, a verb and a consequence`,
     );
   return problems;
+}
+
+
+/**
+ * Is a figure, as the model wrote it, present in the ledger?
+ *
+ * The ledger stores values AFTER `extractNumericalClaims` — "$30 billion" becomes
+ * 30000000000. Matching the raw digit core "30" against that is a guaranteed miss, and
+ * it rejected a correctly sourced ">$30 billion" on the first live run. Run the figure
+ * through the SAME extractor the ledger used, then compare like with like. A bare
+ * number with no unit still gets a direct check.
+ */
+async function figureIsGrounded(ledger: ClaimLedger, raw: string): Promise<boolean> {
+  const claims = await extractNumericalClaims(String(raw));
+  if (claims.some((c: { value: string }) => isGrounded(ledger, c.value))) return true;
+  const core = String(raw).match(/\d[\d,.]*/)?.[0];
+  return !!core && isGrounded(ledger, core);
 }
 
 // ── Structurer ────────────────────────────────────────────────────────
