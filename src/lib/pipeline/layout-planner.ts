@@ -250,6 +250,27 @@ export function fitText(
   return null;
 }
 
+/**
+ * Walk a ladder of (fontSize, maxLines) and return the first rung where the text
+ * fits WITHOUT an ellipsis; if none does, the last rung's best effort. The slide
+ * layouts had fixed budgets and the compliance gate rightly refused a flow whose lane
+ * bodies all ended in "…" — but the gate can only refuse; this is what yields.
+ */
+export function fitTextLadder(
+  text: string,
+  ladder: { fontSize: number; maxLines: number }[],
+  widthPx: number,
+  family: TextElement["fontFamily"] = "Arial",
+): { text: string; fontSize: number; maxLines: number } {
+  let last = { text: text.trim(), ...ladder[ladder.length - 1] };
+  for (const rung of ladder) {
+    const t = fitText(text, rung.fontSize, widthPx, rung.maxLines, family);
+    if (t && !t.endsWith("…")) return { text: t, ...rung };
+    if (t) last = { text: t, ...rung };
+  }
+  return last;
+}
+
 /** Headings and labels must never be dropped, so they fall back to a hard clamp. */
 export function fitLabel(
   text: string,

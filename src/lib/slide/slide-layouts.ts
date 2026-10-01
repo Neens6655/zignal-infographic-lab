@@ -18,6 +18,7 @@
 import type { SlideSpec } from "./slide-spec";
 import {
   fitLabel,
+  fitTextLadder,
   fitText,
   estimateTextHeight,
   type LayoutPlan,
@@ -596,6 +597,24 @@ export function layoutFlow(spec: SlideSpec): LayoutPlan {
   }
   const badgeY = bodyTop + stripH;
 
+  // Lane bodies: the tallest rung any lane needs sets the block height for all, so
+  // the captions align and the vignette band above them yields exactly that room.
+  const BODY_LADDER = [
+    { fontSize: 15, maxLines: 3 },
+    { fontSize: 14, maxLines: 4 },
+    { fontSize: 14, maxLines: 5 },
+  ];
+  const laneTextW = Math.round(laneW - 40);
+  const bodyBlockH = Math.max(
+    ...steps.map((_, i) => {
+      const ev = spec.evidence[i];
+      if (!ev) return 0;
+      const f = fitTextLadder(ev.body, BODY_LADDER, laneTextW, FONT);
+      return Math.ceil(f.fontSize * 1.35 * f.maxLines);
+    }),
+    Math.ceil(15 * 1.35 * 3),
+  );
+
   steps.forEach((s, i) => {
     const lx = M + laneW * i;
     const cx = Math.round(lx + laneW / 2);
@@ -658,29 +677,27 @@ export function layoutFlow(spec: SlideSpec): LayoutPlan {
     });
     const ev = spec.evidence[i];
     if (ev) {
-      const body = fitText(ev.body, 15, textW, 3, FONT);
-      if (body) {
-        elements.push({
-          text: body,
-          x: lx + 20,
-          y: bodyBottom - 15 * 1.35 * 3 - 10,
-          width: textW,
-          fontSize: 15,
-          fontWeight: 400,
-          fontFamily: FONT,
-          color: SLIDE_PALETTE.grey,
-          align: "center",
-          maxLines: 3,
-          role: "body",
-        });
-      }
+      const fit = fitTextLadder(ev.body, BODY_LADDER, textW, FONT);
+      elements.push({
+        text: fit.text,
+        x: lx + 20,
+        y: bodyBottom - bodyBlockH - 10,
+        width: textW,
+        fontSize: fit.fontSize,
+        fontWeight: 400,
+        fontFamily: FONT,
+        color: SLIDE_PALETTE.grey,
+        align: "center",
+        maxLines: fit.maxLines,
+        role: "body",
+      });
     }
   });
 
   // Vignette lane band between headings and captions: one plate per lane, each
   // fitted inside its own rectangle, so no vignette can cross into its neighbour.
   const laneTop = badgeY + badgeD + 22 + 21 * 1.35 * 2 + 24;
-  const laneBottom = bodyBottom - 15 * 1.35 * 3 - 30;
+  const laneBottom = bodyBottom - bodyBlockH - 30;
   const laneRects: Rect[] = steps.map((_, i) => ({
     x: M + laneW * i + 16,
     y: laneTop,

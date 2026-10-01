@@ -114,3 +114,20 @@ describe("one brief per rect", () => {
     for (const b of plan.illustrationBriefs ?? []) expect(b).toContain("DRAW EXACTLY THIS");
   });
 });
+
+describe("flow bodies never end in an ellipsis (run 9 blocker)", () => {
+  it("fits the run-9 sentences by stepping down the ladder", () => {
+    const bodies: string[] = ["The Kingdom’s official national objective is to reach approximately 1.5 GW of data-centre capacity by 2030, driving a large-scale construction pipeline.","The UAE is the current regional hub with over 400 MW of operational capacity, representing more than 45% of total GCC IT power.","Publicly announced AI-related data-centre investments across the GCC exceed $30 billion through 2030, fueling development of purpose-built, high-density facilities.","A concentrated group of large operators including Khazna, center3, and DataVolt lead capacity expansion, though announced projects often precede operational commissioning."];
+    const spec = {
+      ...SPEC,
+      steps: [],
+      evidence: bodies.map((body, i) => ({ heading: `Point ${i + 1}`, body })),
+    };
+    const plan = layoutFlow(spec);
+    const lane = plan.elements.filter((e) => e.role === "body");
+    expect(lane.length).toBe(4);
+    for (const e of lane) expect(e.text.endsWith("…"), e.text).toBe(false);
+    const c = checkVisualCompliance(plan);
+    expect(c.passed, JSON.stringify(c.issues)).toBe(true);
+  });
+});
