@@ -98,7 +98,7 @@ export function checkActionTitle(title: string): string[] {
  * through the SAME extractor the ledger used, then compare like with like. A bare
  * number with no unit still gets a direct check.
  */
-async function figureIsGrounded(ledger: ClaimLedger, raw: string): Promise<boolean> {
+export async function figureIsGrounded(ledger: ClaimLedger, raw: string): Promise<boolean> {
   const claims = await extractNumericalClaims(String(raw));
   if (claims.some((c: { value: string }) => isGrounded(ledger, c.value))) return true;
   const core = String(raw).match(/\d[\d,.]*/)?.[0];
